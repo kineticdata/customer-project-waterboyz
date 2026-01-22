@@ -69,7 +69,7 @@ jobs:
 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/momentum-portal-github-oidc
+          role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/${{ steps.repo_name.outputs.REPO_NAME }}-github-oidc
           aws-region: us-east-1
 
       # Setup Node
