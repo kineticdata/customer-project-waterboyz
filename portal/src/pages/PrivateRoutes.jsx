@@ -6,6 +6,8 @@ import { Requests } from './tickets/requests/Requests.jsx';
 import { Form } from './forms/Form.jsx';
 import { Profile } from './profile/Profile.jsx';
 import { SettingsRouting } from './settings/index.jsx';
+import { Projects } from './projects/Projects.jsx';
+
 import { Header } from '../components/header/Header.jsx';
 import { SearchModal } from '../components/search/SearchModal.jsx';
 import { Theme } from './theme/index.jsx';
@@ -58,6 +60,7 @@ export const PrivateRoutes = () => {
               {/* Portal routes */}
               <Route path="/actions/*" element={<Actions />} />
               <Route path="/requests/*" element={<Requests />} />
+              <Route path="/projects/*" element={<Projects />} />
               <Route
                 path="/forms/:formSlug/:submissionId?"
                 element={<Form />}

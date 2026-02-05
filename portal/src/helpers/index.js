@@ -1,4 +1,4 @@
-import { formatDistance } from 'date-fns';
+import { formatDistance, format } from 'date-fns';
 
 /******************************************************************************
  * General helper functions
@@ -47,6 +47,11 @@ export const valuesFromQueryParams = queryParams => {
 
 export const timeAgo = date =>
   formatDistance(date, new Date(), { addSuffix: true });
+
+export const formatDate = (date, dateFormat = "MM/dd/yyyy") =>{
+  return format(date, dateFormat);
+}
+  
 
 /**
  * Validates email address using regex.

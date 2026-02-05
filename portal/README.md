@@ -1,9 +1,10 @@
-# Momentum Portal - Front End Code
+# Customer Project Waterboyz
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
-[![@KineticData KineticData](https://img.shields.io/badge/GitHub%20-KineticData-lightgrey.svg?style=flat-square)](https://github.com/kineticdata/momentum-portal)
+This repo contains all configurations and front-end portal code for the Waterboyz project. 
 
-The Momentum Portal is a fully-functional demo that brings the capabilities of the Kinetic Experience Platform to life. This codebase implements the Momentum Portal.
+Waterboyz is a non-profit organization that feeds and supports families in need of help. The portal enables people to nominate families for help (projects around their home as well as for sponsorship for christams gifts and food during the holidays).
+
+The esential function of the project is to map volunteers with families in need and coordinate projects and events.
 
 ## Table of Contents
 
@@ -17,7 +18,7 @@ The Momentum Portal is a fully-functional demo that brings the capabilities of t
 ### Clone the Repository
 
 ```
-git clone https://github.com/kineticdata/momentum-portal
+git clone https://github.com/kineticdata/customer-project-waterboyz
 ```
 
 The front end code can be found in the `portal` directory of the repo.

@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import logo from '../../assets/images/logo.svg';
+import logo from '../../assets/images/logo.png';
 import { Icon } from '../../atoms/Icon.jsx';
 import { HeaderPortal } from './HeaderPortal.jsx';
 import { Avatar } from '../../atoms/Avatar.jsx';
@@ -47,6 +47,7 @@ const getMenuItems = profile =>
         { label: 'Submit a Request', onClick: () => openSearch() },
         { label: 'Check Status', to: '/requests' },
         { label: 'My Work', to: '/actions' },
+        { label: 'Projects', to: '/projects' },
       ],
     },
     profile?.spaceAdmin && {

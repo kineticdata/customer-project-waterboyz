@@ -5,11 +5,11 @@ import { Panel } from '../../atoms/Panel.jsx';
 import { Popover } from '../../atoms/Popover.jsx';
 import { ChipButton } from '../../atoms/Button.jsx';
 import t from 'prop-types';
-import { StatusDot } from './StatusPill.jsx';
+import { StatusDot } from '../../components/tickets/StatusPill.jsx';
 import { Icon } from '../../atoms/Icon.jsx';
 import clsx from 'clsx';
 
-export const TicketFilters = ({ type, filters, setFilters }) => {
+export const ProjectFilters = ({ type, filters, setFilters }) => {
   const mobile = useSelector(state => state.view.mobile);
 
   // Handler for changing individual filter values
@@ -94,15 +94,6 @@ export const TicketFilters = ({ type, filters, setFilters }) => {
                   onClick={handleFilterChange('assignment', 'mine', false)}
                 >
                   Me
-                </ChipButton>
-              )}
-              {filters.assignment.teams && (
-                <ChipButton
-                  active={true}
-                  icon="x"
-                  onClick={handleFilterChange('assignment', 'teams', false)}
-                >
-                  My teams
                 </ChipButton>
               )}
             </div>
@@ -201,17 +192,6 @@ export const TicketFilters = ({ type, filters, setFilters }) => {
                 >
                   Me
                 </ChipButton>
-                <ChipButton
-                  active={tempFilters.assignment.teams}
-                  icon={tempFilters.assignment.teams ? 'check' : null}
-                  onClick={handleTempFilterChange(
-                    'assignment',
-                    'teams',
-                    !tempFilters.assignment.teams,
-                  )}
-                >
-                  My teams
-                </ChipButton>
               </div>
             </div>
           )}
@@ -275,8 +255,8 @@ export const TicketFilters = ({ type, filters, setFilters }) => {
   );
 };
 
-TicketFilters.propTypes = {
-  type: t.oneOf(['actions', 'requests', 'projects']).isRequired,
+ProjectFilters.propTypes = {
+  type: t.oneOf(['projects']).isRequired,
   filters: t.object.isRequired,
   setFilters: t.func.isRequired,
 };

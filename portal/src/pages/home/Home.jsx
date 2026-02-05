@@ -44,13 +44,13 @@ export const Home = () => {
                   to="/requests"
                   className="kbtn kbtn-outline kbtn-base kbtn-xl flex-1"
                 >
-                  Check Status
+                  My Requests
                 </Link>
                 <Link
                   to="/actions"
                   className="kbtn kbtn-outline kbtn-base kbtn-xl flex-1"
                 >
-                  See My Work
+                  My Actions
                 </Link>
               </>
             ) : (
