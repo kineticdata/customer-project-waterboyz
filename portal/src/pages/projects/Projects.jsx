@@ -5,7 +5,6 @@ import { defineKqlQuery, searchSubmissions } from '@kineticdata/react';
 import { ProjectsList } from './ProjectsList.jsx';
 import { Project } from './project/Project.jsx';
 import { usePaginatedData } from '../../helpers/hooks/usePaginatedData.js';
-import { ProjectCaptain } from './ProjectCaptain.jsx';
 
 const buildProjectsSearch = (profile, filters) => {
   // Start query builder
@@ -70,7 +69,6 @@ export const Projects = () => {
 
   return (
     <Routes>
-      <Route path=":submissionId/captain" element={<ProjectCaptain />} />
       <Route
         path=":submissionId/*"
         element={<Project />}

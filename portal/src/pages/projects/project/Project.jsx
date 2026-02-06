@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  Link,
   NavLink,
   Navigate,
   Route,
@@ -22,15 +23,17 @@ import { ProjectDetails } from './ProjectDetails.jsx';
 import { ProjectExpenses } from './ProjectExpenses.jsx';
 import { ProjectNotes } from './ProjectNotes.jsx';
 import { ProjectPhotos } from './ProjectPhotos.jsx';
+import { ProjectTasks } from './ProjectTasks.jsx';
 import { Volunteers } from './Volunteers.jsx';
 
 const navItems = [
   { label: 'Family Information', to: 'family' },
   { label: 'Volunteers', to: 'volunteers' },
-  { label: 'Project Notes', to: 'notes' },
-  { label: 'Project Expenses', to: 'expenses' },
-  { label: 'Project Details', to: 'details' },
-  { label: 'Project Photos', to: 'photos' },
+  { label: 'Notes', to: 'notes' },
+  { label: 'Tasks', to: 'tasks' },
+  { label: 'Expenses', to: 'expenses' },
+  { label: 'Details', to: 'details' },
+  { label: 'Photos', to: 'photos' },
 ];
 
 export const Project = () => {
@@ -52,7 +55,7 @@ export const Project = () => {
     () => ({
       id: submissionId,
       include:
-        'activities,activities.details,details,form.attributesMap[Icon],values',
+        'activities,activities.details,details,form.attributesMap[Icon],form.pages,values,values.raw',
     }),
     [submissionId],
   );
@@ -169,18 +172,26 @@ export const Project = () => {
           title={data?.label || 'Project'}
           backTo={backTo}
           className="flex-wrap"
+          before={
+            mobile ? (
+              <Link
+                className="kbtn kbtn-ghost kbtn-sm kbtn-circle"
+                to={backTo}
+                aria-label="Back to projects"
+              >
+                <Icon name="arrow-left" />
+              </Link>
+            ) : null
+          }
         >
-          <div className="text-sm text-base-content/70">
-            Project Captain View
-          </div>
         </PageHeading>
 
-        <div className="mt-4 grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
+        <div className="mt-4 gap-6 lg:grid lg:grid-cols-[240px_minmax(0,1fr)]">
           {mobile ? (
             <Panel open={navOpen} onOpenChange={({ open }) => setNavOpen(open)}>
               <button
                 type="button"
-                className="kbtn kbtn-alert w-full justify-between"
+                className="kbtn kbtn-alert w-full justify-between mb-3"
                 slot="trigger"
               >
                 {activeLabel}
@@ -285,6 +296,10 @@ export const Project = () => {
                 }
               />
               <Route
+                path="tasks"
+                element={<ProjectTasks project={data} reloadProject={reloadProject} />}
+              />
+              <Route
                 path="expenses"
                 element={
                   <ProjectExpenses
@@ -314,6 +329,7 @@ export const Project = () => {
                     family={family}
                     familyRecord={familyRecord}
                     familyLoading={familyLoading}
+                    reloadProject={reloadProject}
                   />
                 }
               />

@@ -21,7 +21,7 @@
 
 /* Utility for logo sizing */
 @utility logo {
-  @apply max-w-50 object-contain;
+  @apply max-w-35 object-contain;
 }
 
 /* Utilities for icon boxes */

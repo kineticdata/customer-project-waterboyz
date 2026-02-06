@@ -50,13 +50,8 @@ export const ProjectNotes = ({ project, reloadProject }) => {
   }, [project?.id, notes, reloadProject]);
 
   return (
-    <div className="rounded-box border bg-base-100 p-6">
-      <div className="text-lg font-semibold">Project Notes</div>
-      <p className="mt-2 text-base-content/70">
-        Captain notes and updates for this project.
-      </p>
-
-      <div className="mt-4 rounded-box border bg-base-100 p-2">
+    <div className="rounded-box">
+      <div className="">
         <Editor
           ref={editorRef}
           height="auto"

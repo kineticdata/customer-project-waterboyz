@@ -9,9 +9,10 @@ import { validateEmail } from '../../helpers/index.js';
 import { appActions } from '../../helpers/state.js';
 import { toastError, toastSuccess } from '../../helpers/toasts.js';
 import { PageHeading } from '../../components/PageHeading.jsx';
+import { KineticForm } from '../../components/kinetic-form/KineticForm.jsx';
 
 export const Profile = () => {
-  const { profile } = useSelector(state => state.app);
+  const { profile, kappSlug } = useSelector(state => state.app);
   const [newPassword, setNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showChangedPassword, setShowChangedPassword] = useState(false);
@@ -24,6 +25,12 @@ export const Profile = () => {
   });
   const [volunteerId] = useState(getAttributeValue(profile, "Volunteer Id"));
   const isVolunteer = volunteerId ? "true" : "false";
+  const [showVolunteerForm, setShowVolunteerForm] = useState(false);
+  const [activeTab, setActiveTab] = useState('account');
+
+  const handleVolunteerSaved = useCallback(() => {
+    toastSuccess({ title: 'Volunteer profile saved.' });
+  }, []);
 
   const saveProfile = useCallback(
     async e => {
@@ -81,105 +88,167 @@ export const Profile = () => {
           <div className="flex-cc mb-4">
             <Avatar username={profile.username} size="2xl" />
           </div>
-          <form className="flex-c-st gap-6 w-full pb-6">
-            <div
-              className={clsx('field required', {
-                'has-error': validationErrors.newEmail,
-              })}
-            >
-                <p>Is Volunteer: {isVolunteer}</p>
-              <label htmlFor="email">Email</label>
-              <input
-                id="email"
-                type="text"
-                name="email"
-                required={true}
-                value={newEmail}
-                onChange={e => setNewEmail(e.target.value)}
-              />
-              {validationErrors.newEmail && (
-                <p className="flex-sc gap-2 text-base-content/60">
-                  <span className="kstatus kstatus-error"></span>
-                  {validationErrors.newEmail}
-                </p>
+          <div className="flex flex-wrap gap-2 w-full">
+            <button
+              type="button"
+              className={clsx(
+                'kbtn kbtn-sm',
+                activeTab === 'account' ? 'kbtn-neutral' : 'kbtn-ghost',
               )}
-            </div>
-            <div
-              className={clsx('field required', {
-                'has-error': validationErrors.newDisplayName,
-              })}
+              onClick={() => setActiveTab('account')}
             >
-              <label htmlFor="displayName">Display Name</label>
-              <input
-                id="displayName"
-                type="text"
-                name="displayName"
-                required={true}
-                value={newDisplayName}
-                onChange={e => setNewDisplayName(e.target.value)}
-              />
-              {validationErrors.newDisplayName && (
-                <p className="flex-sc gap-2 text-base-content/60">
-                  <span className="kstatus kstatus-error"></span>
-                  {validationErrors.newDisplayName}
-                </p>
+              Account Info
+            </button>
+            <button
+              type="button"
+              className={clsx(
+                'kbtn kbtn-sm',
+                activeTab === 'volunteer' ? 'kbtn-neutral' : 'kbtn-ghost',
               )}
-            </div>
-            {showChangedPassword && (
+              onClick={() => setActiveTab('volunteer')}
+            >
+              Volunteer Profile
+            </button>
+          </div>
+
+          {activeTab === 'account' && (
+            <form className="flex-c-st gap-6 w-full pb-6">
               <div
                 className={clsx('field required', {
-                  'has-error': validationErrors.newPassword,
+                  'has-error': validationErrors.newEmail,
                 })}
               >
-                <label htmlFor="password">Password</label>
-                <div className="relative">
-                  <input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    name="password"
-                    required={true}
-                    value={newPassword}
-                    onChange={e => setNewPassword(e.target.value)}
-                    className="pr-12"
-                  />
-                  <button
-                    type="button"
-                    className="kbtn kbtn-ghost kbtn-xs kbtn-circle absolute right-3 top-2 z-1"
-                    onClick={() => setShowPassword(prev => !prev)}
-                    aria-label={`${showPassword ? 'Hide Password' : 'Show Password'}`}
-                  >
-                    <Icon name={showPassword ? 'eye-off' : 'eye'} />
-                  </button>
-                </div>
-                {validationErrors.newPassword && (
+                <label htmlFor="email">Email</label>
+                <input
+                  id="email"
+                  type="text"
+                  name="email"
+                  required={true}
+                  value={newEmail}
+                  onChange={e => setNewEmail(e.target.value)}
+                />
+                {validationErrors.newEmail && (
                   <p className="flex-sc gap-2 text-base-content/60">
                     <span className="kstatus kstatus-error"></span>
-                    {validationErrors.newPassword}
+                    {validationErrors.newEmail}
                   </p>
                 )}
               </div>
-            )}
-            <button
-              type="button"
-              className="kbtn kbtn-ghost kbtn-xs self-end -mt-3"
-              onClick={() => setShowChangedPassword(!showChangedPassword)}
-            >
-              {showChangedPassword === false ? 'Change Password' : 'Cancel'}
-            </button>
+              <div
+                className={clsx('field required', {
+                  'has-error': validationErrors.newDisplayName,
+                })}
+              >
+                <label htmlFor="displayName">Display Name</label>
+                <input
+                  id="displayName"
+                  type="text"
+                  name="displayName"
+                  required={true}
+                  value={newDisplayName}
+                  onChange={e => setNewDisplayName(e.target.value)}
+                />
+                {validationErrors.newDisplayName && (
+                  <p className="flex-sc gap-2 text-base-content/60">
+                    <span className="kstatus kstatus-error"></span>
+                    {validationErrors.newDisplayName}
+                  </p>
+                )}
+              </div>
+              {showChangedPassword && (
+                <div
+                  className={clsx('field required', {
+                    'has-error': validationErrors.newPassword,
+                  })}
+                >
+                  <label htmlFor="password">Password</label>
+                  <div className="relative">
+                    <input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      name="password"
+                      required={true}
+                      value={newPassword}
+                      onChange={e => setNewPassword(e.target.value)}
+                      className="pr-12"
+                    />
+                    <button
+                      type="button"
+                      className="kbtn kbtn-ghost kbtn-xs kbtn-circle absolute right-3 top-2 z-1"
+                      onClick={() => setShowPassword(prev => !prev)}
+                      aria-label={`${showPassword ? 'Hide Password' : 'Show Password'}`}
+                    >
+                      <Icon name={showPassword ? 'eye-off' : 'eye'} />
+                    </button>
+                  </div>
+                  {validationErrors.newPassword && (
+                    <p className="flex-sc gap-2 text-base-content/60">
+                      <span className="kstatus kstatus-error"></span>
+                      {validationErrors.newPassword}
+                    </p>
+                  )}
+                </div>
+              )}
+              <button
+                type="button"
+                className="kbtn kbtn-ghost kbtn-xs self-end -mt-3"
+                onClick={() => setShowChangedPassword(!showChangedPassword)}
+              >
+                {showChangedPassword === false ? 'Change Password' : 'Cancel'}
+              </button>
 
-            <button
-              type="submit"
-              className="kbtn kbtn-primary kbtn-lg w-70 self-center mt-6"
-              onClick={saveProfile}
-              disabled={
-                profile.email === newEmail &&
-                profile.displayName === newDisplayName &&
-                !showChangedPassword
-              }
-            >
-              Save
-            </button>
-          </form>
+              <button
+                type="submit"
+                className="kbtn kbtn-primary kbtn-lg w-70 self-center mt-6"
+                onClick={saveProfile}
+                disabled={
+                  profile.email === newEmail &&
+                  profile.displayName === newDisplayName &&
+                  !showChangedPassword
+                }
+              >
+                Save
+              </button>
+            </form>
+          )}
+
+          {activeTab === 'volunteer' && (
+            <div>
+              <div className="mt-4">
+                {volunteerId ? (
+                  <KineticForm
+                    kappSlug={kappSlug}
+                    formSlug="volunteers"
+                    submissionId={volunteerId}
+                    created={handleVolunteerSaved}
+                    updated={handleVolunteerSaved}
+                  />
+                ) : showVolunteerForm ? (
+                  <KineticForm
+                    kappSlug={kappSlug}
+                    formSlug="volunteers"
+                    created={handleVolunteerSaved}
+                    values={
+                      {
+                        "Username": profile.username,
+                        "First Name": profile.displayName.split(" ")[0],
+                        "Last Name": profile.displayName.split(" ")[1],
+                        "Email Address": profile.email
+                      }
+                    }
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    className="kbtn kbtn-primary"
+                    onClick={() => setShowVolunteerForm(true)}
+                  >
+                    Sign up to become a volunteer
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
           <hr />
           <div className="flex-c-st gap-6 w-full">
             <a

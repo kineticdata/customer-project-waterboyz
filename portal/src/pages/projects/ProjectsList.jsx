@@ -1,6 +1,7 @@
 import clsx from 'clsx';
+import { useEffect } from 'react';
 import { ProjectFilters } from './ProjectFilters.jsx';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Error } from '../../components/states/Error.jsx';
 import { Loading } from '../../components/states/Loading.jsx';
 import { PageHeading } from '../../components/PageHeading.jsx';
@@ -8,8 +9,13 @@ import { Icon } from '../../atoms/Icon.jsx';
 
 export const ProjectsList = ({ listData, listActions, filters, setFilters }) => {
   const { initialized, error, loading, data, pageNumber } = listData;
-  const { nextPage, previousPage } = listActions;
+  const { nextPage, previousPage, reloadPage } = listActions;
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    reloadPage?.();
+  }, [location.key, reloadPage]);
 
   const formatValue = value => {
     if (value === null || value === undefined || value === '') return '—';
@@ -82,7 +88,7 @@ export const ProjectsList = ({ listData, listActions, filters, setFilters }) => 
                                 </Link>
                               </td>
                               <td className="px-4 py-3">
-                                {formatValue(status)}
+                                {status}
                               </td>
                               <td className="px-4 py-3">{projectLead}</td>
                             </tr>

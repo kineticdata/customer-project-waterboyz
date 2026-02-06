@@ -18,13 +18,19 @@ import { Modal } from '../../../atoms/Modal.jsx';
 const RELATIONSHIP_FORM = 'swat-project-volunteers';
 const VOLUNTEERS_FORM = 'volunteers';
 const FIELD_PROJECT_ID = 'Project ID';
+const FIELD_USERNAME = 'Username';
 const FIELD_VOLUNTEER_ID = 'Volunteer ID';
 const FIELD_PRESENT = 'Present';
 const FIELD_FIRST_NAME = 'First Name';
 const FIELD_LAST_NAME = 'Last Name';
 const FIELD_EMAIL = 'Email Address';
 const FIELD_PHONE = 'Phone Number';
+const FIELD_SKILL_AREAS = 'Skill Areas';
+const FIELD_TOOLS = 'Tools';
+const FIELD_BIO = 'Bio';
 
+// Build the KQL search used by the typeahead to find volunteers by last name.
+// We keep this narrow for performance and predictable ordering.
 const buildVolunteerSearch = term => {
   const search = defineKqlQuery();
   search.startsWith(`values[${FIELD_LAST_NAME}]`, 'term');
@@ -37,6 +43,7 @@ const buildVolunteerSearch = term => {
   };
 };
 
+// Build the KQL search to list volunteers already associated to a project.
 const buildVolunteersSearch = projectId => {
   const search = defineKqlQuery();
   search.equals(`values[${FIELD_PROJECT_ID}]`, 'projectId');
@@ -49,14 +56,18 @@ const buildVolunteersSearch = projectId => {
   };
 };
 
+// Prefer the business ID when present, otherwise fall back to the submission id.
 const getVolunteerIdFromSubmission = submission =>
   submission?.values?.[FIELD_VOLUNTEER_ID] || submission?.id;
 
+// Render a display name from the volunteer values.
 const formatVolunteerName = values =>
   [values?.[FIELD_FIRST_NAME], values?.[FIELD_LAST_NAME]]
     .filter(Boolean)
     .join(' ');
 
+// Normalize phone numbers into a consistent +E.164-ish format for SMS links.
+// This ensures downstream SMS URIs are stable and deduplicated correctly.
 const normalizePhone = phone => {
   if (!phone) return '';
   let digits = String(phone).replace(/[^\d+]/g, '');
@@ -70,6 +81,8 @@ const normalizePhone = phone => {
   return digits;
 };
 
+// Build a platform-appropriate sms: link (iOS/macOS require sms://open).
+// Caller supplies the user agent to keep this function pure/testable.
 const buildSmsHref = (phones, userAgent) => {
   if (!phones?.length) return '';
   const ua = userAgent || '';
@@ -85,6 +98,8 @@ const buildSmsHref = (phones, userAgent) => {
   return `sms:${phones.join(defaultSeparator)}`;
 };
 
+// Resolve the volunteer values from the details map, with fallback lookups
+// for the possible id formats stored in relationship submissions.
 const getVolunteerValues = (submission, volunteerDetails) => {
   const id = getVolunteerIdFromSubmission(submission);
   return (
@@ -95,32 +110,49 @@ const getVolunteerValues = (submission, volunteerDetails) => {
   );
 };
 
+const formatListValue = value => {
+  if (!value) return '—';
+  if (Array.isArray(value)) return value.join(', ') || '—';
+  return String(value);
+};
+
 export const Volunteers = ({ project }) => {
   const { kappSlug } = useSelector(state => state.app);
   const mobile = useSelector(state => state.view.mobile);
   const projectId = project?.id;
+  // Search term for the typeahead input.
   const [searchTerm, setSearchTerm] = useState('');
+  // Tracks loading state when associating an existing volunteer.
   const [adding, setAdding] = useState(false);
+  // Tracks in-flight "present" toggles by relationship submission id.
   const [saving, setSaving] = useState({});
+  // Controls the "Add New Volunteer" modal.
   const [newVolunteerOpen, setNewVolunteerOpen] = useState(false);
+  // Tracks in-flight new-volunteer creation flow.
   const [creatingVolunteer, setCreatingVolunteer] = useState(false);
+  // Local form state for the quick-add modal.
   const [newVolunteerValues, setNewVolunteerValues] = useState({
     firstName: '',
     lastName: '',
     email: '',
     phone: '',
   });
+  // Controls the volunteer detail modal.
+  const [detailVolunteer, setDetailVolunteer] = useState(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+  // Pre-trimmed search term and ready flag to avoid repeating trim logic.
   const searchTermTrimmed = searchTerm.trim();
   const isSearchReady = searchTermTrimmed.length >= 2;
 
+  // Query relationship submissions for the current project.
   const params = useMemo(
     () =>
       projectId
         ? {
-            kapp: kappSlug,
-            form: RELATIONSHIP_FORM,
-            search: buildVolunteersSearch(projectId),
-          }
+          kapp: kappSlug,
+          form: RELATIONSHIP_FORM,
+          search: buildVolunteersSearch(projectId),
+        }
         : null,
     [kappSlug, projectId],
   );
@@ -132,28 +164,31 @@ export const Volunteers = ({ project }) => {
     actions: { reloadData },
   } = useData(searchSubmissions, params);
 
+  // Relationship submissions (project -> volunteer).
   const data = response?.submissions || [];
   const error = response?.error;
 
+  // IDs of volunteers already associated with this project.
   const volunteerIds = useMemo(
     () => data.map(item => item?.values?.[FIELD_VOLUNTEER_ID]).filter(Boolean),
     [data],
   );
 
+  // Fetch the volunteer details for all associated volunteer IDs.
   const volunteerDetailsParams = useMemo(
     () =>
       volunteerIds.length > 0
         ? {
-            kapp: kappSlug,
-            form: VOLUNTEERS_FORM,
-            search: {
-              q: defineKqlQuery().in('id', 'volunteerIds').end()({
-                volunteerIds,
-              }),
-              include: ['details', 'values'],
-              limit: 200,
-            },
-          }
+          kapp: kappSlug,
+          form: VOLUNTEERS_FORM,
+          search: {
+            q: defineKqlQuery().in('id', 'volunteerIds').end()({
+              volunteerIds,
+            }),
+            include: ['details', 'values'],
+            limit: 200,
+          },
+        }
         : null,
     [kappSlug, volunteerIds],
   );
@@ -163,6 +198,7 @@ export const Volunteers = ({ project }) => {
     loading: volunteerDetailsLoading,
   } = useData(searchSubmissions, volunteerDetailsParams);
 
+  // Map volunteer id -> volunteer values for fast lookups in the table.
   const volunteerDetails = useMemo(() => {
     const list = volunteerDetailsResponse?.submissions || [];
     const map = new Map();
@@ -176,14 +212,15 @@ export const Volunteers = ({ project }) => {
     return map;
   }, [volunteerDetailsResponse]);
 
+  // Typeahead search parameters (only when at least 2 chars are entered).
   const volunteerSearchParams = useMemo(
     () =>
       isSearchReady
         ? {
-            kapp: kappSlug,
-            form: VOLUNTEERS_FORM,
-            search: buildVolunteerSearch(searchTermTrimmed),
-          }
+          kapp: kappSlug,
+          form: VOLUNTEERS_FORM,
+          search: buildVolunteerSearch(searchTermTrimmed),
+        }
         : null,
     [isSearchReady, kappSlug, searchTermTrimmed],
   );
@@ -194,6 +231,7 @@ export const Volunteers = ({ project }) => {
     response: searchResponse,
   } = useData(searchSubmissions, volunteerSearchParams);
 
+  // Filter search results to exclude volunteers already associated.
   const searchResults = useMemo(() => {
     const results = searchResponse?.submissions || [];
     if (volunteerIds.length === 0) return results;
@@ -204,6 +242,7 @@ export const Volunteers = ({ project }) => {
     });
   }, [searchResponse, volunteerIds]);
 
+  // Toggle the Present flag on the relationship submission.
   const handleTogglePresent = useCallback(
     async submission => {
       const current = submission?.values?.[FIELD_PRESENT] === 'Yes';
@@ -228,6 +267,7 @@ export const Volunteers = ({ project }) => {
     [reloadData],
   );
 
+  // Create the relationship submission to add a volunteer to this project.
   const handleAddVolunteer = useCallback(
     async volunteerId => {
       if (!projectId || !volunteerId) return;
@@ -238,7 +278,7 @@ export const Volunteers = ({ project }) => {
         values: {
           [FIELD_PROJECT_ID]: projectId,
           [FIELD_VOLUNTEER_ID]: volunteerId,
-          [FIELD_PRESENT]: 'No',
+          [FIELD_PRESENT]: 'No'
         },
       });
 
@@ -257,6 +297,20 @@ export const Volunteers = ({ project }) => {
     [kappSlug, projectId, reloadData],
   );
 
+  // Open the detail modal for a volunteer row.
+  const openVolunteerDetail = useCallback(
+    submission => {
+      const values = getVolunteerValues(submission, volunteerDetails);
+      setDetailVolunteer({
+        id: getVolunteerIdFromSubmission(submission),
+        values,
+      });
+      setDetailOpen(true);
+    },
+    [volunteerDetails],
+  );
+
+  // Create a volunteer record and then immediately associate it to the project.
   const handleCreateNewVolunteer = useCallback(async () => {
     if (!projectId) return;
     const firstName = newVolunteerValues.firstName.trim();
@@ -264,8 +318,8 @@ export const Volunteers = ({ project }) => {
     const email = newVolunteerValues.email.trim();
     const phone = newVolunteerValues.phone.trim();
 
-    if (!firstName && !lastName) {
-      toastError({ title: 'Enter at least a first or last name.' });
+    if (!lastName) {
+      toastError({ title: 'Last Name is Required' });
       return;
     }
 
@@ -278,6 +332,7 @@ export const Volunteers = ({ project }) => {
         [FIELD_LAST_NAME]: lastName,
         [FIELD_EMAIL]: email,
         [FIELD_PHONE]: phone,
+        [FIELD_USERNAME]: email,
       },
     });
 
@@ -309,7 +364,7 @@ export const Volunteers = ({ project }) => {
       values: {
         [FIELD_PROJECT_ID]: projectId,
         [FIELD_VOLUNTEER_ID]: volunteerId,
-        [FIELD_PRESENT]: 'No',
+        [FIELD_PRESENT]: 'No'
       },
     });
 
@@ -335,6 +390,7 @@ export const Volunteers = ({ project }) => {
     setCreatingVolunteer(false);
   }, [kappSlug, newVolunteerValues, projectId, reloadData]);
 
+  // Aggregate unique emails and phones for bulk messaging buttons.
   const volunteerContacts = useMemo(() => {
     const emailSet = new Set();
     const phoneSet = new Set();
@@ -357,13 +413,21 @@ export const Volunteers = ({ project }) => {
     };
   }, [volunteerIds, volunteerDetails]);
 
+  // Mailto link for bulk email.
   const mailtoHref =
     volunteerContacts.emails.length > 0
       ? `mailto:${volunteerContacts.emails.join(',')}`
       : '';
+  // SMS link for bulk text.
   const userAgent =
     typeof navigator === 'undefined' ? '' : navigator.userAgent || '';
   const smsHref = buildSmsHref(volunteerContacts.phones, userAgent);
+  const detailPhone = detailVolunteer?.values?.[FIELD_PHONE];
+  const detailPhoneDigits = normalizePhone(detailPhone);
+  const detailSmsHref = buildSmsHref(
+    detailPhoneDigits ? [detailPhoneDigits] : [],
+    userAgent,
+  );
 
   return (
     <div className="rounded-box border bg-base-100 p-6">
@@ -373,9 +437,8 @@ export const Volunteers = ({ project }) => {
           <Tooltip content="Email volunteers">
             <a
               slot="trigger"
-              className={`kbtn kbtn-ghost kbtn-sm ${
-                mailtoHref ? '' : 'opacity-40'
-              }`}
+              className={`kbtn kbtn-ghost kbtn-sm ${mailtoHref ? '' : 'opacity-40'
+                }`}
               href={mailtoHref}
               aria-disabled={!mailtoHref}
               aria-label="Email volunteers"
@@ -389,9 +452,8 @@ export const Volunteers = ({ project }) => {
           <Tooltip content="Text volunteers">
             <a
               slot="trigger"
-              className={`kbtn kbtn-ghost kbtn-sm ${
-                smsHref ? '' : 'opacity-40'
-              }`}
+              className={`kbtn kbtn-ghost kbtn-sm ${smsHref ? '' : 'opacity-40'
+                }`}
               href={smsHref}
               aria-disabled={!smsHref}
               aria-label="Text volunteers"
@@ -434,6 +496,7 @@ export const Volunteers = ({ project }) => {
                   <div
                     key={submission.id}
                     className="rounded-box border bg-base-100 p-3"
+                    onClick={() => openVolunteerDetail(submission)}
                   >
                     <div className="text-sm font-semibold">
                       {name || 'Volunteer'}
@@ -462,7 +525,10 @@ export const Volunteers = ({ project }) => {
                       <button
                         type="button"
                         className="kbtn kbtn-ghost kbtn-sm"
-                        onClick={() => handleTogglePresent(submission)}
+                        onClick={event => {
+                          event.stopPropagation();
+                          handleTogglePresent(submission);
+                        }}
                         disabled={!!saving[submission.id]}
                       >
                         {saving[submission.id]
@@ -506,6 +572,7 @@ export const Volunteers = ({ project }) => {
                       <tr
                         key={submission.id}
                         className="border-t border-base-200"
+                        onClick={() => openVolunteerDetail(submission)}
                       >
                         <td className="px-4 py-2">
                           <div className="font-medium">
@@ -537,7 +604,10 @@ export const Volunteers = ({ project }) => {
                           <button
                             type="button"
                             className="kbtn kbtn-ghost kbtn-sm"
-                            onClick={() => handleTogglePresent(submission)}
+                            onClick={event => {
+                              event.stopPropagation();
+                              handleTogglePresent(submission);
+                            }}
                             disabled={!!saving[submission.id]}
                           >
                             {saving[submission.id]
@@ -579,7 +649,7 @@ export const Volunteers = ({ project }) => {
                 onChange={event => setSearchTerm(event.target.value)}
               />
             </label>
-            
+
             {isSearchReady && (
               <div className="absolute left-0 right-0 z-20 mt-1 rounded-box border bg-base-100 shadow">
                 <div className="max-h-56 overflow-auto p-2">
@@ -658,13 +728,12 @@ export const Volunteers = ({ project }) => {
         <div slot="body">
           <div className="grid gap-3">
             <div className="grid gap-2 sm:grid-cols-2">
-              <label className="form-control">
-                <span className="label-text text-xs uppercase tracking-wide text-base-content/60">
-                  First Name
-                </span>
+              <label className="kinput kvalidator">
+                First Name
                 <input
                   type="text"
-                  className="input input-bordered"
+                  required="true"
+                  className="grow"
                   value={newVolunteerValues.firstName}
                   onChange={event =>
                     setNewVolunteerValues(values => ({
@@ -674,13 +743,12 @@ export const Volunteers = ({ project }) => {
                   }
                 />
               </label>
-              <label className="form-control">
-                <span className="label-text text-xs uppercase tracking-wide text-base-content/60">
-                  Last Name
-                </span>
+              <label className="kinput kvalidator">
+                Last Name
                 <input
                   type="text"
-                  className="input input-bordered"
+                  required="true"
+                  className="grow"
                   value={newVolunteerValues.lastName}
                   onChange={event =>
                     setNewVolunteerValues(values => ({
@@ -691,13 +759,24 @@ export const Volunteers = ({ project }) => {
                 />
               </label>
             </div>
-            <label className="form-control">
-              <span className="label-text text-xs uppercase tracking-wide text-base-content/60">
-                Email Address
-              </span>
+            <label className="kinput kvalidator">
+              <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <g
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                  strokeWidth="2.5"
+                  fill="none"
+                  stroke="currentColor"
+                >
+                  <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                </g>
+              </svg>
               <input
                 type="email"
+                placeholder="mail@site.com"
                 className="input input-bordered"
+                title="Enter valid email address"
                 value={newVolunteerValues.email}
                 onChange={event =>
                   setNewVolunteerValues(values => ({
@@ -707,13 +786,24 @@ export const Volunteers = ({ project }) => {
                 }
               />
             </label>
-            <label className="form-control">
-              <span className="label-text text-xs uppercase tracking-wide text-base-content/60">
-                Phone Number
-              </span>
+            <label className="kinput kvalidator">
+              <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                <g fill="none">
+                  <path
+                    d="M7.25 11.5C6.83579 11.5 6.5 11.8358 6.5 12.25C6.5 12.6642 6.83579 13 7.25 13H8.75C9.16421 13 9.5 12.6642 9.5 12.25C9.5 11.8358 9.16421 11.5 8.75 11.5H7.25Z"
+                    fill="currentColor"
+                  ></path>
+                  <path
+                    fillRule="evenodd"
+                    clipRule="evenodd"
+                    d="M6 1C4.61929 1 3.5 2.11929 3.5 3.5V12.5C3.5 13.8807 4.61929 15 6 15H10C11.3807 15 12.5 13.8807 12.5 12.5V3.5C12.5 2.11929 11.3807 1 10 1H6ZM10 2.5H9.5V3C9.5 3.27614 9.27614 3.5 9 3.5H7C6.72386 3.5 6.5 3.27614 6.5 3V2.5H6C5.44771 2.5 5 2.94772 5 3.5V12.5C5 13.0523 5.44772 13.5 6 13.5H10C10.5523 13.5 11 13.0523 11 12.5V3.5C11 2.94772 10.5523 2.5 10 2.5Z"
+                    fill="currentColor"
+                  ></path>
+                </g>
+              </svg>
               <input
                 type="tel"
-                className="input input-bordered"
+                className="ktabular-nums"
                 value={newVolunteerValues.phone}
                 onChange={event =>
                   setNewVolunteerValues(values => ({
@@ -721,11 +811,25 @@ export const Volunteers = ({ project }) => {
                     phone: event.target.value,
                   }))
                 }
+                placeholder="Phone"
+                pattern="[0-9]*"
+                minLength="10"
+                maxLength="10"
+                title="Must be 10 digits"
               />
             </label>
+
           </div>
         </div>
         <div slot="footer" className="flex-ee gap-2">
+          <button
+            type="button"
+            className="kbtn kbtn-primary"
+            onClick={handleCreateNewVolunteer}
+            disabled={creatingVolunteer}
+          >
+            {creatingVolunteer ? 'Adding...' : 'Add Volunteer'}
+          </button>
           <button
             type="button"
             className="kbtn kbtn-ghost"
@@ -734,13 +838,88 @@ export const Volunteers = ({ project }) => {
           >
             Cancel
           </button>
+        </div>
+      </Modal>
+
+      <Modal
+        open={detailOpen}
+        onOpenChange={({ open }) => setDetailOpen(open)}
+        title="Volunteer Details"
+        size="sm"
+      >
+        <div slot="body" className="grid gap-3">
+          <div className="grid gap-1 text-sm">
+            <div className="text-xs uppercase tracking-wide text-base-content/60">
+              Name
+            </div>
+            <div className="font-semibold">
+              {formatVolunteerName(detailVolunteer?.values) || 'Volunteer'}
+            </div>
+          </div>
+          <div className="grid gap-1 text-sm">
+            <div className="text-xs uppercase tracking-wide text-base-content/60">
+              Email
+            </div>
+            {detailVolunteer?.values?.[FIELD_EMAIL] ? (
+              <a
+                href={`mailto:${detailVolunteer.values[FIELD_EMAIL]}`}
+                className="text-primary underline-offset-2 hover:underline"
+              >
+                {detailVolunteer.values[FIELD_EMAIL]}
+              </a>
+            ) : (
+              <div>—</div>
+            )}
+          </div>
+          <div className="grid gap-1 text-sm">
+            <div className="text-xs uppercase tracking-wide text-base-content/60">
+              Phone
+            </div>
+            {detailPhoneDigits && detailSmsHref ? (
+              <a
+                href={detailSmsHref}
+                className="text-primary underline-offset-2 hover:underline"
+              >
+                {detailVolunteer?.values?.[FIELD_PHONE]}
+              </a>
+            ) : (
+              <div>—</div>
+            )}
+          </div>
+          <div className="grid gap-1 text-sm">
+            <div className="text-xs uppercase tracking-wide text-base-content/60">
+              Skill Areas
+            </div>
+            <div>
+              {formatListValue(
+                detailVolunteer?.values?.[FIELD_SKILL_AREAS],
+              )}
+            </div>
+          </div>
+          <div className="grid gap-1 text-sm">
+            <div className="text-xs uppercase tracking-wide text-base-content/60">
+              Tools
+            </div>
+            <div>
+              {formatListValue(detailVolunteer?.values?.[FIELD_TOOLS])}
+            </div>
+          </div>
+          <div className="grid gap-1 text-sm">
+            <div className="text-xs uppercase tracking-wide text-base-content/60">
+              Bio
+            </div>
+            <div className="whitespace-pre-wrap">
+              {detailVolunteer?.values?.[FIELD_BIO] || '—'}
+            </div>
+          </div>
+        </div>
+        <div slot="footer" className="flex-ee gap-2">
           <button
             type="button"
             className="kbtn kbtn-primary"
-            onClick={handleCreateNewVolunteer}
-            disabled={creatingVolunteer}
+            onClick={() => setDetailOpen(false)}
           >
-            {creatingVolunteer ? 'Adding...' : 'Add Volunteer'}
+            Close
           </button>
         </div>
       </Modal>
