@@ -17,6 +17,7 @@ export const FamilyInformation = ({ familyRecord, familyLoading }) => {
   const {
     firstName,
     lastName,
+    email,
     phone,
     phoneDigits,
     nativeLanguage,
@@ -91,107 +92,129 @@ export const FamilyInformation = ({ familyRecord, familyLoading }) => {
     URL.revokeObjectURL(url);
   };
 
-  const fields = [
-    { label: 'First Name', value: firstName },
-    { label: 'Last Name', value: lastName },
-    { label: 'Phone Number', value: phone, isPhone: true },
-    { label: 'Native Language', value: nativeLanguage },
-    { label: 'Needs Interpreter', value: needsInterpreter },
-    { label: 'County', value: county },
-  ].filter(field => field.value !== null && field.value !== undefined);
+  const fullName = [firstName, lastName].filter(Boolean).join(' ');
+  const hasContact = fullName || phone || email;
+
+  const details = [
+    nativeLanguage && { label: 'Language', value: nativeLanguage },
+    needsInterpreter && { label: 'Interpreter', value: needsInterpreter },
+    county && { label: 'County', value: county },
+  ].filter(Boolean);
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="rounded-box border bg-base-100 p-6">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <div className="text-lg font-semibold">Family Information</div>
-          </div>
+      <div className="rounded-box border bg-base-100 p-5">
+        <div className="flex-bc gap-3 mb-3">
+          <div className="text-lg font-semibold">Family Information</div>
           {!familyLoading && familyRecord && (
             <button
               type="button"
-              className="kbtn kbtn-ghost kbtn-circle"
+              className="kbtn kbtn-ghost kbtn-circle kbtn-sm"
               onClick={handleDownloadContact}
               disabled={!firstName && !lastName && !phoneDigits}
               title="Download Contact"
               aria-label="Download Contact"
             >
-              <Icon name="download" />
+              <Icon name="download" size={18} />
             </button>
           )}
         </div>
 
       {familyLoading && (
-        <div className="mt-4 text-sm text-base-content/60">
+        <div className="text-sm text-base-content/60">
           Loading family details...
         </div>
       )}
 
-      {!familyLoading && (!familyRecord || fields.length === 0) && (
-        <div className="mt-4 text-sm text-base-content/60">
+      {!familyLoading && !hasContact && (
+        <div className="text-sm text-base-content/60">
           No family information available.
         </div>
       )}
 
-      {!familyLoading && fields.length > 0 && (
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <div className="rounded-box border bg-base-100/60 p-4">
-            <div className="text-xs uppercase tracking-wide text-base-content/60">
-              Contact
-            </div>
-            <div className="mt-3 grid gap-3">
-              {fields
-                .filter(field =>
-                  [
-                    'First Name',
-                    'Last Name',
-                    'Phone Number',
-                    'Native Language',
-                    'Needs Interpreter',
-                  ].includes(field.label),
-                )
-                .map(field => (
-                  <div key={field.label}>
-                    <div className="text-xs uppercase tracking-wide text-base-content/60">
-                      {field.label}
-                    </div>
-                    <div className="mt-1 text-sm font-medium">
-                      {field.isPhone && field.value ? (
-                        <a
-                          href={`tel:${phoneDigits}`}
-                          className="text-primary underline-offset-2 hover:underline"
-                        >
-                          {formatValue(field.value)}
-                        </a>
-                      ) : (
-                        formatValue(field.value)
-                      )}
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
-
-          <div className="rounded-box border bg-base-100/60 p-4">
-            <div className="text-xs uppercase tracking-wide text-base-content/60">
-              Address
-            </div>
-            <div className="mt-3 text-sm font-medium">
-              {fullAddress ? (
+      {!familyLoading && hasContact && (
+        <div className="flex flex-col gap-3">
+          {/* Name and contact actions */}
+          <div className="flex-sc gap-3 flex-wrap">
+            {fullName && (
+              <span className="text-base font-semibold">{fullName}</span>
+            )}
+            <div className="flex-sc gap-1">
+              {phoneDigits && (
+                <a
+                  href={`tel:${phoneDigits}`}
+                  className="kbtn kbtn-ghost kbtn-circle kbtn-sm"
+                  title={formatValue(phone)}
+                  aria-label={`Call ${formatValue(phone)}`}
+                >
+                  <Icon name="phone" size={16} />
+                </a>
+              )}
+              {email && (
+                <a
+                  href={`mailto:${email}`}
+                  className="kbtn kbtn-ghost kbtn-circle kbtn-sm"
+                  title={email}
+                  aria-label={`Email ${email}`}
+                >
+                  <Icon name="mail" size={16} />
+                </a>
+              )}
+              {fullAddress && (
                 <a
                   href={mapHref}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-primary underline-offset-2 hover:underline"
+                  className="kbtn kbtn-ghost kbtn-circle kbtn-sm"
+                  title="Open in Maps"
+                  aria-label="Open address in Maps"
                 >
-                  <div>{addressLines.join(', ')}</div>
-                  <div>{cityLine}</div>
+                  <Icon name="map-pin" size={16} />
                 </a>
-              ) : (
-                '—'
               )}
             </div>
           </div>
+
+          {/* Address */}
+          {fullAddress && (
+            <div className="flex-sc gap-2 text-sm text-base-content/70">
+              <span>{addressLines.join(', ')}, {cityLine}</span>
+            </div>
+          )}
+
+          {/* Contact details */}
+          <div className="flex-sc gap-4 flex-wrap text-sm text-base-content/70">
+            {phone && (
+              <a
+                href={`tel:${phoneDigits}`}
+                className="flex-sc gap-1.5 hover:text-primary transition-colors"
+              >
+                <Icon name="phone" size={14} />
+                {formatValue(phone)}
+              </a>
+            )}
+            {email && (
+              <a
+                href={`mailto:${email}`}
+                className="flex-sc gap-1.5 hover:text-primary transition-colors"
+              >
+                <Icon name="mail" size={14} />
+                {email}
+              </a>
+            )}
+          </div>
+
+          {/* Details row */}
+          {details.length > 0 && (
+            <div className="flex-sc gap-4 flex-wrap text-xs text-base-content/50">
+              {details.map(d => (
+                <span key={d.label}>
+                  <span className="font-medium">{d.label}:</span>{' '}
+                  {formatValue(d.value)}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -319,6 +342,7 @@ FamilyInformation.propTypes = {
   familyRecord: t.shape({
     firstName: t.string,
     lastName: t.string,
+    email: t.string,
     phone: t.any,
     phoneDigits: t.string,
     nativeLanguage: t.any,

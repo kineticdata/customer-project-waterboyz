@@ -19,3 +19,19 @@ export const getAttributeValue = (record, attributeName, defaultValue) =>
       : record.attributes?.find(attribute => attribute.name === attributeName)
           ?.values?.[0])) ||
   defaultValue;
+
+/**
+ * Retrieves a single profile attribute value from a given profile record.
+ * Profile attributes use `profileAttributesMap` instead of `attributesMap`.
+ */
+export const getProfileAttributeValue = (
+  profile,
+  attributeName,
+  defaultValue,
+) =>
+  (profile &&
+    (profile.profileAttributesMap
+      ? profile.profileAttributesMap?.[attributeName]?.[0]
+      : profile.profileAttributes?.find(attr => attr.name === attributeName)
+          ?.values?.[0])) ||
+  defaultValue;

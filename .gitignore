@@ -39,3 +39,4 @@ dist-ssr
 .env.test.local
 .env.production.local
 frontend-testing/.env
+.mcp.json

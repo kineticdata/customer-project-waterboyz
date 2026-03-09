@@ -1,5 +1,6 @@
 import { useSelector } from 'react-redux';
 import { useState, useCallback } from 'react';
+import { useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import { getAttributeValue } from '../../helpers/records.js';
 import { updateProfile } from '@kineticdata/react';
@@ -8,11 +9,15 @@ import { Icon } from '../../atoms/Icon.jsx';
 import { validateEmail } from '../../helpers/index.js';
 import { appActions } from '../../helpers/state.js';
 import { toastError, toastSuccess } from '../../helpers/toasts.js';
-import { PageHeading } from '../../components/PageHeading.jsx';
 import { KineticForm } from '../../components/kinetic-form/KineticForm.jsx';
+import { markVolunteerProfileUpdated } from '../../components/VolunteerProfilePrompt.jsx';
 
 export const Profile = () => {
   const { profile, kappSlug } = useSelector(state => state.app);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const returnTo = location.state?.returnTo;
   const [newPassword, setNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showChangedPassword, setShowChangedPassword] = useState(false);
@@ -23,20 +28,24 @@ export const Profile = () => {
     newDisplayName: '',
     newPassword: '',
   });
-  const [volunteerId] = useState(getAttributeValue(profile, "Volunteer Id"));
-  const isVolunteer = volunteerId ? "true" : "false";
+  const [volunteerId] = useState(getAttributeValue(profile, 'Volunteer Id'));
   const [showVolunteerForm, setShowVolunteerForm] = useState(false);
-  const [activeTab, setActiveTab] = useState('account');
+  const [activeTab, setActiveTab] = useState(
+    searchParams.get('tab') || 'account',
+  );
 
   const handleVolunteerSaved = useCallback(() => {
     toastSuccess({ title: 'Volunteer profile saved.' });
-  }, []);
+    markVolunteerProfileUpdated();
+    if (returnTo) {
+      navigate(returnTo, { state: { persistToasts: true } });
+    }
+  }, [returnTo, navigate]);
 
   const saveProfile = useCallback(
     async e => {
       e.preventDefault();
 
-      // Validate the fields
       const newValidationErrors = {
         newEmail:
           newEmail.length <= 0
@@ -51,7 +60,6 @@ export const Profile = () => {
             ? 'Password is required.'
             : '',
       };
-      // Update the validations state
       setValidationErrors(newValidationErrors);
 
       if (Object.values(newValidationErrors).some(o => o)) {
@@ -81,140 +89,168 @@ export const Profile = () => {
   );
 
   return (
-    <div className="gutter">
-      <div className="max-w-screen-md mx-auto pt-1 pb-6">
-        <PageHeading title="My Profile" backTo="/" />
-        <div className={clsx('rounded-box md:border md:p-8 flex-c-st gap-6')}>
-          <div className="flex-cc mb-4">
+    <div className="gutter pb-24 md:pb-8">
+      <div className="max-w-screen-md mx-auto pt-4 pb-6">
+        {/* Back button */}
+        <div className="flex-sc gap-3 mb-6">
+          <button
+            type="button"
+            className="kbtn kbtn-ghost kbtn-sm kbtn-circle"
+            onClick={() => navigate(-1)}
+            aria-label="Go back"
+          >
+            <Icon name="arrow-left" />
+          </button>
+          <span className="text-lg font-semibold">My Profile</span>
+        </div>
+
+        <div className="bg-base-100 rounded-box border border-base-200 overflow-hidden">
+          {/* Profile header */}
+          <div className="flex-c-sc gap-4 py-8 px-6 bg-base-200/40">
             <Avatar username={profile.username} size="2xl" />
+            <div className="text-lg font-bold">{profile.displayName}</div>
+            <div className="text-sm text-base-content/50">{profile.email}</div>
           </div>
-          <div className="flex flex-wrap gap-2 w-full">
+
+          {/* Tabs */}
+          <div className="flex border-b border-base-200">
             <button
               type="button"
               className={clsx(
-                'kbtn kbtn-sm',
-                activeTab === 'account' ? 'kbtn-neutral' : 'kbtn-ghost',
+                'flex-1 py-3 text-sm font-semibold text-center border-b-2 transition-colors',
+                activeTab === 'account'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-base-content/50 hover:text-base-content',
               )}
-              onClick={() => setActiveTab('account')}
+              onClick={() => {
+                setActiveTab('account');
+                setSearchParams({ tab: 'account' });
+              }}
             >
               Account Info
             </button>
             <button
               type="button"
               className={clsx(
-                'kbtn kbtn-sm',
-                activeTab === 'volunteer' ? 'kbtn-neutral' : 'kbtn-ghost',
+                'flex-1 py-3 text-sm font-semibold text-center border-b-2 transition-colors',
+                activeTab === 'volunteer'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-base-content/50 hover:text-base-content',
               )}
-              onClick={() => setActiveTab('volunteer')}
+              onClick={() => {
+                setActiveTab('volunteer');
+                setSearchParams({ tab: 'volunteer' });
+              }}
             >
               Volunteer Profile
             </button>
           </div>
 
-          {activeTab === 'account' && (
-            <form className="flex-c-st gap-6 w-full pb-6">
-              <div
-                className={clsx('field required', {
-                  'has-error': validationErrors.newEmail,
-                })}
-              >
-                <label htmlFor="email">Email</label>
-                <input
-                  id="email"
-                  type="text"
-                  name="email"
-                  required={true}
-                  value={newEmail}
-                  onChange={e => setNewEmail(e.target.value)}
-                />
-                {validationErrors.newEmail && (
-                  <p className="flex-sc gap-2 text-base-content/60">
-                    <span className="kstatus kstatus-error"></span>
-                    {validationErrors.newEmail}
-                  </p>
-                )}
-              </div>
-              <div
-                className={clsx('field required', {
-                  'has-error': validationErrors.newDisplayName,
-                })}
-              >
-                <label htmlFor="displayName">Display Name</label>
-                <input
-                  id="displayName"
-                  type="text"
-                  name="displayName"
-                  required={true}
-                  value={newDisplayName}
-                  onChange={e => setNewDisplayName(e.target.value)}
-                />
-                {validationErrors.newDisplayName && (
-                  <p className="flex-sc gap-2 text-base-content/60">
-                    <span className="kstatus kstatus-error"></span>
-                    {validationErrors.newDisplayName}
-                  </p>
-                )}
-              </div>
-              {showChangedPassword && (
+          {/* Tab content */}
+          <div className="p-6">
+            {activeTab === 'account' && (
+              <form className="flex-c-st gap-5 w-full">
                 <div
                   className={clsx('field required', {
-                    'has-error': validationErrors.newPassword,
+                    'has-error': validationErrors.newEmail,
                   })}
                 >
-                  <label htmlFor="password">Password</label>
-                  <div className="relative">
-                    <input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      name="password"
-                      required={true}
-                      value={newPassword}
-                      onChange={e => setNewPassword(e.target.value)}
-                      className="pr-12"
-                    />
-                    <button
-                      type="button"
-                      className="kbtn kbtn-ghost kbtn-xs kbtn-circle absolute right-3 top-2 z-1"
-                      onClick={() => setShowPassword(prev => !prev)}
-                      aria-label={`${showPassword ? 'Hide Password' : 'Show Password'}`}
-                    >
-                      <Icon name={showPassword ? 'eye-off' : 'eye'} />
-                    </button>
-                  </div>
-                  {validationErrors.newPassword && (
-                    <p className="flex-sc gap-2 text-base-content/60">
+                  <label htmlFor="email">Email</label>
+                  <input
+                    id="email"
+                    type="text"
+                    name="email"
+                    required={true}
+                    value={newEmail}
+                    onChange={e => setNewEmail(e.target.value)}
+                  />
+                  {validationErrors.newEmail && (
+                    <p className="flex-sc gap-2 text-error-content text-sm mt-1">
                       <span className="kstatus kstatus-error"></span>
-                      {validationErrors.newPassword}
+                      {validationErrors.newEmail}
                     </p>
                   )}
                 </div>
-              )}
-              <button
-                type="button"
-                className="kbtn kbtn-ghost kbtn-xs self-end -mt-3"
-                onClick={() => setShowChangedPassword(!showChangedPassword)}
-              >
-                {showChangedPassword === false ? 'Change Password' : 'Cancel'}
-              </button>
+                <div
+                  className={clsx('field required', {
+                    'has-error': validationErrors.newDisplayName,
+                  })}
+                >
+                  <label htmlFor="displayName">Display Name</label>
+                  <input
+                    id="displayName"
+                    type="text"
+                    name="displayName"
+                    required={true}
+                    value={newDisplayName}
+                    onChange={e => setNewDisplayName(e.target.value)}
+                  />
+                  {validationErrors.newDisplayName && (
+                    <p className="flex-sc gap-2 text-error-content text-sm mt-1">
+                      <span className="kstatus kstatus-error"></span>
+                      {validationErrors.newDisplayName}
+                    </p>
+                  )}
+                </div>
+                {showChangedPassword && (
+                  <div
+                    className={clsx('field required', {
+                      'has-error': validationErrors.newPassword,
+                    })}
+                  >
+                    <label htmlFor="password">Password</label>
+                    <div className="relative">
+                      <input
+                        id="password"
+                        type={showPassword ? 'text' : 'password'}
+                        name="password"
+                        required={true}
+                        value={newPassword}
+                        onChange={e => setNewPassword(e.target.value)}
+                        className="pr-12"
+                      />
+                      <button
+                        type="button"
+                        className="kbtn kbtn-ghost kbtn-xs kbtn-circle absolute right-3 top-2 z-1"
+                        onClick={() => setShowPassword(prev => !prev)}
+                        aria-label={`${showPassword ? 'Hide Password' : 'Show Password'}`}
+                      >
+                        <Icon name={showPassword ? 'eye-off' : 'eye'} />
+                      </button>
+                    </div>
+                    {validationErrors.newPassword && (
+                      <p className="flex-sc gap-2 text-error-content text-sm mt-1">
+                        <span className="kstatus kstatus-error"></span>
+                        {validationErrors.newPassword}
+                      </p>
+                    )}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  className="kbtn kbtn-ghost kbtn-xs self-end -mt-2 text-primary"
+                  onClick={() => setShowChangedPassword(!showChangedPassword)}
+                >
+                  {showChangedPassword === false ? 'Change Password' : 'Cancel'}
+                </button>
 
-              <button
-                type="submit"
-                className="kbtn kbtn-primary kbtn-lg w-70 self-center mt-6"
-                onClick={saveProfile}
-                disabled={
-                  profile.email === newEmail &&
-                  profile.displayName === newDisplayName &&
-                  !showChangedPassword
-                }
-              >
-                Save
-              </button>
-            </form>
-          )}
+                <button
+                  type="submit"
+                  className="kbtn kbtn-primary kbtn-lg w-full mt-4"
+                  onClick={saveProfile}
+                  disabled={
+                    profile.email === newEmail &&
+                    profile.displayName === newDisplayName &&
+                    !showChangedPassword
+                  }
+                >
+                  Save Changes
+                </button>
+              </form>
+            )}
 
-          {activeTab === 'volunteer' && (
-            <div>
-              <div className="mt-4">
+            {activeTab === 'volunteer' && (
+              <div>
                 {volunteerId ? (
                   <KineticForm
                     kappSlug={kappSlug}
@@ -228,34 +264,41 @@ export const Profile = () => {
                     kappSlug={kappSlug}
                     formSlug="volunteers"
                     created={handleVolunteerSaved}
-                    values={
-                      {
-                        "Username": profile.username,
-                        "First Name": profile.displayName.split(" ")[0],
-                        "Last Name": profile.displayName.split(" ")[1],
-                        "Email Address": profile.email
-                      }
-                    }
+                    values={{
+                      Username: profile.username,
+                      'First Name': profile.displayName.split(' ')[0],
+                      'Last Name': profile.displayName.split(' ')[1],
+                      'Email Address': profile.email,
+                    }}
                   />
                 ) : (
-                  <button
-                    type="button"
-                    className="kbtn kbtn-primary"
-                    onClick={() => setShowVolunteerForm(true)}
-                  >
-                    Sign up to become a volunteer
-                  </button>
+                  <div className="flex-c-cc gap-4 py-8">
+                    <div className="flex-cc w-16 h-16 rounded-full bg-primary/10 text-primary">
+                      <Icon name="heart-handshake" size={32} />
+                    </div>
+                    <p className="text-base-content/60 text-center max-w-sm">
+                      Join our volunteer community and help families in need
+                    </p>
+                    <button
+                      type="button"
+                      className="kbtn kbtn-primary kbtn-lg"
+                      onClick={() => setShowVolunteerForm(true)}
+                    >
+                      Sign up to Volunteer
+                    </button>
+                  </div>
                 )}
               </div>
-            </div>
-          )}
-          <hr />
-          <div className="flex-c-st gap-6 w-full">
+            )}
+          </div>
+
+          {/* Logout */}
+          <div className="border-t border-base-200 p-6">
             <a
               href="/app/logout"
-              className="kbtn kbtn-ghost kbtn-lg text-base text-base-content/80 w-70 self-center mt-6"
+              className="kbtn kbtn-ghost w-full text-base-content/50 hover:text-error"
             >
-              <Icon name="logout" />
+              <Icon name="logout" size={18} />
               <span>Log Out</span>
             </a>
           </div>

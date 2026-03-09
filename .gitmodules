@@ -1,0 +1,3 @@
+[submodule "ai-skills"]
+	path = ai-skills
+	url = git@github.com:kineticdata/kinetic-platform-ai-skills.git

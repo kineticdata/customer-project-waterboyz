@@ -1,41 +1,32 @@
 import { useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import { defineKqlQuery, searchSubmissions } from '@kineticdata/react';
 import { ProjectsList } from './ProjectsList.jsx';
 import { Project } from './project/Project.jsx';
 import { usePaginatedData } from '../../helpers/hooks/usePaginatedData.js';
 
-const buildProjectsSearch = (profile, filters) => {
-  // Start query builder
+const ALLOWED_TEAMS = ['SWAT Leadership', 'SWAT Project Captains'];
+
+const buildProjectsSearch = (profile, filters, isLeadership) => {
   const search = defineKqlQuery();
 
-  // Add core state query if filtering by either status
   if (filters.status.open || filters.status.closed) {
     search.in('coreState', 'statuses');
   }
 
-  // Add assignment query when at least one assignment filter is enabled
-  if (filters.assignment.mine || filters.assignment.teams) {
-    search.or();
-    if (filters.assignment.mine) {
-      search.equals('values[Project Captain]', 'username');
-    }
-    if (filters.assignment.teams) {
-      search.in('values[Assigned Team]', 'teams');
-    }
-    // End or block
-    search.end();
+  // Captains always see only their own projects;
+  // Leadership can optionally filter to their own
+  if (!isLeadership || filters.assignment.mine) {
+    search.equals('values[Project Captain]', 'username');
   }
-  // End query builder
+
   search.end();
 
   return {
     q: search.end()({
-      types: ['Approval', 'Task'],
       statuses: [
-        filters.status.open && 'Draft',
-        filters.status.closed && 'Submitted',
+        filters.status.open && 'Submitted',
         filters.status.closed && 'Closed',
       ].filter(Boolean),
       username: profile.username,
@@ -48,24 +39,35 @@ const buildProjectsSearch = (profile, filters) => {
 export const Projects = () => {
   const { profile, kappSlug } = useSelector(state => state.app);
 
+  const hasAccess = profile?.memberships?.some(({ team }) =>
+    ALLOWED_TEAMS.includes(team.name),
+  );
+  const isLeadership = profile?.memberships?.some(
+    ({ team }) => team.name === 'SWAT Leadership',
+  );
+
   // Set Projects Form Slug
   const formSlug = 'swat-projects';
 
-  // State for filters
+  // State for filters — captains don't get assignment filters
   const [filters, setFilters] = useState({
-    status: { open: false, closed: false },
-    assignment: { mine: true},
+    status: { open: true, closed: false },
+    assignment: { mine: !isLeadership },
   });
 
   // Parameters for the query (if null, the query will not run)
   const params = useMemo(
-    () => ({ kapp: kappSlug, form: formSlug, search: buildProjectsSearch(profile, filters) }),
-    [kappSlug, formSlug, profile, filters],
+    () => ({ kapp: kappSlug, form: formSlug, search: buildProjectsSearch(profile, filters, isLeadership) }),
+    [kappSlug, formSlug, profile, filters, isLeadership],
   );
 
   // Retrieve the data for the projects list
   const { initialized, loading, response, pageNumber, actions } =
     usePaginatedData(searchSubmissions, params);
+
+  if (!hasAccess) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <Routes>
@@ -87,6 +89,7 @@ export const Projects = () => {
             listActions={actions}
             filters={filters}
             setFilters={setFilters}
+            isLeadership={isLeadership}
           />
         }
       />

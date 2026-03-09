@@ -1,5 +1,5 @@
 import t from 'prop-types';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   createSubmission,
@@ -28,6 +28,7 @@ const FIELD_PHONE = 'Phone Number';
 const FIELD_SKILL_AREAS = 'Skill Areas';
 const FIELD_TOOLS = 'Tools';
 const FIELD_BIO = 'Bio';
+const FIELD_ADDITIONAL_VOLUNTEERS = 'Additional Volunteers Needed';
 
 // Build the KQL search used by the typeahead to find volunteers by last name.
 // We keep this narrow for performance and predictable ordering.
@@ -137,6 +138,8 @@ export const Volunteers = ({ project }) => {
     email: '',
     phone: '',
   });
+  const [additionalNeeded, setAdditionalNeeded] = useState('');
+  const [savingAdditional, setSavingAdditional] = useState(false);
   // Controls the volunteer detail modal.
   const [detailVolunteer, setDetailVolunteer] = useState(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -241,6 +244,12 @@ export const Volunteers = ({ project }) => {
       return id && !existingIds.has(id);
     });
   }, [searchResponse, volunteerIds]);
+
+  useEffect(() => {
+    setAdditionalNeeded(
+      project?.values?.[FIELD_ADDITIONAL_VOLUNTEERS] || '',
+    );
+  }, [project]);
 
   // Toggle the Present flag on the relationship submission.
   const handleTogglePresent = useCallback(
@@ -390,6 +399,29 @@ export const Volunteers = ({ project }) => {
     setCreatingVolunteer(false);
   }, [kappSlug, newVolunteerValues, projectId, reloadData]);
 
+  const handleAdditionalNeeded = useCallback(
+    async value => {
+      if (!project?.id) return;
+      setSavingAdditional(true);
+      const result = await updateSubmission({
+        id: project.id,
+        values: { [FIELD_ADDITIONAL_VOLUNTEERS]: value },
+      });
+
+      if (result?.error) {
+        toastError({
+          title: 'Unable to update volunteer needs',
+          description: result.error.message,
+        });
+      } else {
+        toastSuccess({ title: 'Volunteer needs updated.' });
+        setAdditionalNeeded(value);
+      }
+      setSavingAdditional(false);
+    },
+    [project],
+  );
+
   // Aggregate unique emails and phones for bulk messaging buttons.
   const volunteerContacts = useMemo(() => {
     const emailSet = new Set();
@@ -471,6 +503,37 @@ export const Volunteers = ({ project }) => {
           Add volunteers with emails or phone numbers to enable messaging.
         </div>
       )}
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+        <span className="ktext-base-content/60 text-xs uppercase tracking-wide">
+          Additional Volunteers Needed
+        </span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className={`kbtn kbtn-sm ${
+              additionalNeeded === 'Yes' ? 'kbtn-primary' : 'kbtn-ghost'
+            }`}
+            onClick={() => handleAdditionalNeeded('Yes')}
+            disabled={savingAdditional}
+          >
+            Yes
+          </button>
+          <button
+            type="button"
+            className={`kbtn kbtn-sm ${
+              additionalNeeded === 'No' ? 'kbtn-primary' : 'kbtn-ghost'
+            }`}
+            onClick={() => handleAdditionalNeeded('No')}
+            disabled={savingAdditional}
+          >
+            No
+          </button>
+        </div>
+      </div>
+      <div className="mt-1 text-xs ktext-base-content/60">
+        If set to “No,” volunteers won’t see this project or receive it in the
+        weekly upcoming projects digest.
+      </div>
 
       {!initialized || (loading && !data.length) ? (
         <div className="mt-3">

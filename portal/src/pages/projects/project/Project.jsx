@@ -13,7 +13,6 @@ import { fetchSubmission } from '@kineticdata/react';
 import { Loading } from '../../../components/states/Loading.jsx';
 import { Error } from '../../../components/states/Error.jsx';
 import { useData } from '../../../helpers/hooks/useData.js';
-import { PageHeading } from '../../../components/PageHeading.jsx';
 import clsx from 'clsx';
 import { Panel } from '../../../atoms/Panel.jsx';
 import { Icon } from '../../../atoms/Icon.jsx';
@@ -27,13 +26,13 @@ import { ProjectTasks } from './ProjectTasks.jsx';
 import { Volunteers } from './Volunteers.jsx';
 
 const navItems = [
-  { label: 'Family Information', to: 'family' },
-  { label: 'Volunteers', to: 'volunteers' },
-  { label: 'Notes', to: 'notes' },
-  { label: 'Tasks', to: 'tasks' },
-  { label: 'Expenses', to: 'expenses' },
-  { label: 'Details', to: 'details' },
-  { label: 'Photos', to: 'photos' },
+  { label: 'Family', to: 'family', icon: 'users' },
+  { label: 'Details', to: 'details', icon: 'info-circle' },
+  { label: 'Volunteers', to: 'volunteers', icon: 'heart-handshake' },
+  { label: 'Notes', to: 'notes', icon: 'notes' },
+  { label: 'Tasks', to: 'tasks', icon: 'checklist' },
+  { label: 'Expenses', to: 'expenses', icon: 'receipt' },
+  { label: 'Photos', to: 'photos', icon: 'camera' },
 ];
 
 export const Project = () => {
@@ -41,15 +40,15 @@ export const Project = () => {
   const location = useLocation();
   const { kappSlug } = useSelector(state => state.app);
   const mobile = useSelector(state => state.view.mobile);
-  const backTo = location.state?.backPath || '/projects';
+  const backTo = location.state?.backPath || '/project-captains';
   const [navOpen, setNavOpen] = useState(false);
   const [family, setFamily] = useState(null);
   const [familyRecord, setFamilyRecord] = useState(null);
   const [familyError, setFamilyError] = useState(null);
 
   const activeKey = location.pathname.split('/').pop();
-  const activeLabel =
-    navItems.find(item => item.to === activeKey)?.label || 'Sections';
+  const activeItem = navItems.find(item => item.to === activeKey);
+  const activeLabel = activeItem?.label || 'Sections';
 
   const params = useMemo(
     () => ({
@@ -105,6 +104,7 @@ export const Project = () => {
 
     const firstName = getValue(rawFamily, 'First Name');
     const lastName = getValue(rawFamily, 'Last Name');
+    const email = getValue(rawFamily, 'Email');
     const phone = getValue(rawFamily, 'Phone Number');
     const phoneDigits = phone ? String(phone).replace(/[^\d+]/g, '') : '';
     const address1 = getValue(rawFamily, 'Address Line 1');
@@ -124,6 +124,7 @@ export const Project = () => {
       raw: rawFamily,
       firstName,
       lastName,
+      email,
       phone,
       phoneDigits,
       nativeLanguage: getValue(rawFamily, 'Native Language'),
@@ -148,7 +149,7 @@ export const Project = () => {
   if (!data && !error) {
     return (
       <div className="gutter">
-        <div className="max-w-screen-xl pt-1 pb-6">
+        <div className="max-w-screen-xl mx-auto pt-8 pb-6">
           <Loading />
         </div>
       </div>
@@ -158,22 +159,22 @@ export const Project = () => {
   if (error) {
     return (
       <div className="gutter">
-        <div className="max-w-screen-xl pt-1 pb-6">
+        <div className="max-w-screen-xl mx-auto pt-8 pb-6">
           <Error error={error} />
         </div>
       </div>
     );
   }
 
+  const projectStatus = data?.values?.['Project Status'] || 'Active';
+
   return (
-    <div className="gutter">
-      <div className="max-w-screen-xl pt-1 pb-6">
-        <PageHeading
-          title={data?.label || 'Project'}
-          backTo={backTo}
-          className="flex-wrap"
-          before={
-            mobile ? (
+    <div className="pb-24 md:pb-8">
+      {/* Project header bar */}
+      <div className="bg-base-100 border-b border-base-200">
+        <div className="gutter py-4 md:py-6">
+          <div className="max-w-screen-xl mx-auto">
+            <div className="flex-sc gap-3 mb-2">
               <Link
                 className="kbtn kbtn-ghost kbtn-sm kbtn-circle"
                 to={backTo}
@@ -181,159 +182,203 @@ export const Project = () => {
               >
                 <Icon name="arrow-left" />
               </Link>
-            ) : null
-          }
-        >
-        </PageHeading>
-
-        <div className="mt-4 gap-6 lg:grid lg:grid-cols-[240px_minmax(0,1fr)]">
-          {mobile ? (
-            <Panel open={navOpen} onOpenChange={({ open }) => setNavOpen(open)}>
-              <button
-                type="button"
-                className="kbtn kbtn-alert w-full justify-between mb-3"
-                slot="trigger"
+              <span className="text-sm text-base-content/50 font-medium">
+                SWAT Projects
+              </span>
+            </div>
+            <div className="flex-bc flex-wrap gap-3">
+              <h1 className="text-xl md:text-2xl font-bold">
+                {data?.label || 'Project'}
+              </h1>
+              <span
+                className={clsx(
+                  'px-3 py-1 rounded-full text-xs font-semibold',
+                  projectStatus === 'Active'
+                    ? 'bg-success text-success-content'
+                    : projectStatus === 'Completed'
+                      ? 'bg-primary/15 text-primary'
+                      : 'bg-base-300 text-base-content/70',
+                )}
               >
-                {activeLabel}
-                <Icon name="chevron-down" />
-              </button>
-              <div slot="content" className="flex-c-st gap-6">
-                <div className="flex-bc gap-3">
-                  <span className="h3">Project Sections</span>
-                  <button
-                    className="kbtn kbtn-sm kbtn-circle kbtn-alert absolute right-2 top-2"
-                    onClick={() => setNavOpen(false)}
-                    aria-label="Close"
-                  >
-                    <Icon name="x" size={20} />
-                  </button>
-                </div>
-                <nav className="flex flex-col gap-2">
-                  {navItems.map(item => (
-                    <NavLink
-                      key={item.to}
-                      to={item.to}
-                      onClick={() => setNavOpen(false)}
-                      className={({ isActive }) =>
-                        clsx(
-                          'kbtn kbtn-ghost justify-start',
-                          isActive && 'kbtn-neutral',
-                        )
-                      }
-                    >
-                      {item.label}
-                    </NavLink>
-                  ))}
-                </nav>
-              </div>
-            </Panel>
-          ) : (
-            <nav className="flex flex-col gap-2">
-              {navItems.map(item => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
-                  className={({ isActive }) =>
-                    clsx(
-                      'kbtn kbtn-ghost justify-start',
-                      isActive && 'kbtn-neutral',
-                    )
-                  }
-                >
-                  {item.label}
-                </NavLink>
-              ))}
-            </nav>
-          )}
+                {projectStatus}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-          <div className="flex flex-col gap-4">
-            {familyError && (
-              <div className="rounded-box border border-error/30 bg-error/10 px-4 py-3 text-sm text-error">
-                Unable to load family information.
+      <div className="gutter mt-4 md:mt-6">
+        <div className="max-w-screen-xl mx-auto">
+          <div className="gap-6 lg:grid lg:grid-cols-[220px_minmax(0,1fr)]">
+            {/* Navigation */}
+            {mobile ? (
+              <Panel
+                open={navOpen}
+                onOpenChange={({ open }) => setNavOpen(open)}
+              >
                 <button
                   type="button"
-                  className="kbtn kbtn-xs kbtn-ghost ml-2"
-                  onClick={reloadFamily}
+                  className="kbtn w-full justify-between mb-4 border border-base-200"
+                  slot="trigger"
                 >
-                  Retry
+                  <span className="flex-sc gap-2">
+                    {activeItem && (
+                      <Icon name={activeItem.icon} size={18} />
+                    )}
+                    {activeLabel}
+                  </span>
+                  <Icon name="chevron-down" size={18} />
                 </button>
-              </div>
+                <div slot="content" className="flex-c-st gap-4">
+                  <div className="flex-bc gap-3">
+                    <span className="h3">Sections</span>
+                    <button
+                      className="kbtn kbtn-sm kbtn-circle kbtn-ghost absolute right-2 top-2"
+                      onClick={() => setNavOpen(false)}
+                      aria-label="Close"
+                    >
+                      <Icon name="x" size={20} />
+                    </button>
+                  </div>
+                  <nav className="flex flex-col gap-1">
+                    {navItems.map(item => (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        onClick={() => setNavOpen(false)}
+                        className={({ isActive }) =>
+                          clsx(
+                            'kbtn kbtn-ghost justify-start gap-3',
+                            isActive && 'bg-primary/8 text-primary',
+                          )
+                        }
+                      >
+                        <Icon name={item.icon} size={18} />
+                        {item.label}
+                      </NavLink>
+                    ))}
+                  </nav>
+                </div>
+              </Panel>
+            ) : (
+              <nav className="flex flex-col gap-1">
+                {navItems.map(item => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className={({ isActive }) =>
+                      clsx(
+                        'flex-sc gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                        isActive
+                          ? 'bg-primary/8 text-primary'
+                          : 'text-base-content/60 hover:bg-base-200 hover:text-base-content',
+                      )
+                    }
+                  >
+                    <Icon name={item.icon} size={18} />
+                    {item.label}
+                  </NavLink>
+                ))}
+              </nav>
             )}
-            <Routes>
-              <Route index element={<Navigate to="family" replace />} />
-              <Route
-                path="family"
-                element={
-                  <FamilyInformation
-                    project={data}
-                    family={family}
-                    familyRecord={familyRecord}
-                    familyLoading={familyLoading}
-                  />
-                }
-              />
-              <Route
-                path="volunteers"
-                element={
-                  <Volunteers
-                    project={data}
-                    family={family}
-                    familyRecord={familyRecord}
-                    familyLoading={familyLoading}
-                  />
-                }
-              />
-              <Route
-                path="notes"
-                element={
-                  <ProjectNotes
-                    project={data}
-                    family={family}
-                    familyRecord={familyRecord}
-                    familyLoading={familyLoading}
-                    reloadProject={reloadProject}
-                  />
-                }
-              />
-              <Route
-                path="tasks"
-                element={<ProjectTasks project={data} reloadProject={reloadProject} />}
-              />
-              <Route
-                path="expenses"
-                element={
-                  <ProjectExpenses
-                    project={data}
-                    family={family}
-                    familyRecord={familyRecord}
-                    familyLoading={familyLoading}
-                  />
-                }
-              />
-              <Route
-                path="details"
-                element={
-                  <ProjectDetails
-                    project={data}
-                    family={family}
-                    familyRecord={familyRecord}
-                    familyLoading={familyLoading}
-                  />
-                }
-              />
-              <Route
-                path="photos"
-                element={
-                  <ProjectPhotos
-                    project={data}
-                    family={family}
-                    familyRecord={familyRecord}
-                    familyLoading={familyLoading}
-                    reloadProject={reloadProject}
-                  />
-                }
-              />
-            </Routes>
+
+            {/* Content */}
+            <div className="flex flex-col gap-4">
+              {familyError && (
+                <div className="rounded-box border border-error/30 bg-error/10 px-4 py-3 text-sm text-error flex-sc gap-2">
+                  <Icon name="alert-circle" size={16} />
+                  Unable to load family information.
+                  <button
+                    type="button"
+                    className="kbtn kbtn-xs kbtn-ghost ml-auto"
+                    onClick={reloadFamily}
+                  >
+                    Retry
+                  </button>
+                </div>
+              )}
+              <Routes>
+                <Route index element={<Navigate to="family" replace />} />
+                <Route
+                  path="family"
+                  element={
+                    <FamilyInformation
+                      project={data}
+                      family={family}
+                      familyRecord={familyRecord}
+                      familyLoading={familyLoading}
+                    />
+                  }
+                />
+                <Route
+                  path="volunteers"
+                  element={
+                    <Volunteers
+                      project={data}
+                      family={family}
+                      familyRecord={familyRecord}
+                      familyLoading={familyLoading}
+                    />
+                  }
+                />
+                <Route
+                  path="notes"
+                  element={
+                    <ProjectNotes
+                      project={data}
+                      family={family}
+                      familyRecord={familyRecord}
+                      familyLoading={familyLoading}
+                      reloadProject={reloadProject}
+                    />
+                  }
+                />
+                <Route
+                  path="tasks"
+                  element={
+                    <ProjectTasks
+                      project={data}
+                      reloadProject={reloadProject}
+                    />
+                  }
+                />
+                <Route
+                  path="expenses"
+                  element={
+                    <ProjectExpenses
+                      project={data}
+                      family={family}
+                      familyRecord={familyRecord}
+                      familyLoading={familyLoading}
+                    />
+                  }
+                />
+                <Route
+                  path="details"
+                  element={
+                    <ProjectDetails
+                      project={data}
+                      family={family}
+                      familyRecord={familyRecord}
+                      familyLoading={familyLoading}
+                      reloadProject={reloadProject}
+                    />
+                  }
+                />
+                <Route
+                  path="photos"
+                  element={
+                    <ProjectPhotos
+                      project={data}
+                      family={family}
+                      familyRecord={familyRecord}
+                      familyLoading={familyLoading}
+                      reloadProject={reloadProject}
+                    />
+                  }
+                />
+              </Routes>
+            </div>
           </div>
         </div>
       </div>

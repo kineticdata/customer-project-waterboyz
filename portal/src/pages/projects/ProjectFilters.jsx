@@ -9,7 +9,7 @@ import { StatusDot } from '../../components/tickets/StatusPill.jsx';
 import { Icon } from '../../atoms/Icon.jsx';
 import clsx from 'clsx';
 
-export const ProjectFilters = ({ type, filters, setFilters }) => {
+export const ProjectFilters = ({ type, filters, setFilters, isLeadership }) => {
   const mobile = useSelector(state => state.view.mobile);
 
   // Handler for changing individual filter values
@@ -84,7 +84,7 @@ export const ProjectFilters = ({ type, filters, setFilters }) => {
     <div className="flex-bc gap-2 md:gap-5 items-center ml-auto">
       {!hasNone && (
         <div className="flex-ec gap-2 md:gap-4 flex-wrap">
-          {hasAssignment && (
+          {isLeadership && hasAssignment && (
             <div className="flex-ec flex-wrap gap-x-2 gap-y-1">
               <span className="text-sm font-medium">Assigned to</span>
               {filters.assignment.mine && (
@@ -177,7 +177,7 @@ export const ProjectFilters = ({ type, filters, setFilters }) => {
             </div>
           </div>
 
-          {tempFilters.assignment && (
+          {isLeadership && tempFilters.assignment && (
             <div className="px-4 pt-1 pb-3 flex-c-st gap-4 border-b border-base-300">
               <span className="font-medium">Assigned to</span>
               <div className="flex gap-5 flex-wrap">
@@ -259,4 +259,5 @@ ProjectFilters.propTypes = {
   type: t.oneOf(['projects']).isRequired,
   filters: t.object.isRequired,
   setFilters: t.func.isRequired,
+  isLeadership: t.bool,
 };

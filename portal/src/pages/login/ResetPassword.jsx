@@ -5,11 +5,11 @@ import {
   useParams,
   useSearchParams,
 } from 'react-router-dom';
-import { createSubmission, getCsrfToken } from '@kineticdata/react';
+import { createSubmission, getCsrfToken, login } from '@kineticdata/react';
 import { useSelector } from 'react-redux';
 import { toastSuccess } from '../../helpers/toasts.js';
 import { LoginCardWrapper } from './Login.jsx';
-import logo from '../../assets/images/logo.svg';
+import logo from '../../assets/images/logo.png';
 import { Icon } from '../../atoms/Icon.jsx';
 
 export const ResetPassword = () => {
@@ -18,10 +18,10 @@ export const ResetPassword = () => {
 
   return (
     <LoginCardWrapper>
-      <div className="flex-ss w-full">
+      <div className="flex-ss w-full mb-4">
         <Link
           to="./.."
-          className="kbtn kbtn-circle kbtn-ghost kbtn-lg"
+          className="kbtn kbtn-circle kbtn-ghost"
           aria-label="Back to Login"
         >
           <Icon name="arrow-left" />
@@ -45,13 +45,11 @@ const ResetPasswordRequestForm = () => {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState(null);
 
-  // State for username field
   const [username, setUsername] = useState('');
   const onChangeUsername = useCallback(e => {
     setUsername(e.target.value);
   }, []);
 
-  // Handler to request password reset
   const submitRequest = useCallback(
     async e => {
       e.preventDefault();
@@ -72,12 +70,22 @@ const ResetPasswordRequestForm = () => {
   );
 
   return (
-    <form className="flex-c-st gap-5 w-full max-w-96 pb-8">
-      <img
-        src={themeLogo || logo}
-        alt="Logo"
-        className="logo mb-5 self-center"
-      />
+    <form className="flex-c-st gap-5 w-full">
+      <div className="lg:hidden flex-cc mb-4">
+        <img
+          src={themeLogo || logo}
+          alt="Waterboyz for Jesus"
+          className="w-48"
+        />
+      </div>
+      <div className="mb-2">
+        <h1 className="text-2xl font-bold text-base-content">
+          Reset Password
+        </h1>
+        <p className="text-base-content/60 mt-1">
+          Enter your username and we&apos;ll send you a reset link
+        </p>
+      </div>
       <div className="field">
         <label htmlFor="username">Username</label>
         <input
@@ -89,23 +97,24 @@ const ResetPasswordRequestForm = () => {
           value={username}
           onChange={onChangeUsername}
           disabled={submitted}
+          placeholder="you@example.com"
         />
       </div>
       {submitted && (
-        <p>
+        <div className="px-4 py-3 rounded-lg bg-success text-success-content text-sm">
           Your request has been submitted. You should receive an email with a
           password reset link shortly.
-        </p>
+        </div>
       )}
       {error && (
-        <p className="flex-sc gap-2 text-base-content/80">
+        <div className="flex-sc gap-2 px-4 py-3 rounded-lg bg-error text-error-content text-sm">
           <span className="kstatus kstatus-error"></span>
           {error}
-        </p>
+        </div>
       )}
       <button
         type="submit"
-        className="kbtn kbtn-lg kbtn-primary"
+        className="kbtn kbtn-lg kbtn-primary w-full mt-2"
         onClick={submitRequest}
         disabled={!username || submitted}
       >
@@ -121,7 +130,6 @@ const ResetPasswordChangeForm = ({ token, username }) => {
   const [error, setError] = useState(null);
   const themeLogo = useSelector(state => state.theme.data?.logo?.default);
 
-  // State and change handlers for new password fields
   const [password, setPassword] = useState('');
   const onChangePassword = useCallback(e => {
     setPassword(e.target.value);
@@ -131,10 +139,6 @@ const ResetPasswordChangeForm = ({ token, username }) => {
     setConfirmPassword(e.target.value);
   }, []);
 
-  // State for tracking when each password field has been touched so that we
-  // can start validating them after both have been filled out. Start with an
-  // array with both field names, and use a blur handler to remove the ones
-  // that have been touched.
   const [untouchedFields, setUntouchedFields] = useState([
     'password',
     'passwordConfirmation',
@@ -144,11 +148,9 @@ const ResetPasswordChangeForm = ({ token, username }) => {
       fields.filter(field => field !== e.target.name),
     );
   }, []);
-  // Only check password mismatch after both fields have been touched
   const passwordMismatch =
     untouchedFields.length === 0 && password !== confirmPassword;
 
-  // Handler to submit the new password
   const submitRequest = useCallback(
     async e => {
       e.preventDefault();
@@ -165,8 +167,14 @@ const ResetPasswordChangeForm = ({ token, username }) => {
       });
 
       if (response.status === 302 || (response.ok && response.redirected)) {
-        navigate('/', { state: { persistToasts: true } });
-        toastSuccess({ title: 'Password was successfully updated.' });
+        const loginResult = await login({ username, password });
+        if (!loginResult?.error) {
+          window.location.replace('#/');
+          window.location.reload();
+        } else {
+          navigate('/', { state: { persistToasts: true } });
+          toastSuccess({ title: 'Password was successfully updated.' });
+        }
       } else {
         try {
           const json = await response.json();
@@ -182,14 +190,26 @@ const ResetPasswordChangeForm = ({ token, username }) => {
   );
 
   return (
-    <form className="flex-c-st gap-5 w-full max-w-96 pb-8">
-      <img
-        src={themeLogo || logo}
-        alt="Logo"
-        className="logo mb-5 self-center"
-      />
+    <form className="flex-c-st gap-5 w-full">
+      <div className="lg:hidden flex-cc mb-4">
+        <img
+          src={themeLogo || logo}
+          alt="Waterboyz for Jesus"
+          className="w-48"
+        />
+      </div>
+      <div className="mb-2">
+        <h1 className="text-2xl font-bold text-base-content">
+          Set New Password
+        </h1>
+        <p className="text-base-content/60 mt-1">
+          Choose a strong password for your account
+        </p>
+      </div>
       {!token || !username ? (
-        <>The reset password link is invalid.</>
+        <div className="px-4 py-3 rounded-lg bg-error text-error-content text-sm">
+          The reset password link is invalid.
+        </div>
       ) : (
         <>
           <div className="field">
@@ -214,6 +234,7 @@ const ResetPasswordChangeForm = ({ token, username }) => {
               value={password}
               onChange={onChangePassword}
               onBlur={onBlurPasswordField}
+              placeholder="Enter new password"
             />
           </div>
           <div className="field">
@@ -227,24 +248,25 @@ const ResetPasswordChangeForm = ({ token, username }) => {
               value={confirmPassword}
               onChange={onChangeConfirmPassword}
               onBlur={onBlurPasswordField}
+              placeholder="Confirm new password"
             />
           </div>
           {passwordMismatch && (
-            <p className="flex-sc gap-2 text-base-content/80">
+            <div className="flex-sc gap-2 px-4 py-3 rounded-lg bg-error text-error-content text-sm">
               <span className="kstatus kstatus-error"></span>
               Passwords must match.
-            </p>
+            </div>
           )}
           {error && (
-            <p className="flex-sc gap-2 text-base-content/80">
+            <div className="flex-sc gap-2 px-4 py-3 rounded-lg bg-error text-error-content text-sm">
               <span className="kstatus kstatus-error"></span>
               {error}
-            </p>
+            </div>
           )}
 
           <button
             type="submit"
-            className="kbtn kbtn-lg kbtn-primary"
+            className="kbtn kbtn-lg kbtn-primary w-full mt-2"
             onClick={submitRequest}
             disabled={
               submitted || !password || !confirmPassword || passwordMismatch

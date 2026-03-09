@@ -4,6 +4,7 @@ import { updateSubmission } from '@kineticdata/react';
 import { toastError, toastSuccess } from '../../../helpers/toasts.js';
 
 const TASKS_FIELD = 'Tasks JSON';
+const FIELD_TASKS_MAN_HOURS_TOTAL = 'Project Tasks Man Hours Total';
 
 const parseTasks = value => {
   if (!value) return [];
@@ -22,6 +23,7 @@ const createTask = text => ({
   id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
   text: text.trim(),
   done: false,
+  estimatedHours: '',
 });
 
 export const ProjectTasks = ({ project, reloadProject }) => {
@@ -40,6 +42,15 @@ export const ProjectTasks = ({ project, reloadProject }) => {
     [tasks, submissionTasks],
   );
 
+  const totalEstimatedHours = useMemo(
+    () =>
+      tasks.reduce((sum, task) => {
+        const hours = parseFloat(task.estimatedHours);
+        return sum + (Number.isFinite(hours) ? hours : 0);
+      }, 0),
+    [tasks],
+  );
+
   const handleAddTask = useCallback(() => {
     const trimmed = newTask.trim();
     if (!trimmed) return;
@@ -55,6 +66,14 @@ export const ProjectTasks = ({ project, reloadProject }) => {
     );
   }, []);
 
+  const handleUpdateHours = useCallback((taskId, hours) => {
+    setTasks(current =>
+      current.map(task =>
+        task.id === taskId ? { ...task, estimatedHours: hours } : task,
+      ),
+    );
+  }, []);
+
   const handleRemoveTask = useCallback(taskId => {
     setTasks(current => current.filter(task => task.id !== taskId));
   }, []);
@@ -64,7 +83,10 @@ export const ProjectTasks = ({ project, reloadProject }) => {
     setSaving(true);
     const result = await updateSubmission({
       id: project.id,
-      values: { [TASKS_FIELD]: serializeTasks(tasks) },
+      values: {
+        [TASKS_FIELD]: serializeTasks(tasks),
+        [FIELD_TASKS_MAN_HOURS_TOTAL]: totalEstimatedHours || null,
+      },
     });
 
     if (result?.error) {
@@ -78,13 +100,13 @@ export const ProjectTasks = ({ project, reloadProject }) => {
     }
 
     setSaving(false);
-  }, [project, tasks, reloadProject]);
+  }, [project, tasks, totalEstimatedHours, reloadProject]);
 
   return (
     <div className="krounded-box border kbg-base-100 p-6">
       <div className="text-lg font-semibold">Tasks</div>
       <p className="mt-2 ktext-base-content/70">
-        Create a checklist for the team. Tasks are stored in "Tasks JSON".
+        Create a checklist for the team.
       </p>
 
       <div className="mt-4 flex flex-wrap gap-2">
@@ -135,6 +157,17 @@ export const ProjectTasks = ({ project, reloadProject }) => {
               >
                 {task.text}
               </div>
+              <input
+                type="number"
+                className="kinput kinput-bordered kinput-sm w-20 text-right"
+                placeholder="Hrs"
+                min="0"
+                step="0.5"
+                value={task.estimatedHours ?? ''}
+                onChange={event =>
+                  handleUpdateHours(task.id, event.target.value)
+                }
+              />
               <button
                 type="button"
                 className="kbtn kbtn-ghost kbtn-xs kbtn-circle"
@@ -145,6 +178,15 @@ export const ProjectTasks = ({ project, reloadProject }) => {
               </button>
             </div>
           ))}
+        </div>
+      )}
+
+      {tasks.length > 0 && (
+        <div className="mt-3 flex justify-end text-sm ktext-base-content/70">
+          Estimated Total:{' '}
+          <span className="ml-1 font-semibold text-base-content">
+            {totalEstimatedHours} hrs
+          </span>
         </div>
       )}
 

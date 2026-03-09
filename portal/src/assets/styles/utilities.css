@@ -21,7 +21,12 @@
 
 /* Utility for logo sizing */
 @utility logo {
-  @apply max-w-35 object-contain;
+  @apply max-w-40 object-contain;
+}
+
+/* Utility for status badges */
+@utility status-badge {
+  @apply px-2.5 py-0.5 rounded-full text-xs font-semibold inline-flex items-center;
 }
 
 /* Utilities for icon boxes */

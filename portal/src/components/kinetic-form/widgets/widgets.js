@@ -1,3 +1,4 @@
+import { CategoryPicker } from './categorypicker.js';
 import { Markdown } from './markdown.js';
 import { Search } from './search.js';
 import { Signature } from './signature.js';
@@ -8,6 +9,7 @@ import utils from './utils.js';
 
 // Defines a map of available widgets
 const AVAILABLE_WIDGETS = {
+  CategoryPicker,
   Markdown,
   Search,
   Signature,

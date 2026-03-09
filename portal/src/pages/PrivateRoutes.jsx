@@ -7,9 +7,12 @@ import { Form } from './forms/Form.jsx';
 import { Profile } from './profile/Profile.jsx';
 import { SettingsRouting } from './settings/index.jsx';
 import { Projects } from './projects/Projects.jsx';
+import { Privacy } from './privacy/Privacy.jsx';
 
 import { Header } from '../components/header/Header.jsx';
+import { SiteFooter } from '../components/footer/SiteFooter.jsx';
 import { SearchModal } from '../components/search/SearchModal.jsx';
+import { VolunteerProfilePrompt } from '../components/VolunteerProfilePrompt.jsx';
 import { Theme } from './theme/index.jsx';
 
 const Redirect = ({ to }) => {
@@ -60,19 +63,26 @@ export const PrivateRoutes = () => {
               {/* Portal routes */}
               <Route path="/actions/*" element={<Actions />} />
               <Route path="/requests/*" element={<Requests />} />
-              <Route path="/projects/*" element={<Projects />} />
+              <Route path="/project-captains/*" element={<Projects />} />
               <Route
                 path="/forms/:formSlug/:submissionId?"
                 element={<Form />}
               />
               <Route path="/profile" element={<Profile />} />
               <Route path="/settings/*" element={<SettingsRouting />} />
+              <Route path="/privacy" element={<Privacy />} />
               <Route path="/login" element={<Navigate to="/" />} />
               <Route path="/*" element={<Home />} />
             </Routes>
 
+            {/* Site footer */}
+            <SiteFooter />
+
             {/* Global search modal */}
             <SearchModal />
+
+            {/* Prompt volunteers with stale profiles to update */}
+            <VolunteerProfilePrompt />
           </>
         }
       />

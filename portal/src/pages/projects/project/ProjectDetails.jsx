@@ -5,6 +5,11 @@ import { toastError, toastSuccess } from '../../../helpers/toasts.js';
 
 const FIELD_PROJECT_STATUS = 'Project Status';
 const FIELD_SCHEDULED_DATE = 'Scheduled Date';
+const FIELD_COMPLETION_DATE = 'Completion Date';
+const FIELD_SKILLS_NEEDED = 'Skills Needed';
+const FIELD_EQUIPMENT_NEEDED = 'Equipment Needed';
+const FIELD_TASKS_MAN_HOURS_TOTAL = 'Project Tasks Man Hours Total';
+const FIELD_TOTAL_MAN_HOURS = 'Total Project Man Hours';
 
 const normalizeDateValue = value =>
   value ? String(value).trim().slice(0, 10) : '';
@@ -38,10 +43,19 @@ export const ProjectDetails = ({
   project,
   family: _family,
   familyLoading: _familyLoading,
+  reloadProject,
 }) => {
   const [status, setStatus] = useState('');
   const [scheduledDate, setScheduledDate] = useState('');
+  const [completionDate, setCompletionDate] = useState('');
+  const [skillsNeeded, setSkillsNeeded] = useState('');
+  const [equipmentNeeded, setEquipmentNeeded] = useState('');
+  const [totalManHours, setTotalManHours] = useState('');
   const [saving, setSaving] = useState(false);
+  const isCompleted = status === 'Completed';
+  const taskHoursTotal = parseFloat(
+    project?.values?.[FIELD_TASKS_MAN_HOURS_TOTAL],
+  ) || 0;
   const statusOptions = useMemo(() => {
     const pages = project?.form?.pages || [];
     const allElements = pages.flatMap(page => page?.elements || []);
@@ -54,16 +68,28 @@ export const ProjectDetails = ({
     setScheduledDate(
       normalizeDateValue(project?.values?.[FIELD_SCHEDULED_DATE]),
     );
+    setCompletionDate(
+      normalizeDateValue(project?.values?.[FIELD_COMPLETION_DATE]),
+    );
+    setSkillsNeeded(project?.values?.[FIELD_SKILLS_NEEDED] || '');
+    setEquipmentNeeded(project?.values?.[FIELD_EQUIPMENT_NEEDED] || '');
+    setTotalManHours(project?.values?.[FIELD_TOTAL_MAN_HOURS] || '');
   }, [project]);
 
   const handleSave = useCallback(async () => {
     if (!project?.id) return;
+    if (isCompleted && !completionDate) return;
+    if (isCompleted && !totalManHours) return;
     setSaving(true);
     const result = await updateSubmission({
       id: project.id,
       values: {
         [FIELD_PROJECT_STATUS]: status,
         [FIELD_SCHEDULED_DATE]: scheduledDate || null,
+        [FIELD_COMPLETION_DATE]: completionDate || null,
+        [FIELD_SKILLS_NEEDED]: skillsNeeded || null,
+        [FIELD_EQUIPMENT_NEEDED]: equipmentNeeded || null,
+        [FIELD_TOTAL_MAN_HOURS]: totalManHours || null,
       },
     });
 
@@ -74,10 +100,11 @@ export const ProjectDetails = ({
       });
     } else {
       toastSuccess({ title: 'Project details updated.' });
+      reloadProject?.();
     }
 
     setSaving(false);
-  }, [project, scheduledDate, status]);
+  }, [project, scheduledDate, completionDate, status, isCompleted, skillsNeeded, equipmentNeeded, totalManHours, reloadProject]);
 
   return (
     <div className="krounded-box border kbg-base-100 p-6">
@@ -87,12 +114,12 @@ export const ProjectDetails = ({
       </p>
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
-        <label className="kform-control">
+        <label className="klabel flex flex-col items-start gap-2">
           <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
             Project Status
           </span>
           <select
-            className="kselect kselect-bordered"
+            className="kselect kselect-bordered w-full"
             value={status}
             onChange={event => setStatus(event.target.value)}
           >
@@ -104,15 +131,96 @@ export const ProjectDetails = ({
             ))}
           </select>
         </label>
-        <label className="kform-control">
+        <label className="klabel flex flex-col items-start gap-2">
           <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
             Scheduled Date
           </span>
           <input
             type="date"
-            className="kinput kinput-bordered"
+            className="kinput kinput-bordered w-full"
             value={scheduledDate}
             onChange={event => setScheduledDate(event.target.value)}
+          />
+        </label>
+        {isCompleted && (
+          <>
+            <label className="klabel flex flex-col items-start gap-2">
+              <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+                Completion Date <span className="text-error">*</span>
+              </span>
+              <input
+                type="date"
+                className="kinput kinput-bordered w-full"
+                value={completionDate}
+                required
+                onChange={event => setCompletionDate(event.target.value)}
+              />
+              {!completionDate && (
+                <span className="text-error text-xs mt-1">
+                  Completion date is required when status is Completed.
+                </span>
+              )}
+            </label>
+            <label className="klabel flex flex-col items-start gap-2">
+              <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+                Total Project Man Hours <span className="text-error">*</span>
+              </span>
+              <input
+                type="number"
+                className="kinput kinput-bordered w-full"
+                min="0"
+                step="0.5"
+                value={totalManHours}
+                required
+                onChange={event => setTotalManHours(event.target.value)}
+              />
+              {taskHoursTotal > 0 && (
+                <span className="text-xs ktext-base-content/60">
+                  Task estimates total:{' '}
+                  <span className="font-semibold">{taskHoursTotal} hrs</span>
+                </span>
+              )}
+              {!totalManHours && (
+                <span className="text-error text-xs mt-1">
+                  Total man hours is required when status is Completed.
+                </span>
+              )}
+            </label>
+          </>
+        )}
+      </div>
+
+      <div className="mt-6">
+        <div className="text-sm font-medium">Volunteer Requirements</div>
+        <p className="mt-1 text-xs ktext-base-content/60">
+          This information will be included in email notifications sent to
+          prospective volunteers.
+        </p>
+      </div>
+
+      <div className="mt-3 grid gap-4 md:grid-cols-2">
+        <label className="klabel flex flex-col items-start gap-2">
+          <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+            Skills Needed
+          </span>
+          <textarea
+            className="ktextarea ktextarea-bordered w-full"
+            rows={4}
+            placeholder="List skills needed for this project..."
+            value={skillsNeeded}
+            onChange={event => setSkillsNeeded(event.target.value)}
+          />
+        </label>
+        <label className="klabel flex flex-col items-start gap-2">
+          <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+            Equipment Needed
+          </span>
+          <textarea
+            className="ktextarea ktextarea-bordered w-full"
+            rows={4}
+            placeholder="List equipment needed for this project..."
+            value={equipmentNeeded}
+            onChange={event => setEquipmentNeeded(event.target.value)}
           />
         </label>
       </div>
@@ -135,4 +243,5 @@ ProjectDetails.propTypes = {
   project: t.object,
   family: t.any,
   familyLoading: t.bool,
+  reloadProject: t.func,
 };

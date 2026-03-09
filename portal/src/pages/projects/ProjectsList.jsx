@@ -1,21 +1,33 @@
 import clsx from 'clsx';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { ProjectFilters } from './ProjectFilters.jsx';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Error } from '../../components/states/Error.jsx';
 import { Loading } from '../../components/states/Loading.jsx';
 import { PageHeading } from '../../components/PageHeading.jsx';
 import { Icon } from '../../atoms/Icon.jsx';
+import { useSelector } from 'react-redux';
 
-export const ProjectsList = ({ listData, listActions, filters, setFilters }) => {
+const STATUS_COLORS = {
+  Active: 'bg-success text-success-content',
+  Completed: 'bg-primary/15 text-primary',
+  'In Progress': 'bg-info text-info-content',
+  Planning: 'bg-warning text-warning-content',
+  Closed: 'bg-base-300 text-base-content/70',
+};
+
+export const ProjectsList = ({ listData, listActions, filters, setFilters, isLeadership }) => {
   const { initialized, error, loading, data, pageNumber } = listData;
   const { nextPage, previousPage, reloadPage } = listActions;
   const navigate = useNavigate();
   const location = useLocation();
+  const mobile = useSelector(state => state.view.mobile);
 
+  const reloadPageRef = useRef(reloadPage);
+  reloadPageRef.current = reloadPage;
   useEffect(() => {
-    reloadPage?.();
-  }, [location.key, reloadPage]);
+    reloadPageRef.current?.();
+  }, [location.key]);
 
   const formatValue = value => {
     if (value === null || value === undefined || value === '') return '—';
@@ -23,18 +35,16 @@ export const ProjectsList = ({ listData, listActions, filters, setFilters }) => 
     return String(value);
   };
 
-  const handleRowKeyDown = (event, submissionId) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      navigate(submissionId);
-    }
-  };
-
   return (
-    <div className="gutter">
-      <div className="max-w-screen-lg pt-1 pb-6">
+    <div className="gutter pb-24 md:pb-8">
+      <div className="max-w-screen-lg mx-auto pt-1 pb-6">
         <PageHeading title="SWAT Projects" backTo="/" className="flex-wrap">
-          <ProjectFilters type="projects" filters={filters} setFilters={setFilters} />
+          <ProjectFilters
+            type="projects"
+            filters={filters}
+            setFilters={setFilters}
+            isLeadership={isLeadership}
+          />
         </PageHeading>
 
         {initialized && (
@@ -42,101 +52,191 @@ export const ProjectsList = ({ listData, listActions, filters, setFilters }) => 
             {error ? (
               <Error error={error} />
             ) : (
-              <div className="flex-c-st gap-4 mb-4 md:mb-6 md:grid md:grid-cols-[auto_2fr_1fr_auto]">
-                {/* Loading indicator if we're loading and there is no data */}
-                {loading && !data && (
-                  <Loading className="col-start-1 col-end-5" />
-                )}
+              <div className="flex-c-st gap-4">
+                {loading && !data && <Loading />}
 
-                {/* List of data */}
+                {/* Card layout for mobile, table for desktop */}
                 {data?.length > 0 && (
-                  <div className="col-start-1 col-end-5 overflow-hidden rounded-box border bg-base-100">
-                    <table className="w-full text-left">
-                      <thead className="bg-base-200 text-xs uppercase tracking-wide text-base-content/70">
-                        <tr>
-                          <th className="px-4 py-3">Project</th>
-                          <th className="px-4 py-3">Status</th>
-                          <th className="px-4 py-3">Project Lead</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {data.map(submission => {
-                          const status = formatValue(
-                            submission?.values?.['Project Status'],
-                          );
-                          const projectLead = formatValue(
-                            submission?.values?.['Project Captain'],
-                          );
+                  mobile ? (
+                    <div className="flex-c-st gap-3">
+                      {data.map(submission => {
+                        const status = formatValue(
+                          submission?.values?.['Project Status'],
+                        );
+                        const captain = formatValue(
+                          submission?.values?.['Project Captain'],
+                        );
+                        const scheduledDate = formatValue(
+                          submission?.values?.['Scheduled Date'],
+                        );
+                        const statusColor =
+                          STATUS_COLORS[status] || 'bg-base-200 text-base-content/70';
 
-                          return (
-                            <tr
-                              key={submission.id}
-                              className="cursor-pointer border-t border-base-200 hover:bg-base-200/60"
-                              onClick={() => navigate(submission.id)}
-                              onKeyDown={event =>
-                                handleRowKeyDown(event, submission.id)
-                              }
-                              tabIndex={0}
-                              role="button"
-                            >
-                              <td className="px-4 py-3 font-semibold text-primary">
-                                <Link
-                                  to={`${submission.id}`}
-                                  className="focus:outline-none focus-visible:underline"
-                                >
-                                  {formatValue(submission?.label)}
-                                </Link>
-                              </td>
-                              <td className="px-4 py-3">
+                        return (
+                          <Link
+                            key={submission.id}
+                            to={submission.id}
+                            className={clsx(
+                              'flex-c-st gap-3 p-4 bg-base-100 rounded-box border border-base-200',
+                              'hover:shadow-md hover:border-primary/20 transition-all active:scale-[0.99]',
+                            )}
+                          >
+                            <div className="flex-bc gap-3">
+                              <span className="font-semibold text-base line-clamp-1">
+                                {formatValue(submission?.label)}
+                              </span>
+                              <Icon
+                                name="chevron-right"
+                                size={18}
+                                className="flex-none text-base-content/30"
+                              />
+                            </div>
+                            <div className="flex-sc gap-2 flex-wrap">
+                              <span
+                                className={clsx(
+                                  'px-2.5 py-0.5 rounded-full text-xs font-semibold',
+                                  statusColor,
+                                )}
+                              >
                                 {status}
-                              </td>
-                              <td className="px-4 py-3">{projectLead}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
+                              </span>
+                              {captain !== '—' && (
+                                <span className="text-xs text-base-content/50">
+                                  <Icon
+                                    name="user"
+                                    size={14}
+                                    className="inline mr-1 -mt-0.5"
+                                  />
+                                  {captain}
+                                </span>
+                              )}
+                              {scheduledDate !== '—' && (
+                                <span className="text-xs text-base-content/50">
+                                  <Icon
+                                    name="calendar"
+                                    size={14}
+                                    className="inline mr-1 -mt-0.5"
+                                  />
+                                  {scheduledDate}
+                                </span>
+                              )}
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="overflow-hidden rounded-box border border-base-200 bg-base-100">
+                      <table className="w-full text-left">
+                        <thead className="bg-base-200/60 text-xs uppercase tracking-wide text-base-content/60">
+                          <tr>
+                            <th className="px-5 py-3.5 font-semibold">
+                              Project
+                            </th>
+                            <th className="px-5 py-3.5 font-semibold">
+                              Status
+                            </th>
+                            <th className="px-5 py-3.5 font-semibold">
+                              Project Lead
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-base-200">
+                          {data.map(submission => {
+                            const status = formatValue(
+                              submission?.values?.['Project Status'],
+                            );
+                            const projectLead = formatValue(
+                              submission?.values?.['Project Captain'],
+                            );
+                            const statusColor =
+                              STATUS_COLORS[status] ||
+                              'bg-base-200 text-base-content/70';
+
+                            return (
+                              <tr
+                                key={submission.id}
+                                className="cursor-pointer hover:bg-base-200/40 transition-colors"
+                                onClick={() => navigate(submission.id)}
+                                tabIndex={0}
+                                role="button"
+                                onKeyDown={e => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    navigate(submission.id);
+                                  }
+                                }}
+                              >
+                                <td className="px-5 py-4">
+                                  <Link
+                                    to={`${submission.id}`}
+                                    className="font-semibold text-primary hover:underline focus:outline-none"
+                                  >
+                                    {formatValue(submission?.label)}
+                                  </Link>
+                                </td>
+                                <td className="px-5 py-4">
+                                  <span
+                                    className={clsx(
+                                      'px-2.5 py-1 rounded-full text-xs font-semibold',
+                                      statusColor,
+                                    )}
+                                  >
+                                    {status}
+                                  </span>
+                                </td>
+                                <td className="px-5 py-4 text-base-content/70">
+                                  {projectLead}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )
                 )}
 
-                {/* Empty message if we're not loading and there is no data*/}
                 {data?.length === 0 && (
-                  <div className="col-start-1 col-end-5 rounded-box border bg-base-100 p-6 text-center text-base-content/70">
-                    There are no projects to show
-                    {previousPage ? ' on this page' : ''}.
+                  <div className="rounded-box border border-base-200 bg-base-100 p-10 text-center">
+                    <Icon
+                      name="hammer"
+                      size={40}
+                      className="mx-auto text-base-content/20 mb-3"
+                    />
+                    <p className="text-base-content/50 font-medium">
+                      No projects to show
+                      {previousPage ? ' on this page' : ''}
+                    </p>
                   </div>
                 )}
 
                 {(data?.length > 0 || previousPage) && (
-                  <div
-                    className={clsx(
-                      'col-start-1 col-end-5 py-0.25 md:py-1.75 px-6 flex-cc gap-6',
-                      'bg-base-100 border rounded-box md:min-h-16',
-                      'max-md:sticky max-md:bottom-4 max-md:outline-2 max-md:outline-base-100',
-                    )}
-                  >
+                  <div className="flex-cc gap-4 py-2">
                     <button
                       type="button"
-                      className="kbtn kbtn-ghost kbtn-lg kbtn-circle"
+                      className="kbtn kbtn-ghost kbtn-circle"
                       onClick={previousPage}
                       disabled={!previousPage || loading}
                       aria-label="Previous Page"
                     >
-                      <Icon name="chevrons-left" />
+                      <Icon name="chevron-left" />
                     </button>
                     {loading ? (
                       <Loading xsmall size={36} />
                     ) : (
-                      <div className="font-semibold">Page {pageNumber}</div>
+                      <span className="text-sm font-semibold text-base-content/60 min-w-16 text-center">
+                        Page {pageNumber}
+                      </span>
                     )}
                     <button
                       type="button"
-                      className="kbtn kbtn-ghost kbtn-lg kbtn-circle"
+                      className="kbtn kbtn-ghost kbtn-circle"
                       onClick={nextPage}
                       disabled={!nextPage || loading}
                       aria-label="Next Page"
                     >
-                      <Icon name="chevrons-right" />
+                      <Icon name="chevron-right" />
                     </button>
                   </div>
                 )}

@@ -18,46 +18,43 @@ export const CreateAccount = () => {
 
   return (
     <LoginCardWrapper>
-      <div className="flex-ss w-full">
+      <div className="flex-ss w-full mb-4">
         <Link
           to="./.."
-          className="kbtn kbtn-circle kbtn-ghost kbtn-lg"
+          className="kbtn kbtn-circle kbtn-ghost"
           aria-label="Back to Login"
         >
           <Icon name="arrow-left" />
         </Link>
       </div>
       {token ? (
-        <ResetPasswordChangeForm
+        <SetPasswordForm
           token={token}
           username={decodeURIComponent(searchParams.get('u'))}
         />
       ) : (
-        <ResetPasswordRequestForm />
+        <RegisterForm />
       )}
     </LoginCardWrapper>
   );
 };
 
-const ResetPasswordRequestForm = () => {
+const RegisterForm = () => {
   const kappSlug = useSelector(state => state.app.kappSlug);
   const themeLogo = useSelector(state => state.theme.data?.logo?.default);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState(null);
 
-  // State for email field
   const [email, setEmail] = useState('');
   const onChangeEmail = useCallback(e => {
     setEmail(e.target.value);
   }, []);
 
-   // State for Name field
   const [name, setName] = useState('');
   const onChangeName = useCallback(e => {
     setName(e.target.value);
   }, []);
 
-  // Handler to request password reset
   const submitRequest = useCallback(
     async e => {
       e.preventDefault();
@@ -78,12 +75,22 @@ const ResetPasswordRequestForm = () => {
   );
 
   return (
-    <form className="flex-c-st gap-5 w-full max-w-96 pb-8">
-      <img
-        src={themeLogo || logo}
-        alt="Logo"
-        className="logo mb-5 self-center"
-      />
+    <form className="flex-c-st gap-5 w-full">
+      <div className="lg:hidden flex-cc mb-4">
+        <img
+          src={themeLogo || logo}
+          alt="Waterboyz for Jesus"
+          className="w-48"
+        />
+      </div>
+      <div className="mb-2">
+        <h1 className="text-2xl font-bold text-base-content">
+          Create Account
+        </h1>
+        <p className="text-base-content/60 mt-1">
+          Join the Waterboyz volunteer community
+        </p>
+      </div>
       <div className="field">
         <label htmlFor="name">First and Last Name</label>
         <input
@@ -95,6 +102,7 @@ const ResetPasswordRequestForm = () => {
           value={name}
           onChange={onChangeName}
           disabled={submitted}
+          placeholder="John Smith"
         />
       </div>
       <div className="field">
@@ -107,38 +115,49 @@ const ResetPasswordRequestForm = () => {
           value={email}
           onChange={onChangeEmail}
           disabled={submitted}
+          placeholder="you@example.com"
         />
       </div>
       {submitted && (
-        <p>
-          Thanks for Registering. You should receive an email momentarily to set your password and login.
-        </p>
+        <div className="px-4 py-3 rounded-lg bg-success text-success-content text-sm">
+          Thanks for registering! You should receive an email momentarily to set
+          your password and login.
+        </div>
       )}
       {error && (
-        <p className="flex-sc gap-2 text-base-content/80">
+        <div className="flex-sc gap-2 px-4 py-3 rounded-lg bg-error text-error-content text-sm">
           <span className="kstatus kstatus-error"></span>
           {error}
-        </p>
+        </div>
       )}
       <button
         type="submit"
-        className="kbtn kbtn-lg kbtn-primary"
+        className="kbtn kbtn-lg kbtn-primary w-full mt-2"
         onClick={submitRequest}
         disabled={!name || !email || submitted}
       >
         Create My Account
       </button>
+
+      <div className="text-center text-sm text-base-content/60">
+        Already have an account?{' '}
+        <Link
+          to="/login"
+          className="text-primary font-semibold hover:underline"
+        >
+          Sign in
+        </Link>
+      </div>
     </form>
   );
 };
 
-const ResetPasswordChangeForm = ({ token, username }) => {
+const SetPasswordForm = ({ token, username }) => {
   const navigate = useNavigate();
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState(null);
   const themeLogo = useSelector(state => state.theme.data?.logo?.default);
 
-  // State and change handlers for new password fields
   const [password, setPassword] = useState('');
   const onChangePassword = useCallback(e => {
     setPassword(e.target.value);
@@ -148,10 +167,6 @@ const ResetPasswordChangeForm = ({ token, username }) => {
     setConfirmPassword(e.target.value);
   }, []);
 
-  // State for tracking when each password field has been touched so that we
-  // can start validating them after both have been filled out. Start with an
-  // array with both field names, and use a blur handler to remove the ones
-  // that have been touched.
   const [untouchedFields, setUntouchedFields] = useState([
     'password',
     'passwordConfirmation',
@@ -161,11 +176,9 @@ const ResetPasswordChangeForm = ({ token, username }) => {
       fields.filter(field => field !== e.target.name),
     );
   }, []);
-  // Only check password mismatch after both fields have been touched
   const passwordMismatch =
     untouchedFields.length === 0 && password !== confirmPassword;
 
-  // Handler to submit the new password
   const submitRequest = useCallback(
     async e => {
       e.preventDefault();
@@ -199,14 +212,26 @@ const ResetPasswordChangeForm = ({ token, username }) => {
   );
 
   return (
-    <form className="flex-c-st gap-5 w-full max-w-96 pb-8">
-      <img
-        src={themeLogo || logo}
-        alt="Logo"
-        className="logo mb-5 self-center"
-      />
+    <form className="flex-c-st gap-5 w-full">
+      <div className="lg:hidden flex-cc mb-4">
+        <img
+          src={themeLogo || logo}
+          alt="Waterboyz for Jesus"
+          className="w-48"
+        />
+      </div>
+      <div className="mb-2">
+        <h1 className="text-2xl font-bold text-base-content">
+          Set Your Password
+        </h1>
+        <p className="text-base-content/60 mt-1">
+          Choose a strong password for your account
+        </p>
+      </div>
       {!token || !username ? (
-        <>The reset password link is invalid.</>
+        <div className="px-4 py-3 rounded-lg bg-error text-error-content text-sm">
+          The reset password link is invalid.
+        </div>
       ) : (
         <>
           <div className="field">
@@ -231,6 +256,7 @@ const ResetPasswordChangeForm = ({ token, username }) => {
               value={password}
               onChange={onChangePassword}
               onBlur={onBlurPasswordField}
+              placeholder="Enter new password"
             />
           </div>
           <div className="field">
@@ -244,30 +270,31 @@ const ResetPasswordChangeForm = ({ token, username }) => {
               value={confirmPassword}
               onChange={onChangeConfirmPassword}
               onBlur={onBlurPasswordField}
+              placeholder="Confirm new password"
             />
           </div>
           {passwordMismatch && (
-            <p className="flex-sc gap-2 text-base-content/80">
+            <div className="flex-sc gap-2 px-4 py-3 rounded-lg bg-error text-error-content text-sm">
               <span className="kstatus kstatus-error"></span>
               Passwords must match.
-            </p>
+            </div>
           )}
           {error && (
-            <p className="flex-sc gap-2 text-base-content/80">
+            <div className="flex-sc gap-2 px-4 py-3 rounded-lg bg-error text-error-content text-sm">
               <span className="kstatus kstatus-error"></span>
               {error}
-            </p>
+            </div>
           )}
 
           <button
             type="submit"
-            className="kbtn kbtn-lg kbtn-primary"
+            className="kbtn kbtn-lg kbtn-primary w-full mt-2"
             onClick={submitRequest}
             disabled={
               submitted || !password || !confirmPassword || passwordMismatch
             }
           >
-            Reset Password
+            Set Password
           </button>
         </>
       )}

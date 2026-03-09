@@ -5,26 +5,27 @@
 :root,
 [data-theme],
 [data-theme-editor] {
-  --color-base-100: #fefefe;
-  --color-base-200: #f0f2f3;
-  --color-base-300: #d0d4db;
-  --color-base-content: #101828;
-  --color-primary: #ffce74;
-  --color-primary-content: #272117;
-  --color-secondary: #1f3d5a;
-  --color-secondary-content: #d4dfeb;
-  --color-accent: #8bc2ff;
-  --color-accent-content: #162455;
-  --color-neutral: #1f3d5a;
-  --color-neutral-content: #d4dfeb;
-  --color-info: #c7dfff;
-  --color-info-content: #1d2229;
-  --color-success: #d3edd3;
-  --color-success-content: #383f38;
-  --color-warning: #e1ac56;
-  --color-warning-content: #584220;
-  --color-error: #fec8c8;
-  --color-error-content: #801518;
+  /* Waterboyz Brand Colors */
+  --color-base-100: #ffffff;
+  --color-base-200: #f5f6f7;
+  --color-base-300: #e0e2e5;
+  --color-base-content: #1a1a1a;
+  --color-primary: #0075a9;
+  --color-primary-content: #ffffff;
+  --color-secondary: #835737;
+  --color-secondary-content: #ffffff;
+  --color-accent: #B2812C;
+  --color-accent-content: #ffffff;
+  --color-neutral: #2d3748;
+  --color-neutral-content: #f7f7f7;
+  --color-info: #d0ecff;
+  --color-info-content: #0c4a6e;
+  --color-success: #d1fae5;
+  --color-success-content: #065f46;
+  --color-warning: #fef3c7;
+  --color-warning-content: #92400e;
+  --color-error: #fee2e2;
+  --color-error-content: #991b1b;
   --radius-box: 1rem;
   --radius-field: 0.75rem;
   --radius-selector: 0.5rem;

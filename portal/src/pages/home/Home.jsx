@@ -13,112 +13,129 @@ import { openSearch } from '../../helpers/search.js';
 import { StatusPill } from '../../components/tickets/StatusPill.jsx';
 
 export const Home = () => {
-  const { mobile, desktop } = useSelector(state => state.view);
+  const { mobile } = useSelector(state => state.view);
   const { profile } = useSelector(state => state.app);
 
   return (
-    <>
-      <div className="flex-bt gap-20 2xl:gap-42 gutter xl:pr-14 max-md:py-9 md:h-64 bg-base-200">
-        <div className="flex-auto flex-c-ct gap-10">
-          {!mobile && (
-            <div className="text-4xl xl:text-6xl font-semibold">
-              Hello, {profile.displayName}
-            </div>
-          )}
-          <div
-            className={clsx(
-              'flex-bc gap-6 xl:gap-8',
-              mobile && 'justify-around',
-            )}
-          >
-            {!mobile ? (
-              <>
-                <button
-                  type="button"
-                  className="kbtn kbtn-primary kbtn-xl flex-1"
-                  onClick={() => openSearch()}
-                >
-                  Get Started
-                </button>
-                <Link
-                  to="/requests"
-                  className="kbtn kbtn-outline kbtn-base kbtn-xl flex-1"
-                >
-                  My Requests
-                </Link>
-                <Link
-                  to="/actions"
-                  className="kbtn kbtn-outline kbtn-base kbtn-xl flex-1"
-                >
-                  My Actions
-                </Link>
-              </>
-            ) : (
-              <>
-                <div className="relative flex-1 flex-c-sc gap-4">
-                  <div className="icon-box-lg bg-primary text-primary-content">
-                    <Icon name="send" />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => openSearch()}
-                    className="cursor-pointer after:absolute after:inset-0 text-center"
-                  >
-                    Submit a Request
-                  </button>
-                </div>
-                <div className="relative flex-1 flex-c-sc gap-4">
-                  <div className="icon-box-lg bg-base-100 text-base-content border">
-                    <Icon name="list-search" />
-                  </div>
-                  <Link
-                    to="/requests"
-                    className="cursor-pointer after:absolute after:inset-0 text-center"
-                  >
-                    Check Status
-                  </Link>
-                </div>
-                <div className="relative flex-1 flex-c-sc gap-4">
-                  <div className="icon-box-lg bg-base-100 text-base-content border">
-                    <Icon name="list-details" />
-                  </div>
-                  <Link
-                    to="/actions"
-                    className="cursor-pointer after:absolute after:inset-0 text-center"
-                  >
-                    See My Work
-                  </Link>
-                </div>
-              </>
-            )}
+    <div className="flex-c-st gap-0 pb-24 md:pb-8">
+      {/* Hero Section */}
+      <div className="relative bg-primary overflow-hidden">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              'radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.06) 0%, transparent 50%)',
+          }}
+        />
+        <div className="relative z-10 gutter py-10 md:py-16">
+          <div className="max-w-screen-xl mx-auto">
+            <p className="text-primary-content/60 text-sm font-medium uppercase tracking-wider mb-2">
+              Welcome back
+            </p>
+            <h1 className="text-3xl md:text-5xl font-bold text-primary-content mb-3">
+              {profile.displayName}
+            </h1>
+            <p className="text-primary-content/70 text-lg max-w-lg">
+              Ready to make a difference? Check your projects, volunteer for new ones, or submit a request.
+            </p>
           </div>
         </div>
-        {desktop && <Shortcuts vertical={true} />}
       </div>
 
-      <div className="flex-c-st xl:flex-bs gap-7 md:gap-10 xl:gap-20 gutter py-7">
-        <div className="flex-1 flex-c-st gap-4">
-          <div className="text-lg md:text-2xl font-semibold">
-            Recent Activity
+      {/* Quick Action Cards */}
+      <div className="gutter -mt-6 md:-mt-8 relative z-10">
+        <div className="max-w-screen-xl mx-auto">
+          <div className="grid grid-cols-3 gap-3 md:gap-5">
+            <button
+              type="button"
+              onClick={() => openSearch()}
+              className={clsx(
+                'group relative flex flex-col items-center gap-3 p-4 md:p-6',
+                'bg-base-100 rounded-box shadow-lg border border-base-200',
+                'hover:shadow-xl hover:-translate-y-0.5 transition-all cursor-pointer',
+              )}
+            >
+              <div className="flex-cc w-12 h-12 md:w-14 md:h-14 rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-content transition-colors">
+                <Icon name="heart-handshake" size={mobile ? 22 : 26} />
+              </div>
+              <span className="text-sm md:text-base font-semibold text-center">
+                Get Involved
+              </span>
+            </button>
+            <Link
+              to="/requests"
+              className={clsx(
+                'group relative flex flex-col items-center gap-3 p-4 md:p-6',
+                'bg-base-100 rounded-box shadow-lg border border-base-200',
+                'hover:shadow-xl hover:-translate-y-0.5 transition-all',
+              )}
+            >
+              <div className="flex-cc w-12 h-12 md:w-14 md:h-14 rounded-full bg-accent/10 text-accent group-hover:bg-accent group-hover:text-accent-content transition-colors">
+                <Icon name="file-text" size={mobile ? 22 : 26} />
+              </div>
+              <span className="text-sm md:text-base font-semibold text-center">
+                My Requests
+              </span>
+            </Link>
+            <Link
+              to="/actions"
+              className={clsx(
+                'group relative flex flex-col items-center gap-3 p-4 md:p-6',
+                'bg-base-100 rounded-box shadow-lg border border-base-200',
+                'hover:shadow-xl hover:-translate-y-0.5 transition-all',
+              )}
+            >
+              <div className="flex-cc w-12 h-12 md:w-14 md:h-14 rounded-full bg-secondary/10 text-secondary group-hover:bg-secondary group-hover:text-secondary-content transition-colors">
+                <Icon name="clipboard-check" size={mobile ? 22 : 26} />
+              </div>
+              <span className="text-sm md:text-base font-semibold text-center">
+                My Work
+              </span>
+            </Link>
           </div>
-          <div className="kcard">
-            <div className="kcard-body">
+        </div>
+      </div>
+
+      {/* Content Grid */}
+      <div className="gutter mt-8 md:mt-10">
+        <div className="max-w-screen-xl mx-auto grid md:grid-cols-2 gap-6 md:gap-8">
+          {/* Recent Activity */}
+          <div className="flex-c-st gap-4">
+            <div className="flex-bc">
+              <h2 className="text-lg md:text-xl font-bold">Recent Activity</h2>
+              <Link
+                to="/requests"
+                className="text-sm text-primary font-medium hover:underline"
+              >
+                View all
+              </Link>
+            </div>
+            <div className="bg-base-100 rounded-box border border-base-200 overflow-hidden">
               <ActivityList />
             </div>
           </div>
-        </div>
-        <div className="flex-1 flex-c-st gap-4">
-          <div className="text-lg md:text-2xl font-semibold">Recent Work</div>
-          <div className="kcard">
-            <div className="kcard-body">
+
+          {/* Recent Work */}
+          <div className="flex-c-st gap-4">
+            <div className="flex-bc">
+              <h2 className="text-lg md:text-xl font-bold">My Work</h2>
+              <Link
+                to="/actions"
+                className="text-sm text-primary font-medium hover:underline"
+              >
+                View all
+              </Link>
+            </div>
+            <div className="bg-base-100 rounded-box border border-base-200 overflow-hidden">
               <WorkList />
             </div>
           </div>
         </div>
       </div>
 
-      {!desktop && <Shortcuts className="gutter pt-3 pb-10" />}
-    </>
+      {/* Shortcuts */}
+      <Shortcuts className="gutter mt-8 md:mt-10 pb-4" />
+    </div>
   );
 };
 
@@ -126,22 +143,17 @@ const ActivityList = () => {
   const { profile, kappSlug } = useSelector(state => state.app);
   const { username } = profile;
 
-  // Parameters for the query
   const params = useMemo(
     () => ({
       kapp: kappSlug,
       search: {
         q: defineKqlQuery()
-          // Limit form types
           .in('type', 'types')
-          // Add assignment query so we only retrieve requests for the current user
           .or()
           .equals('createdBy', 'username')
           .equals('submittedBy', 'username')
           .equals('values[Requested For]', 'username')
-          // End or block
           .end()
-          // End query builder
           .end()({ types: ['Service'], username }),
         include: ['details', 'form', 'form.attributesMap'],
         limit: 5,
@@ -150,37 +162,48 @@ const ActivityList = () => {
     [kappSlug, username],
   );
 
-  // Retrieve the submission record
   const data = useData(searchSubmissions, params);
   const { error, submissions } = data.response || {};
 
   if (data.initialized) {
     return error ? (
-      <Error error={error} />
+      <div className="p-4">
+        <Error error={error} />
+      </div>
     ) : data.loading ? (
-      <Loading />
+      <div className="p-6">
+        <Loading />
+      </div>
     ) : (
-      <ul className="klist text-base">
+      <ul className="divide-y divide-base-200">
         {submissions?.map(submission => (
-          <li
-            className="klist-row min-h-20 hover:bg-base-200"
-            key={submission.id}
-          >
-            <div className="icon-box -my-3">
-              <Icon
-                name={getAttributeValue(submission?.form, 'Icon', 'checklist')}
-              />
-            </div>
+          <li key={submission.id} className="relative">
             <Link
               to={`/requests/${submission.id}${submission.coreState === 'Draft' ? '/edit' : ''}`}
-              className="line-clamp-2 after:absolute after:inset-0"
+              className="flex-sc gap-3 px-4 py-3.5 hover:bg-base-200/50 transition-colors"
             >
-              {submission.label}
+              <div className="flex-cc w-9 h-9 rounded-lg bg-base-200 flex-none">
+                <Icon
+                  name={getAttributeValue(
+                    submission?.form,
+                    'Icon',
+                    'checklist',
+                  )}
+                  size={18}
+                />
+              </div>
+              <span className="flex-1 line-clamp-1 text-sm font-medium">
+                {submission.label}
+              </span>
+              <StatusPill status={submission.coreState} />
             </Link>
-            <StatusPill status={submission.coreState}></StatusPill>
           </li>
         ))}
-        {submissions?.length === 0 && <li>There is no activity to show.</li>}
+        {submissions?.length === 0 && (
+          <li className="px-4 py-8 text-center text-base-content/50 text-sm">
+            No recent activity
+          </li>
+        )}
       </ul>
     );
   }
@@ -190,21 +213,16 @@ const WorkList = () => {
   const { profile, kappSlug } = useSelector(state => state.app);
   const { username, memberships } = profile;
 
-  // Parameters for the query
   const params = useMemo(
     () => ({
       kapp: kappSlug,
       search: {
         q: defineKqlQuery()
-          // Limit form types
           .in('type', 'types')
-          // Add assignment query so we only retrieve requests for the current user
           .or()
           .equals('values[Assigned Individual]', 'username')
           .in('values[Assigned Team]', 'teams')
-          // End or block
           .end()
-          // End query builder
           .end()({
           types: ['Approval', 'Task'],
           username,
@@ -217,46 +235,55 @@ const WorkList = () => {
     [kappSlug, username, memberships],
   );
 
-  // Retrieve the submission record
   const data = useData(searchSubmissions, params);
   const { error, submissions } = data.response || {};
 
   if (data.initialized) {
     return error ? (
-      <Error error={error} />
+      <div className="p-4">
+        <Error error={error} />
+      </div>
     ) : data.loading ? (
-      <Loading />
+      <div className="p-6">
+        <Loading />
+      </div>
     ) : (
-      <ul className="klist text-base">
+      <ul className="divide-y divide-base-200">
         {submissions?.map(submission => (
-          <li
-            className="klist-row min-h-20 hover:bg-base-200"
-            key={submission.id}
-          >
-            <div className="icon-box -my-3">
-              <Icon
-                name={getAttributeValue(submission?.form, 'Icon', 'checklist')}
-              />
-            </div>
+          <li key={submission.id} className="relative">
             <Link
               to={`/actions/${submission.id}`}
-              className="line-clamp-2 after:absolute after:inset-0"
+              className="flex-sc gap-3 px-4 py-3.5 hover:bg-base-200/50 transition-colors"
             >
-              {submission.label}
+              <div className="flex-cc w-9 h-9 rounded-lg bg-base-200 flex-none">
+                <Icon
+                  name={getAttributeValue(
+                    submission?.form,
+                    'Icon',
+                    'checklist',
+                  )}
+                  size={18}
+                />
+              </div>
+              <span className="flex-1 line-clamp-1 text-sm font-medium">
+                {submission.label}
+              </span>
+              <StatusPill
+                status={submission.coreState === 'Draft' ? 'Open' : 'Closed'}
+              />
             </Link>
-            <StatusPill
-              status={submission.coreState === 'Draft' ? 'Open' : 'Closed'}
-            ></StatusPill>
           </li>
         ))}
-        {submissions?.length === 0 && <li>There is no work to show.</li>}
+        {submissions?.length === 0 && (
+          <li className="px-4 py-8 text-center text-base-content/50 text-sm">
+            No work items assigned
+          </li>
+        )}
       </ul>
     );
   }
 };
 
-// Transform function for converting shortcuts submissions into the format
-// needed for the UI
 const shortcutsTransform = submissions =>
   submissions
     ?.map(({ values }) => ({
@@ -268,10 +295,9 @@ const shortcutsTransform = submissions =>
     }))
     ?.sort(sortBy('sortOrder'));
 
-const Shortcuts = ({ vertical = false, className }) => {
+const Shortcuts = ({ className }) => {
   const { kappSlug } = useSelector(state => state.app);
 
-  // Parameters for the shortcuts query
   const params = useMemo(
     () => ({
       kapp: kappSlug,
@@ -290,54 +316,44 @@ const Shortcuts = ({ vertical = false, className }) => {
   const { initialized, loading, response } = useData(searchSubmissions, params);
   const shortcuts = shortcutsTransform(response?.submissions);
 
+  if (!initialized || loading || !shortcuts?.length) return null;
+
   return (
-    <div
-      className={clsx(
-        'flex-none gap-3 overflow-auto',
-        vertical && 'w-89 grid grid-cols-2',
-        !vertical && 'w-full flex-sc',
-        className,
-      )}
-      style={{ scrollbarWidth: 'none' }}
-    >
-      {initialized &&
-        !loading &&
-        !response?.error &&
-        shortcuts?.map((shortcut, index) => (
-          <a
-            key={index}
-            href={shortcut.link}
-            target={shortcut.newTab ? '_blank' : undefined}
-            rel="noreferrer"
-            className={clsx(
-              'relative bg-base-300 rounded-box overflow-hidden',
-              vertical && [
-                'flex-full h-33 row-span-2',
-                index === 1 && 'row-start-2',
-                'hover:scale-105 transition-transform',
-                shortcuts.length !== 1 && {
-                  'hover:translate-x-1/40': index % 2 === 1,
-                  'hover:-translate-x-1/40': index % 2 === 0,
-                },
-                shortcuts.length === 1 && 'hover:translate-1/40',
-              ],
-              !vertical && ['flex-none h-50 w-65'],
-            )}
-          >
-            {shortcut.image && (
-              <img
-                src={shortcut.image}
-                alt=""
-                className="w-full h-full object-cover"
-              />
-            )}
-            <small className="absolute inset-x-0 bottom-0 px-2 pt-2 pb-4 bg-black/60 text-white">
-              <span className="font-medium line-clamp-2 text-center">
-                {shortcut.title}
-              </span>
-            </small>
-          </a>
-        ))}
+    <div className={className}>
+      <div className="max-w-screen-xl mx-auto">
+        <h2 className="text-lg md:text-xl font-bold mb-4">Quick Links</h2>
+        <div
+          className="flex gap-4 overflow-x-auto pb-2"
+          style={{ scrollbarWidth: 'none' }}
+        >
+          {shortcuts.map((shortcut, index) => (
+            <a
+              key={index}
+              href={shortcut.link}
+              target={shortcut.newTab ? '_blank' : undefined}
+              rel="noreferrer"
+              className={clsx(
+                'group relative flex-none w-56 md:w-64 h-36 md:h-40',
+                'bg-base-300 rounded-box overflow-hidden',
+                'hover:scale-[1.02] transition-transform',
+              )}
+            >
+              {shortcut.image && (
+                <img
+                  src={shortcut.image}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              )}
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent pt-8 pb-3 px-3">
+                <span className="text-white text-sm font-semibold line-clamp-2">
+                  {shortcut.title}
+                </span>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
