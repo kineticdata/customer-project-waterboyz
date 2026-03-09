@@ -485,3 +485,5 @@ To initialize after cloning:
 
 - **Project-specific documentation** should be added locally to this project.
 - **Reusable Kinetic Platform patterns** should be added to the `ai-skills/` submodule and submitted as a pull request to [kineticdata/kinetic-platform-ai-skills](https://github.com/kineticdata/kinetic-platform-ai-skills) so all projects benefit.
+
+@ai-skills/CLAUDE.md

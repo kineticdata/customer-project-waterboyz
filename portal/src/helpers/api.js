@@ -31,8 +31,11 @@ export const executeIntegration = ({
       .join(''),
     {
       method: 'POST',
-      body: JSON.stringify(parameters),
-      headers: { 'X-XSRF-TOKEN': getCsrfToken() },
+      body: JSON.stringify(parameters ?? {}),
+      headers: {
+      'Content-Type': 'application/json',
+      'X-XSRF-TOKEN': getCsrfToken(),
+    },
     },
   )
     .then(handleResponse)

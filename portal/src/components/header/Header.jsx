@@ -70,6 +70,17 @@ export const Header = () => {
               >
                 My Work
               </NavLink>
+              <NavLink
+                to="/upcoming-projects"
+                className={({ isActive }) =>
+                  clsx(
+                    'kbtn kbtn-ghost kbtn-sm font-medium',
+                    isActive && 'text-primary bg-primary/8',
+                  )
+                }
+              >
+                Upcoming Projects
+              </NavLink>
               {hasProjectAccess && (
                 <NavLink
                   to="/project-captains"
@@ -115,7 +126,7 @@ const MobileBottomNav = ({ hasProjectAccess }) => {
 
   const navItems = [
     { label: 'Home', to: '/', icon: 'home', exact: true },
-    { label: 'Requests', to: '/requests', icon: 'file-text' },
+    { label: 'Upcoming', to: '/upcoming-projects', icon: 'calendar-event' },
     {
       label: 'Get Involved',
       action: () => openSearch(),
@@ -198,6 +209,7 @@ const getMenuItems = (profile, { hasProjectAccess } = {}) =>
         },
         { label: 'Check Status', to: '/requests', icon: 'file-text' },
         { label: 'My Work', to: '/actions', icon: 'clipboard-check' },
+        { label: 'Upcoming Projects', to: '/upcoming-projects', icon: 'calendar-event' },
         hasProjectAccess && {
           label: 'Project Captains',
           to: '/project-captains',

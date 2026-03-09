@@ -7,6 +7,7 @@ import { Form } from './forms/Form.jsx';
 import { Profile } from './profile/Profile.jsx';
 import { SettingsRouting } from './settings/index.jsx';
 import { Projects } from './projects/Projects.jsx';
+import { UpcomingProjects } from './upcoming-projects/UpcomingProjects.jsx';
 import { Privacy } from './privacy/Privacy.jsx';
 
 import { Header } from '../components/header/Header.jsx';
@@ -64,6 +65,7 @@ export const PrivateRoutes = () => {
               <Route path="/actions/*" element={<Actions />} />
               <Route path="/requests/*" element={<Requests />} />
               <Route path="/project-captains/*" element={<Projects />} />
+              <Route path="/upcoming-projects/*" element={<UpcomingProjects />} />
               <Route
                 path="/forms/:formSlug/:submissionId?"
                 element={<Form />}
