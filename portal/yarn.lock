@@ -3558,10 +3558,15 @@ immer@^9.0.7:
   resolved "https://registry.yarnpkg.com/immer/-/immer-9.0.21.tgz#1e025ea31a40f24fb064f1fef23e931496330176"
   integrity sha512-bc4NBHqOqSfRW7POMkHd51LvClaeMXpm8dx0e8oE2GORbq5aRK7Bxl4FyzVLdGtLmvLKL7BTDBG5ACQm4HWjTA==
 
-immutable@4.0.0-rc.9, immutable@^3.8.3, immutable@~3.7.4:
+immutable@3.8.3, immutable@~3.7.4:
   version "3.8.3"
   resolved "https://registry.yarnpkg.com/immutable/-/immutable-3.8.3.tgz#0a8d2494a94d4b2d4f0e99986e74dd25d1e9a859"
   integrity sha512-AUY/VyX0E5XlibOmWt10uabJzam1zlYjwiEgQSDc5+UIkFNaF9WM0JxXKaNMGf+F/ffUF+7kRKXM9A7C0xXqMg==
+
+immutable@4.0.0-rc.9:
+  version "4.0.0-rc.9"
+  resolved "https://registry.yarnpkg.com/immutable/-/immutable-4.0.0-rc.9.tgz#1e6e0094e649013ec3742d2b5aeeca5eeda4f0bf"
+  integrity sha512-uw4u9Jy3G2Y1qkIFtEGy9NgJxFJT1l3HKgeSFHfrvy91T8W54cJoQ+qK3fTwhil8XkEHuc2S+MI+fbD0vKObDA==
 
 import-fresh@^3.1.0, import-fresh@^3.2.1:
   version "3.3.0"
