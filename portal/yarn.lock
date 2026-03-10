@@ -623,10 +623,10 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
-"@kineticdata/react@^6.1.1":
-  version "6.1.1"
-  resolved "https://registry.yarnpkg.com/@kineticdata/react/-/react-6.1.1.tgz#8d1143187132bb34498859a6a889431fb8d45ebc"
-  integrity sha512-chza2Y/aOwnVbUwCHx22t8CeIi52U4fBLyu251YsOYjEMrhm0mSUTrgsOgQKMytKokIgYbqb++YIhJrmaI2PnQ==
+"@kineticdata/react@^6.1.6":
+  version "6.1.6"
+  resolved "https://registry.yarnpkg.com/@kineticdata/react/-/react-6.1.6.tgz#e22b0212f95892f3c063ec9aa071ae85b385bc8e"
+  integrity sha512-TrLoswKhstpwi163qU3c4eD7gPkaiMuRRCMiUhVAUMJmSYS7uUeoSuSYdnMY4HIWvq8wljLLwZUHmyfYd6wwlQ==
   dependencies:
     axios "1.8.3"
     classnames "^2.2.6"
@@ -3563,10 +3563,10 @@ immutable@3.8.3, immutable@~3.7.4:
   resolved "https://registry.yarnpkg.com/immutable/-/immutable-3.8.3.tgz#0a8d2494a94d4b2d4f0e99986e74dd25d1e9a859"
   integrity sha512-AUY/VyX0E5XlibOmWt10uabJzam1zlYjwiEgQSDc5+UIkFNaF9WM0JxXKaNMGf+F/ffUF+7kRKXM9A7C0xXqMg==
 
-immutable@4.0.0-rc.9:
-  version "4.0.0-rc.9"
-  resolved "https://registry.yarnpkg.com/immutable/-/immutable-4.0.0-rc.9.tgz#1e6e0094e649013ec3742d2b5aeeca5eeda4f0bf"
-  integrity sha512-uw4u9Jy3G2Y1qkIFtEGy9NgJxFJT1l3HKgeSFHfrvy91T8W54cJoQ+qK3fTwhil8XkEHuc2S+MI+fbD0vKObDA==
+immutable@4.0.0-rc.9, immutable@4.3.8:
+  version "4.3.8"
+  resolved "https://registry.yarnpkg.com/immutable/-/immutable-4.3.8.tgz#02d183c7727fb2bb1d5d0380da0d779dce9296a7"
+  integrity sha512-d/Ld9aLbKpNwyl0KiM2CT1WYvkitQ1TSvmRtkcV8FKStiDoA7Slzgjmb/1G2yhKM1p0XeNOieaTbFZmU1d3Xuw==
 
 import-fresh@^3.1.0, import-fresh@^3.2.1:
   version "3.3.0"
