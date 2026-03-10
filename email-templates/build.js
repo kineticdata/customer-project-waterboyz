@@ -38,7 +38,7 @@ const brand = {
   radius: '8px',
   fontFamily:
     "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
-  logoUrl: 'https://waterboyz.kinops.io/logo.png',
+  logoUrl: 'https://waterboyz.kinops.io/app/spa/logo.png',
   orgName: 'Waterboyz',
   siteUrl: 'https://waterboyz.kinops.io',
   supportEmail: 'support@waterboyz.org',

@@ -508,7 +508,7 @@ node build.js --preview welcome  # Build and open in browser
 
 ### Brand Config
 
-Brand colors, logo URL, and org name are defined in the `brand` object at the top of `build.js`. The logo is served from `portal/public/logo.png` (`https://waterboyz.kinops.io/logo.png`).
+Brand colors, logo URL, and org name are defined in the `brand` object at the top of `build.js`. The logo is served from `portal/public/logo.png` (published at `https://waterboyz.kinops.io/app/spa/logo.png`).
 
 ### Deploying to a Workflow
 
