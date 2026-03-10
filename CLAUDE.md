@@ -475,6 +475,47 @@ cd portal && yarn lint
 The `prestart` script runs `setupEnv.cjs` which generates `.env.development.local` with the Kinetic Platform connection details.
 
 
+## Email Templates
+
+HTML email templates live in `email-templates/`. The build script (`build.js`) generates responsive, mobile-friendly HTML emails with consistent Waterboyz branding (logo, colors, layout, footer).
+
+### Usage
+
+```bash
+cd email-templates
+node build.js                    # Build all templates to dist/
+node build.js welcome            # Build a specific template
+node build.js --list             # List available templates
+node build.js --preview welcome  # Build and open in browser
+```
+
+### Available Templates
+
+| Template | File | Workflow | Description |
+|----------|------|----------|-------------|
+| `welcome` | `dist/welcome.html` | Space > User Created | New account welcome + password reset |
+| `password-reset` | `dist/password-reset.html` | — | Password reset request |
+| `project-assignment` | `dist/project-assignment.html` | — | Project Captain assignment notification |
+| `volunteer-confirmation` | `dist/volunteer-confirmation.html` | — | Volunteer signup confirmation |
+
+### Adding a New Template
+
+1. Add a new entry to the `templates` object in `build.js`
+2. Use the content helpers: `heading()`, `paragraph()`, `action(label, url)`, `note()`, `divider()`, `spacer()`
+3. Use ERB placeholders (`<%= @results['Node Name']['Key'] %>`) for dynamic workflow data
+4. Run `node build.js --preview <name>` to preview
+5. After approval, update the corresponding workflow on the platform via MCP (`update_space_workflow` or `update_form_workflow`)
+
+### Brand Config
+
+Brand colors, logo URL, and org name are defined in the `brand` object at the top of `build.js`. The logo is served from `portal/public/logo.png` (`https://waterboyz.kinops.io/logo.png`).
+
+### Deploying to a Workflow
+
+The built HTML from `dist/` goes into the `htmlbody` parameter of an `smtp_email_send_v1` workflow node. Update workflows via the Kinetic Platform MCP tools. Also add a plaintext `textbody` fallback for email clients that don't render HTML.
+
+---
+
 ## AI Skills
 
 This project includes shared AI skills for the Kinetic Platform via a git submodule at `ai-skills/`. These skills provide context to AI coding tools (Claude Code, Cursor, GitHub Copilot) about Kinetic Platform APIs, workflows, forms, and front-end patterns.
