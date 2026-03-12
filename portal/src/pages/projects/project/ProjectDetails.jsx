@@ -1,6 +1,8 @@
 import t from 'prop-types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { updateSubmission } from '@kineticdata/react';
+import { useSelector } from 'react-redux';
+import { searchSubmissions, updateSubmission } from '@kineticdata/react';
+import { useData } from '../../../helpers/hooks/useData.js';
 import { toastError, toastSuccess } from '../../../helpers/toasts.js';
 
 const FIELD_PROJECT_STATUS = 'Project Status';
@@ -10,6 +12,7 @@ const FIELD_SKILLS_NEEDED = 'Skills Needed';
 const FIELD_EQUIPMENT_NEEDED = 'Equipment Needed';
 const FIELD_TASKS_MAN_HOURS_TOTAL = 'Project Tasks Man Hours Total';
 const FIELD_TOTAL_MAN_HOURS = 'Total Project Man Hours';
+const FIELD_ASSOCIATED_EVENT = 'Associated Event';
 
 const normalizeDateValue = value =>
   value ? String(value).trim().slice(0, 10) : '';
@@ -39,19 +42,35 @@ const normalizeChoices = choices => {
   );
 };
 
+const fetchEvents = ({ kappSlug }) =>
+  searchSubmissions({
+    kapp: kappSlug,
+    form: 'events',
+    search: { include: ['details', 'values'], limit: 100 },
+  });
+
 export const ProjectDetails = ({
   project,
   family: _family,
   familyLoading: _familyLoading,
   reloadProject,
 }) => {
+  const { kappSlug } = useSelector(state => state.app);
   const [status, setStatus] = useState('');
   const [scheduledDate, setScheduledDate] = useState('');
   const [completionDate, setCompletionDate] = useState('');
   const [skillsNeeded, setSkillsNeeded] = useState('');
   const [equipmentNeeded, setEquipmentNeeded] = useState('');
   const [totalManHours, setTotalManHours] = useState('');
+  const [associatedEventId, setAssociatedEventId] = useState('');
   const [saving, setSaving] = useState(false);
+
+  const eventsParams = useMemo(() => ({ kappSlug }), [kappSlug]);
+  const { response: eventsResponse } = useData(fetchEvents, eventsParams);
+  const events = useMemo(
+    () => eventsResponse?.submissions ?? [],
+    [eventsResponse],
+  );
   const isCompleted = status === 'Completed';
   const taskHoursTotal = parseFloat(
     project?.values?.[FIELD_TASKS_MAN_HOURS_TOTAL],
@@ -74,7 +93,21 @@ export const ProjectDetails = ({
     setSkillsNeeded(project?.values?.[FIELD_SKILLS_NEEDED] || '');
     setEquipmentNeeded(project?.values?.[FIELD_EQUIPMENT_NEEDED] || '');
     setTotalManHours(project?.values?.[FIELD_TOTAL_MAN_HOURS] || '');
+    setAssociatedEventId(project?.values?.[FIELD_ASSOCIATED_EVENT] || '');
   }, [project]);
+
+  // When an event is selected, auto-populate Scheduled Date from the event date.
+  const handleEventChange = useCallback(
+    eventId => {
+      setAssociatedEventId(eventId);
+      if (eventId) {
+        const event = events.find(e => e.id === eventId);
+        const eventDate = normalizeDateValue(event?.values?.['Event Date']);
+        if (eventDate) setScheduledDate(eventDate);
+      }
+    },
+    [events],
+  );
 
   const handleSave = useCallback(async () => {
     if (!project?.id) return;
@@ -90,6 +123,7 @@ export const ProjectDetails = ({
         [FIELD_SKILLS_NEEDED]: skillsNeeded || null,
         [FIELD_EQUIPMENT_NEEDED]: equipmentNeeded || null,
         [FIELD_TOTAL_MAN_HOURS]: totalManHours || null,
+        [FIELD_ASSOCIATED_EVENT]: associatedEventId || null,
       },
     });
 
@@ -104,7 +138,7 @@ export const ProjectDetails = ({
     }
 
     setSaving(false);
-  }, [project, scheduledDate, completionDate, status, isCompleted, skillsNeeded, equipmentNeeded, totalManHours, reloadProject]);
+  }, [project, scheduledDate, completionDate, status, isCompleted, skillsNeeded, equipmentNeeded, totalManHours, associatedEventId, reloadProject]);
 
   return (
     <div className="krounded-box border kbg-base-100 p-6">
@@ -112,6 +146,32 @@ export const ProjectDetails = ({
       <p className="mt-2 ktext-base-content/70">
         Update project status and scheduled date.
       </p>
+
+      <div className="mt-4">
+        <label className="klabel flex flex-col items-start gap-2">
+          <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+            Associated Event
+          </span>
+          <select
+            className="kselect kselect-bordered w-full"
+            value={associatedEventId}
+            onChange={e => handleEventChange(e.target.value)}
+          >
+            <option value="">— No event —</option>
+            {events.map(e => (
+              <option key={e.id} value={e.id}>
+                {e.values?.['Event Name']}
+                {e.values?.['Event Date'] ? ` — ${e.values['Event Date']}` : ''}
+              </option>
+            ))}
+          </select>
+          {associatedEventId && (
+            <span className="text-xs ktext-base-content/60">
+              Scheduled Date will be set to the event date when saved.
+            </span>
+          )}
+        </label>
+      </div>
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <label className="klabel flex flex-col items-start gap-2">

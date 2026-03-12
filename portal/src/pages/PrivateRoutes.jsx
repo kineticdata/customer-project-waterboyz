@@ -8,7 +8,11 @@ import { Profile } from './profile/Profile.jsx';
 import { SettingsRouting } from './settings/index.jsx';
 import { Projects } from './projects/Projects.jsx';
 import { UpcomingProjects } from './upcoming-projects/UpcomingProjects.jsx';
+import { Events } from './events/Events.jsx';
 import { Privacy } from './privacy/Privacy.jsx';
+import { AdminRouting } from './admin/index.jsx';
+import { MyVolunteering } from './my-volunteering/MyVolunteering.jsx';
+import { NominationConfirmed } from './nominations/NominationConfirmed.jsx';
 
 import { Header } from '../components/header/Header.jsx';
 import { SiteFooter } from '../components/footer/SiteFooter.jsx';
@@ -62,10 +66,24 @@ export const PrivateRoutes = () => {
               <Route path="/kapps/:kappSlug" element={<Redirect to="/" />} />
 
               {/* Portal routes */}
+              <Route path="/admin/*" element={<AdminRouting />} />
+              <Route path="/my-volunteering/*" element={<MyVolunteering />} />
               <Route path="/actions/*" element={<Actions />} />
-              <Route path="/requests/*" element={<Requests />} />
+              <Route path="/nominations/confirmed" element={<NominationConfirmed />} />
+              <Route path="/nominations/*" element={<Requests />} />
+              <Route
+                path="/requests/*"
+                element={
+                  <Redirect
+                    to={params =>
+                      `/nominations${params['*'] ? `/${params['*']}` : ''}`
+                    }
+                  />
+                }
+              />
               <Route path="/project-captains/*" element={<Projects />} />
               <Route path="/upcoming-projects/*" element={<UpcomingProjects />} />
+              <Route path="/events/*" element={<Events />} />
               <Route
                 path="/forms/:formSlug/:submissionId?"
                 element={<Form />}
