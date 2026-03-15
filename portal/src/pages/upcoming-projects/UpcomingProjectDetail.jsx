@@ -3,20 +3,9 @@ import { Icon } from '../../atoms/Icon.jsx';
 import { Error } from '../../components/states/Error.jsx';
 import { Loading } from '../../components/states/Loading.jsx';
 import { PageHeading } from '../../components/PageHeading.jsx';
+import { formatLocalDate } from '../../helpers/index.js';
 
-const formatDate = value => {
-  if (!value) return '—';
-  try {
-    return new Date(value).toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  } catch {
-    return value;
-  }
-};
+const LONG_DATE_OPTIONS = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
 
 const parseList = value => {
   if (!value) return [];
@@ -104,7 +93,7 @@ export const UpcomingProjectDetail = ({ projects, loading, error }) => {
                     <p className="text-xs text-base-content/50 font-medium">
                       Scheduled Date
                     </p>
-                    <p className="font-semibold">{formatDate(scheduledDate)}</p>
+                    <p className="font-semibold">{formatLocalDate(scheduledDate, LONG_DATE_OPTIONS)}</p>
                   </div>
                 </div>
               )}

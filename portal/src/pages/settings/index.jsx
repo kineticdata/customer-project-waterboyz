@@ -37,7 +37,9 @@ export const SettingsRouting = () => {
 
   const datastores =
     datastoreForms.initialized && !datastoreForms.loading
-      ? datastoreForms?.response?.forms || []
+      ? (datastoreForms?.response?.forms || []).filter(
+          form => form.slug !== 'portal-shortcuts',
+        )
       : null;
 
   const settings =

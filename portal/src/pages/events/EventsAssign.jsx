@@ -9,11 +9,13 @@ import {
   updateSubmission,
 } from '@kineticdata/react';
 import { Icon } from '../../atoms/Icon.jsx';
+import { Modal } from '../../atoms/Modal.jsx';
 import { Loading } from '../../components/states/Loading.jsx';
 import { Error } from '../../components/states/Error.jsx';
 import { PageHeading } from '../../components/PageHeading.jsx';
 import { useData } from '../../helpers/hooks/useData.js';
 import { toastError, toastSuccess } from '../../helpers/toasts.js';
+import { formatLocalDate } from '../../helpers/index.js';
 
 const EVENTS_FORM = 'events';
 const VOLUNTEERS_FORM = 'volunteers';
@@ -217,6 +219,10 @@ export const EventsAssign = () => {
 
   const [pending, setPending] = useState({}); // volunteerId → true
 
+  // Detail modals
+  const [volunteerModal, setVolunteerModal] = useState(null); // { signup, vol }
+  const [projectModal, setProjectModal] = useState(null); // project
+
   const reload = useCallback(() => {
     reloadSignups();
     reloadAssignments();
@@ -405,12 +411,16 @@ export const EventsAssign = () => {
                         <div key={signup.id} className="px-4 py-3 flex-c-st gap-2">
                           <div className="flex-bc gap-2">
                             <div>
-                              <span className="font-medium text-sm">
+                              <button
+                                type="button"
+                                className="font-medium text-sm text-left hover:text-primary hover:underline"
+                                onClick={() => setVolunteerModal({ signup, vol })}
+                              >
                                 {vol
                                   ? `${vol.values?.['First Name'] ?? ''} ${vol.values?.['Last Name'] ?? ''}`.trim() ||
                                     '—'
                                   : signup.values?.['Volunteer ID']}
-                              </span>
+                              </button>
                               {signupStatus === 'Assigned' && (
                                 <span className="ml-2 badge badge-primary badge-sm">
                                   Assigned
@@ -486,13 +496,13 @@ export const EventsAssign = () => {
                   key={project.id}
                   className="rounded-box border border-base-200 bg-base-100 overflow-hidden"
                 >
-                  <button
-                    type="button"
-                    className="w-full px-4 py-3 bg-base-200/40 flex-bc gap-2 hover:bg-base-200/70 transition-colors text-left"
-                    onClick={() => toggleProject(project.id)}
-                  >
-                    <div>
-                      <span className="font-semibold text-sm">
+                  <div className="px-4 py-3 bg-base-200/40 flex-bc gap-2">
+                    <button
+                      type="button"
+                      className="text-left hover:text-primary"
+                      onClick={() => setProjectModal(project)}
+                    >
+                      <span className="font-semibold text-sm hover:underline">
                         {project.values?.['Project Name'] || '—'}
                       </span>
                       <span className="ml-2 text-xs text-base-content/50">
@@ -500,18 +510,25 @@ export const EventsAssign = () => {
                           .filter(Boolean)
                           .join(', ')}
                       </span>
-                    </div>
+                    </button>
                     <div className="flex items-center gap-2 ml-auto">
                       <span className="badge badge-ghost badge-sm">
                         {assignedVids.length} volunteer{assignedVids.length !== 1 ? 's' : ''}
                       </span>
-                      <Icon
-                        name={isExpanded ? 'chevron-up' : 'chevron-down'}
-                        size={16}
-                        className="text-base-content/40"
-                      />
+                      <button
+                        type="button"
+                        className="kbtn kbtn-xs kbtn-ghost kbtn-circle"
+                        onClick={() => toggleProject(project.id)}
+                        aria-label={isExpanded ? 'Collapse' : 'Expand'}
+                      >
+                        <Icon
+                          name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                          size={16}
+                          className="text-base-content/40"
+                        />
+                      </button>
                     </div>
-                  </button>
+                  </div>
 
                   {isExpanded && (
                     <div className="divide-y divide-base-200">
@@ -530,12 +547,16 @@ export const EventsAssign = () => {
 
                         return (
                           <div key={vid} className="px-4 py-2.5 flex-bc gap-2">
-                            <span className="text-sm font-medium">
+                            <button
+                              type="button"
+                              className="text-sm font-medium text-left hover:text-primary hover:underline"
+                              onClick={() => signup && setVolunteerModal({ signup, vol })}
+                            >
                               {vol
                                 ? `${vol.values?.['First Name'] ?? ''} ${vol.values?.['Last Name'] ?? ''}`.trim() ||
                                   '—'
                                 : vid}
-                            </span>
+                            </button>
                             {signup && (
                               <button
                                 type="button"
@@ -557,6 +578,17 @@ export const EventsAssign = () => {
           </div>
         </div>
       </div>
+
+      <VolunteerDetailModal
+        data={volunteerModal}
+        open={!!volunteerModal}
+        onClose={() => setVolunteerModal(null)}
+      />
+      <ProjectDetailModal
+        project={projectModal}
+        open={!!projectModal}
+        onClose={() => setProjectModal(null)}
+      />
     </div>
   );
 };
@@ -608,5 +640,163 @@ const SkillChips = ({ raw }) => {
         </span>
       )}
     </div>
+  );
+};
+
+const parseJsonList = raw => {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+};
+
+const DetailRow = ({ label, children }) => (
+  <div>
+    <p className="text-xs font-semibold uppercase tracking-wide text-base-content/40 mb-1">
+      {label}
+    </p>
+    {children}
+  </div>
+);
+
+const PillList = ({ items, emptyText }) =>
+  items.length > 0 ? (
+    <div className="flex flex-wrap gap-1.5">
+      {items.map(item => (
+        <span key={item} className="badge badge-outline badge-sm">{item}</span>
+      ))}
+    </div>
+  ) : (
+    <p className="text-sm text-base-content/40 italic">{emptyText}</p>
+  );
+
+const VolunteerDetailModal = ({ data, open, onClose }) => {
+  const { signup, vol } = data || {};
+  const name = vol
+    ? `${vol.values?.['First Name'] ?? ''} ${vol.values?.['Last Name'] ?? ''}`.trim()
+    : null;
+  const skills = parseJsonList(vol?.values?.['Skill Areas']);
+  const tools = parseJsonList(vol?.values?.['Tools']);
+
+  return (
+    <Modal
+      open={open}
+      onOpenChange={({ open: isOpen }) => !isOpen && onClose()}
+      title={name || 'Volunteer Details'}
+      size="md"
+    >
+      <div slot="body">
+        <div className="flex-c-st gap-5 py-2">
+          <div className="grid grid-cols-2 gap-4">
+            {vol?.values?.['Email Address'] && (
+              <DetailRow label="Email">
+                <p className="text-sm">{vol.values['Email Address']}</p>
+              </DetailRow>
+            )}
+            {vol?.values?.['Phone Number'] && (
+              <DetailRow label="Phone">
+                <p className="text-sm">{vol.values['Phone Number']}</p>
+              </DetailRow>
+            )}
+          </div>
+
+          {signup?.values?.['Affiliated Organization'] && (
+            <DetailRow label="Affiliated Organization">
+              <p className="text-sm">{signup.values['Affiliated Organization']}</p>
+            </DetailRow>
+          )}
+
+          {vol?.values?.['How often can you volunteer'] && (
+            <DetailRow label="Availability">
+              <p className="text-sm">{vol.values['How often can you volunteer']}</p>
+            </DetailRow>
+          )}
+
+          <DetailRow label="Skills">
+            <PillList items={skills} emptyText="No skills listed." />
+          </DetailRow>
+
+          <DetailRow label="Tools">
+            <PillList items={tools} emptyText="No tools listed." />
+          </DetailRow>
+
+          {vol?.values?.['Bio'] && (
+            <DetailRow label="Bio">
+              <p className="text-sm text-base-content/70">{vol.values['Bio']}</p>
+            </DetailRow>
+          )}
+
+          {signup?.values?.['Notes'] && (
+            <DetailRow label="Signup Notes">
+              <p className="text-sm text-base-content/70">{signup.values['Notes']}</p>
+            </DetailRow>
+          )}
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+const ProjectDetailModal = ({ project, open, onClose }) => {
+  const skillsNeeded = parseJsonList(project?.values?.['Skills Needed']);
+  const equipmentNeeded = parseJsonList(project?.values?.['Equipment Needed']);
+
+  return (
+    <Modal
+      open={open}
+      onOpenChange={({ open: isOpen }) => !isOpen && onClose()}
+      title={project?.values?.['Project Name'] || 'Project Details'}
+      size="md"
+    >
+      <div slot="body">
+        <div className="flex-c-st gap-5 py-2">
+          <div className="grid grid-cols-2 gap-4">
+            {project?.values?.['Scheduled Date'] && (
+              <DetailRow label="Scheduled Date">
+                <p className="text-sm">{formatLocalDate(project.values['Scheduled Date'])}</p>
+              </DetailRow>
+            )}
+            {project?.values?.['Project Status'] && (
+              <DetailRow label="Status">
+                <p className="text-sm">{project.values['Project Status']}</p>
+              </DetailRow>
+            )}
+          </div>
+
+          {(project?.values?.['City'] || project?.values?.['State']) && (
+            <DetailRow label="Location">
+              <p className="text-sm">
+                {[project.values?.['Address Line 1'], project.values?.['City'], project.values?.['State'], project.values?.['Zip']]
+                  .filter(Boolean)
+                  .join(', ')}
+              </p>
+            </DetailRow>
+          )}
+
+          {project?.values?.['Additional Volunteers Needed'] && (
+            <DetailRow label="Volunteers Needed">
+              <p className="text-sm">{project.values['Additional Volunteers Needed']}</p>
+            </DetailRow>
+          )}
+
+          <DetailRow label="Skills Needed">
+            <PillList items={skillsNeeded} emptyText="None specified." />
+          </DetailRow>
+
+          <DetailRow label="Equipment Needed">
+            <PillList items={equipmentNeeded} emptyText="None specified." />
+          </DetailRow>
+
+          {project?.values?.['Project Notes'] && (
+            <DetailRow label="Project Notes">
+              <p className="text-sm text-base-content/70">{project.values['Project Notes']}</p>
+            </DetailRow>
+          )}
+        </div>
+      </div>
+    </Modal>
   );
 };

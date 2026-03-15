@@ -9,23 +9,21 @@ import { Popover, usePopover } from '@ark-ui/react/popover';
 import clsx from 'clsx';
 import { openSearch } from '../../helpers/search.js';
 import { FooterPortal } from '../footer/FooterPortal.jsx';
-
-const PROJECT_TEAMS = ['SWAT Leadership', 'SWAT Project Captains'];
+import { useRoles } from '../../helpers/hooks/useRoles.js';
 
 export const Header = () => {
   const profile = useSelector(state => state.app.profile);
   const themeLogo = useSelector(state => state.theme.data?.logo?.default);
   const mobile = useSelector(state => state.view.mobile);
-  const hasProjectAccess = profile?.memberships?.some(({ team }) =>
-    PROJECT_TEAMS.includes(team.name),
-  );
+  const roles = useRoles();
+  const { hasProjectAccess } = roles;
 
   return (
     <>
       {/* Top navigation bar */}
       <HeaderPortal>
         <nav className="relative flex-sc gap-3 md:gap-5 h-16 md:h-18 px-4 md:px-6 bg-base-100 border-b border-base-200 z-20">
-          {!mobile && <HeaderMenu profile={profile} hasProjectAccess={hasProjectAccess} />}
+          {!mobile && <HeaderMenu profile={profile} roles={roles} />}
           <Link to="/" className="flex-initial" aria-label="Home">
             <img
               src={themeLogo || logo}
@@ -49,7 +47,7 @@ export const Header = () => {
                 Home
               </NavLink>
               <NavLink
-                to="/requests"
+                to="/nominations"
                 className={({ isActive }) =>
                   clsx(
                     'kbtn kbtn-ghost kbtn-sm font-medium',
@@ -57,18 +55,7 @@ export const Header = () => {
                   )
                 }
               >
-                My Requests
-              </NavLink>
-              <NavLink
-                to="/actions"
-                className={({ isActive }) =>
-                  clsx(
-                    'kbtn kbtn-ghost kbtn-sm font-medium',
-                    isActive && 'text-primary bg-primary/8',
-                  )
-                }
-              >
-                My Work
+                My Nominations
               </NavLink>
               <NavLink
                 to="/upcoming-projects"
@@ -81,6 +68,19 @@ export const Header = () => {
               >
                 Upcoming Projects
               </NavLink>
+              {hasProjectAccess && (
+                <NavLink
+                  to="/actions"
+                  className={({ isActive }) =>
+                    clsx(
+                      'kbtn kbtn-ghost kbtn-sm font-medium',
+                      isActive && 'text-primary bg-primary/8',
+                    )
+                  }
+                >
+                  My Tasks
+                </NavLink>
+              )}
               {hasProjectAccess && (
                 <NavLink
                   to="/project-captains"
@@ -115,25 +115,29 @@ export const Header = () => {
       </HeaderPortal>
 
       {/* Mobile bottom navigation */}
-      {mobile && <MobileBottomNav hasProjectAccess={hasProjectAccess} />}
+      {mobile && <MobileBottomNav roles={roles} />}
     </>
   );
 };
 
-const MobileBottomNav = ({ hasProjectAccess }) => {
+const MobileBottomNav = ({ roles }) => {
+  const { isVolunteer, hasProjectAccess } = roles;
   const location = useLocation();
   const currentPath = location.pathname;
 
   const navItems = [
     { label: 'Home', to: '/', icon: 'home', exact: true },
-    { label: 'Upcoming', to: '/upcoming-projects', icon: 'calendar-event' },
-    {
-      label: 'Get Involved',
-      action: () => openSearch(),
-      icon: 'plus-circle',
-      isAction: true,
-    },
-    { label: 'My Work', to: '/actions', icon: 'clipboard-check' },
+    { label: 'Upcoming Projects', to: '/upcoming-projects', icon: 'calendar-event' },
+    isVolunteer
+      ? { label: 'Events', to: '/events', icon: 'calendar-heart' }
+      : {
+          label: 'Get Involved',
+          action: () => openSearch(),
+          icon: 'plus-circle',
+          isAction: true,
+        },
+    isVolunteer && { label: 'My Volunteering', to: '/my-volunteering', icon: 'heart-handshake' },
+    { label: 'My Nominations', to: '/nominations', icon: 'file-text' },
     hasProjectAccess && { label: 'Projects', to: '/project-captains', icon: 'hammer' },
   ].filter(Boolean);
 
@@ -197,24 +201,23 @@ const MobileBottomNav = ({ hasProjectAccess }) => {
   );
 };
 
-const getMenuItems = (profile, { hasProjectAccess } = {}) =>
-  [
+const getMenuItems = (profile, roles = {}) => {
+  const { isVolunteer, hasProjectAccess, isAdmin, isLeadership } = roles;
+  return [
     {
       items: [
         { label: 'Home', to: '/', icon: 'home' },
-        {
-          label: 'Submit a Request',
-          onClick: () => openSearch(),
-          icon: 'send',
-        },
-        { label: 'Check Status', to: '/requests', icon: 'file-text' },
-        { label: 'My Work', to: '/actions', icon: 'clipboard-check' },
+        { label: 'My Nominations', to: '/nominations', icon: 'file-text' },
         { label: 'Upcoming Projects', to: '/upcoming-projects', icon: 'calendar-event' },
+        isVolunteer && { label: 'Events', to: '/events', icon: 'calendar-heart' },
+        isVolunteer && { label: 'My Volunteering', to: '/my-volunteering', icon: 'heart-handshake' },
+        hasProjectAccess && { label: 'My Tasks', to: '/actions', icon: 'clipboard-check' },
         hasProjectAccess && {
-          label: 'Project Captains',
+          label: 'Projects',
           to: '/project-captains',
           icon: 'hammer',
         },
+        (isAdmin || isLeadership) && { label: 'Admin', to: '/admin', icon: 'shield' },
       ].filter(Boolean),
     },
     profile?.spaceAdmin && {
@@ -236,12 +239,13 @@ const getMenuItems = (profile, { hasProjectAccess } = {}) =>
       ],
     },
   ].filter(Boolean);
+};
 
-const HeaderMenu = ({ profile, hasProjectAccess }) => {
+const HeaderMenu = ({ profile, roles }) => {
   const popover = usePopover();
   const close = () => popover.setOpen(false);
 
-  const menuItems = getMenuItems(profile, { hasProjectAccess });
+  const menuItems = getMenuItems(profile, roles);
 
   return (
     <Popover.RootProvider value={popover} autoFocus={false}>

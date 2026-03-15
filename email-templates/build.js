@@ -325,6 +325,81 @@ const templates = {
     },
   },
 
+  'event-signup-confirmation': {
+    subject: 'Thanks for Signing Up — Waterboyz Serve Day',
+    preheader: "You're registered for Serve Day! Your project captain will be in touch soon.",
+    build: () => {
+      const body = [
+        heading('Thanks for Signing Up!'),
+        paragraph(
+          'Hi <%= @results["Get Volunteer"]["First Name"] %>,',
+        ),
+        paragraph(
+          "You're registered for <strong><%= @results[\"Get Event\"][\"Event Name\"] %></strong> on <strong><%= @results[\"Get Event\"][\"Event Date\"] %></strong>. We're so glad you're joining us!",
+        ),
+        paragraph(
+          'Your project captain will be in touch shortly with more information about the project you will be assigned to.',
+        ),
+        divider(),
+        paragraph(
+          "In the meantime, if you have any questions or your availability changes, please reach out to us at <a href=\"mailto:${brand.supportEmail}\" style=\"color:${brand.primary}; text-decoration:underline;\">${brand.supportEmail}</a>.",
+        ),
+        paragraph(
+          "Thank you for serving your community — we'll see you on Serve Day!",
+        ),
+        paragraph(
+          'The Waterboyz Team',
+        ),
+        spacer(),
+      ].join('');
+
+      return layout({
+        subject: 'Thanks for Signing Up — Waterboyz Serve Day',
+        preheader: "You're registered for Serve Day! Your project captain will be in touch soon.",
+        body,
+      });
+    },
+  },
+
+  'volunteer-project-assignment': {
+    subject: "You've Been Assigned to a Project — Waterboyz",
+    preheader: "You've been assigned to a SWAT project. Your team captain will be in touch soon.",
+    build: () => {
+      const body = [
+        heading('Thanks for Serving!'),
+        paragraph(
+          'Hi <%= @results["Get Volunteer"]["First Name"] %>,',
+        ),
+        paragraph(
+          "You've been assigned to serve on the following project:",
+        ),
+        paragraph(
+          '<strong>Project:</strong> <%= @results["Get Project"]["Project Name"] %><br><strong>Date:</strong> <%= Date.parse(@results["Get Project"]["Scheduled Date"]).strftime("%B %-d, %Y") %><br><strong>Address:</strong> <%= @results["Get Project"]["Address Line 1"] %><% if @results["Get Project"]["Address Line 2"] && !@results["Get Project"]["Address Line 2"].empty? %><br><%= @results["Get Project"]["Address Line 2"] %><% end %><br><%= @results["Get Project"]["City"] %>, <%= @results["Get Project"]["State"] %> <%= @results["Get Project"]["Zip"] %>',
+        ),
+        paragraph(
+          'Your team captain is <strong><%= @results["Get Captain"]["Display Name"] %></strong>. They will be reaching out to you soon to coordinate details.',
+        ),
+        paragraph(
+          'You can also reach your team captain directly at <a href="mailto:<%= @results[\'Get Captain\'][\'Email\'] %>" style="color:${brand.primary}; text-decoration:underline;"><%= @results["Get Captain"]["Email"] %></a>.',
+        ),
+        divider(),
+        paragraph(
+          'Thank you for making a difference in your community — we\'ll see you out there!',
+        ),
+        paragraph(
+          'The Waterboyz Team',
+        ),
+        spacer(),
+      ].join('');
+
+      return layout({
+        subject: "You've Been Assigned to a Project — Waterboyz",
+        preheader: "You've been assigned to a SWAT project. Your team captain will be in touch soon.",
+        body,
+      });
+    },
+  },
+
   'volunteer-confirmation': {
     subject: "You're Signed Up — Waterboyz",
     preheader: "Thanks for volunteering! Here are the details for your upcoming project.",

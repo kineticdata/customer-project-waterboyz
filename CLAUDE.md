@@ -14,6 +14,7 @@ This is a **project management and volunteer coordination portal** built on the 
 2. **Approval** — SWAT Leadership reviews nominations (`swat-project-approval`), sets an approved budget, and assigns an initial Project Captain.
 3. **Project Management** — Once approved, the project is tracked in `swat-projects`. The Project Captain manages tasks, recruits volunteers, submits expenses, and documents the project with photos and notes.
 4. **Volunteer Management** — Volunteers register their skills, tools, and availability (`volunteers` form) and are matched to projects through the `swat-project-volunteers` junction form.
+5. **Events & Serve Days** — SWAT Leadership creates serve day `events`. Volunteers browse events and sign up via a Kinetic form (`serve-day-sign-up`). Leadership uses the Assign page (`/events/:eventId/assign`) to match signed-up volunteers to specific SWAT projects, creating `swat-project-volunteers` records and marking signups as `Assigned`.
 
 ## Tech Stack
 
@@ -155,12 +156,13 @@ All forms live under the **`service-portal`** kapp.
 #### SWAT Projects (`swat-projects`)
 - **Type:** Datastore | **Status:** Active
 - **Description:** Core project records
-- **Fields (20):** Additional Volunteers Needed, Project Name, Project Captain, Scheduled Date, Project Status, Skills Needed, Equipment Needed, Project Documents, Project Photos, Address Line 1, Address Line 2, City, State, Zip, County, Tasks JSON, Family ID, Project Notes, Original Request ID, Approval ID
+- **Fields (24):** Additional Volunteers Needed, Project Name, Project Captain, Scheduled Date, Completion Date, Project Status, Skills Needed, Equipment Needed, Project Documents, Project Photos, Address Line 1, Address Line 2, City, State, Zip, County, Tasks JSON, Family ID, Project Notes, Original Request ID, Approval ID, Associated Event, Project Tasks Man Hours Total, Total Project Man Hours
 - **Key Relationships:**
   - `Family ID` → links to `families` datastore
   - `Original Request ID` → links to originating `swat-project-nomination` submission
   - `Approval ID` → links to `swat-project-approval` submission
   - `Project Captain` → username of assigned captain (member of SWAT Project Captains team)
+  - `Associated Event` → links to an `events` submission ID (set by Project Captain when scheduling a project for a serve day)
 
 #### Families (`families`)
 - **Type:** Datastore | **Status:** Active
@@ -213,6 +215,34 @@ All forms live under the **`service-portal`** kapp.
 - **Type:** Datastore | **Status:** Active
 - **Description:** Home page shortcuts configuration
 - **Fields (8):** Status, Title, Description, URL, New Tab, Image, Icon Name, Sort Order
+
+### Admin Forms
+
+#### Events (`events`)
+- **Type:** Admin | **Status:** Active
+- **Description:** Serve day events — records that group volunteers and projects for a given date
+- **Fields (6):** Event Name, Event Date, Event Description, Event Status, Sign-up Deadline, Sign Up Form Slug
+- **Field notes:**
+  - `Event Status` choices: `Planning`, `Open`, `Closed`, `Completed`
+  - `Sign Up Form Slug` — slug of the sign-up form to use for this event (defaults to `serve-day-sign-up` if blank)
+- **Portal access:** `/events` (volunteer-facing list), `/events/:eventId/assign` (leadership assignment view), `/admin/events` (admin CRUD via AdminFormRecords)
+
+### Event Sign-Up Forms
+
+Event sign-up forms are Kinetic forms with **type `Event Sign Up`**. They are queried kapp-wide (no form slug filter) by type + `values[Event ID]`. The active form is `serve-day-sign-up`; `event-signup-template` is an inactive template for creating new event-specific sign-up forms.
+
+#### Serve Day Sign-Up (`serve-day-sign-up`)
+- **Type:** Event Sign Up | **Status:** Active
+- **Description:** Standard sign-up form for serve day events
+- **Fields (5):** Event ID, Volunteer ID, Affiliated Organization, Notes, Signup Status
+- **Field notes:**
+  - `Event ID` — submission ID of the `events` record (pre-populated by the portal)
+  - `Volunteer ID` — submission ID of the `volunteers` record (pre-populated by the portal)
+  - `Signup Status` choices: `Pending`, `Assigned`, `Waitlisted`, `Attended`, `Cancelled`
+
+#### Event Signup Template (`event-signup-template`)
+- **Type:** Event Sign Up | **Status:** Inactive
+- **Description:** Template for creating event-specific sign-up forms with custom fields
 
 ### Workflow/Approval Forms
 
@@ -281,6 +311,7 @@ swat-project-nomination (Service)
                                                │  Approval ID → approval ID
                                                │  Family ID → families ID
                                                │  Project Captain → username
+                                               │  Associated Event → events submission ID (optional)
                                                │
                                                ├──referenced by──→ swat-project-volunteers
                                                │                    Project ID → project ID
@@ -290,6 +321,24 @@ swat-project-nomination (Service)
                                                │
                                                └──volunteers linked via──→ volunteers (Datastore)
                                                                             Username → user account
+
+events (Admin)
+  │  Sign Up Form Slug → slug of the sign-up form for this event
+  │
+  ├──referenced by──→ swat-projects.Associated Event
+  │
+  └──signups via──→ serve-day-sign-up (Event Sign Up) [or custom event form]
+                      │  Event ID → events submission ID
+                      │  Volunteer ID → volunteers submission ID
+                      │  Signup Status: Pending → Assigned / Waitlisted / Attended / Cancelled
+                      │
+                      └──assigned via──→ swat-project-volunteers
+                                          (created by leadership in EventsAssign)
+                                          Project ID → swat-projects submission ID
+                                          Volunteer ID → volunteers submission ID
+
+Note: sign-up forms are queried kapp-wide by type = "Event Sign Up" (not by form slug).
+The kapp must have a compound index on [type, values[Event ID]] for EventsAssign to work.
 ```
 
 ---

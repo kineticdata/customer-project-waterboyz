@@ -3,7 +3,8 @@ import { useState, useCallback } from 'react';
 import { useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import { getAttributeValue } from '../../helpers/records.js';
-import { updateProfile } from '@kineticdata/react';
+import { fetchProfile, updateProfile } from '@kineticdata/react';
+import { usePoller } from '../../helpers/hooks/usePoller.js';
 import { Avatar } from '../../atoms/Avatar.jsx';
 import { Icon } from '../../atoms/Icon.jsx';
 import { validateEmail } from '../../helpers/index.js';
@@ -33,6 +34,28 @@ export const Profile = () => {
   const [activeTab, setActiveTab] = useState(
     searchParams.get('tab') || 'account',
   );
+  const [pollingForVolunteerId, setPollingForVolunteerId] = useState(false);
+
+  const pollForVolunteerId = useCallback(async () => {
+    const { profile: updatedProfile } = await fetchProfile({
+      include: 'profileAttributesMap,attributesMap,memberships',
+    });
+    if (updatedProfile && getAttributeValue(updatedProfile, 'Volunteer Id')) {
+      appActions.setProfile({ profile: updatedProfile });
+      setPollingForVolunteerId(false);
+      if (returnTo) {
+        navigate(returnTo, { state: { persistToasts: true } });
+      }
+    }
+  }, [returnTo, navigate]);
+
+  usePoller(pollingForVolunteerId ? pollForVolunteerId : null);
+
+  const handleVolunteerCreated = useCallback(() => {
+    toastSuccess({ title: 'Volunteer profile saved.' });
+    markVolunteerProfileUpdated();
+    setPollingForVolunteerId(true);
+  }, []);
 
   const handleVolunteerSaved = useCallback(() => {
     toastSuccess({ title: 'Volunteer profile saved.' });
@@ -263,7 +286,7 @@ export const Profile = () => {
                   <KineticForm
                     kappSlug={kappSlug}
                     formSlug="volunteers"
-                    created={handleVolunteerSaved}
+                    created={handleVolunteerCreated}
                     values={{
                       Username: profile.username,
                       'First Name': profile.displayName.split(' ')[0],

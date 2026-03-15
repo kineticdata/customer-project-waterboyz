@@ -5,19 +5,7 @@ import { Icon } from '../../atoms/Icon.jsx';
 import { Error } from '../../components/states/Error.jsx';
 import { Loading } from '../../components/states/Loading.jsx';
 import { PageHeading } from '../../components/PageHeading.jsx';
-
-const formatDate = value => {
-  if (!value) return '—';
-  try {
-    return new Date(value).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  } catch {
-    return value;
-  }
-};
+import { formatLocalDate } from '../../helpers/index.js';
 
 export const UpcomingProjectsList = ({ initialized, loading, projects, error }) => {
   const mobile = useSelector(state => state.view.mobile);
@@ -69,7 +57,7 @@ export const UpcomingProjectsList = ({ initialized, loading, projects, error }) 
                                 size={14}
                                 className="inline mr-1 -mt-0.5"
                               />
-                              {formatDate(project['Scheduled Date'])}
+                              {formatLocalDate(project['Scheduled Date'])}
                             </span>
                             <span className="text-xs text-base-content/50">
                               <Icon
@@ -116,7 +104,7 @@ export const UpcomingProjectsList = ({ initialized, loading, projects, error }) 
                                 </Link>
                               </td>
                               <td className="px-5 py-4 text-base-content/70">
-                                {formatDate(project['Scheduled Date'])}
+                                {formatLocalDate(project['Scheduled Date'])}
                               </td>
                               <td className="px-5 py-4 text-base-content/70">
                                 {[project['City'], project['State']]

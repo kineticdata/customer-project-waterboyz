@@ -51,7 +51,28 @@ export const timeAgo = date =>
 export const formatDate = (date, dateFormat = "MM/dd/yyyy") =>{
   return format(date, dateFormat);
 }
-  
+
+/**
+ * Formats a YYYY-MM-DD date string for display without timezone offset issues.
+ * Parses the date parts directly so the result reflects the local calendar date.
+ *
+ * @param {string} value - A YYYY-MM-DD date string
+ * @param {Intl.DateTimeFormatOptions} [options] - toLocaleDateString options
+ * @returns {string} Formatted date string, or '—' for falsy input
+ */
+export const formatLocalDate = (
+  value,
+  options = { month: 'short', day: 'numeric', year: 'numeric' },
+) => {
+  if (!value) return '—';
+  try {
+    const [year, month, day] = value.split('-').map(Number);
+    return new Date(year, month - 1, day).toLocaleDateString('en-US', options);
+  } catch {
+    return value;
+  }
+};
+
 
 /**
  * Validates email address using regex.

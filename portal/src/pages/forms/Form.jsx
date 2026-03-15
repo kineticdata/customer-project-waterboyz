@@ -41,7 +41,7 @@ const generateDeleteDraftButton =
                 } else {
                   toastSuccess({ title: 'Successfully deleted draft request' });
                   callIfFn(listActions?.reloadPage);
-                  navigate(backTo || '/requests', {
+                  navigate(backTo || '/nominations', {
                     state: { persistToasts: true },
                   });
                 }
@@ -67,7 +67,7 @@ export const Form = ({ review, listActions }) => {
   // since the UI doesn't have any other way out of this page on mobile.
   const backTo =
     location.state?.backPath ||
-    (submissionId ? '/requests' : mobile ? '/' : null);
+    (submissionId ? '/nominations' : mobile ? '/' : null);
 
   const DeleteDraftButton = useMemo(
     () => generateDeleteDraftButton({ listActions }),
@@ -79,14 +79,31 @@ export const Form = ({ review, listActions }) => {
     [backTo, DeleteDraftButton],
   );
 
+  const NOMINATION_FORM_SLUGS = [
+    'swat-project-nomination',
+    'christmas-alive-family-nomination',
+  ];
+
   const handleCompleted = useCallback(
     response => {
       // Redirect if there is no confirmation page to render.
       if (response.submission?.displayedPage?.type !== 'confirmation') {
-        navigate(`/requests/${response.submission.id}`);
+        const submittedFormSlug =
+          formSlug || response.submission?.form?.slug;
+        if (
+          submittedFormSlug &&
+          NOMINATION_FORM_SLUGS.includes(submittedFormSlug) &&
+          response.submission?.coreState === 'Submitted'
+        ) {
+          navigate(
+            `/nominations/confirmed?form=${submittedFormSlug}`,
+          );
+        } else {
+          navigate(`/nominations/${response.submission.id}`);
+        }
       }
     },
-    [navigate],
+    [navigate, formSlug],
   );
 
   return (
