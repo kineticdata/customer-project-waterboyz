@@ -3,7 +3,7 @@ import { Icon } from '../../atoms/Icon.jsx';
 
 export const Privacy = () => (
   <div className="gutter pb-8">
-    <div className="max-w-screen-md mx-auto pt-1 pb-6">
+    <div className="max-w-screen-md mx-auto pt-6 pb-6">
       <div className="flex-sc gap-3 mb-6">
         <Link
           to="/"

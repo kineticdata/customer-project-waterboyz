@@ -12,7 +12,7 @@ export const UpcomingProjectsList = ({ initialized, loading, projects, error }) 
 
   return (
     <div className="gutter pb-24 md:pb-8">
-      <div className="max-w-screen-lg mx-auto pt-1 pb-6">
+      <div className="max-w-screen-lg mx-auto pt-6 pb-6">
         <PageHeading title="Upcoming Projects" backTo="/">
           <span className="text-sm text-base-content/50 font-medium ml-auto">
             {projects?.length > 0 &&

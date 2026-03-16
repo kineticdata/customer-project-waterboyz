@@ -89,7 +89,7 @@ export const DatastoreRecords = ({ datastores }) => {
   const showForm = typeof id === 'string';
 
   return (
-    <div className="max-w-screen-lg full-form:max-w-full pt-1 pb-6">
+    <div className="max-w-screen-lg full-form:max-w-full pt-6 pb-6">
       <PageHeading
         title={['Settings', 'Datastore', datastore?.name, idToHandle(id)]
           .filter(Boolean)

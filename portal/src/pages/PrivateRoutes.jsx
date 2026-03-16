@@ -41,7 +41,7 @@ export const PrivateRoutes = () => {
       <Route
         path="/*"
         element={
-          <>
+          <div className="flex-c-st min-h-full">
             {/* Shared header */}
             <Header />
 
@@ -91,6 +91,7 @@ export const PrivateRoutes = () => {
               <Route path="/profile" element={<Profile />} />
               <Route path="/settings/*" element={<SettingsRouting />} />
               <Route path="/privacy" element={<Privacy />} />
+              <Route path="/public/events/*" element={<Navigate to="/events" replace />} />
               <Route path="/login" element={<Navigate to="/" />} />
               <Route path="/*" element={<Home />} />
             </Routes>
@@ -103,7 +104,7 @@ export const PrivateRoutes = () => {
 
             {/* Prompt volunteers with stale profiles to update */}
             <VolunteerProfilePrompt />
-          </>
+          </div>
         }
       />
     </Routes>

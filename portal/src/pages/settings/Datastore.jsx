@@ -7,7 +7,7 @@ export const Datastore = ({ datastores }) => {
   const mobile = useSelector(state => state.view.mobile);
 
   return (
-    <div className="max-w-screen-lg pt-1 pb-6">
+    <div className="max-w-screen-lg pt-6 pb-6">
       <PageHeading title="Settings / Datastore" />
 
       <div className="flex flex-col gap-4 mb-4 md:mb-6 md:grid md:grid-cols-[auto_auto_1fr]">

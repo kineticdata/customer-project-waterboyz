@@ -14,7 +14,7 @@ This is a **project management and volunteer coordination portal** built on the 
 2. **Approval** — SWAT Leadership reviews nominations (`swat-project-approval`), sets an approved budget, and assigns an initial Project Captain.
 3. **Project Management** — Once approved, the project is tracked in `swat-projects`. The Project Captain manages tasks, recruits volunteers, submits expenses, and documents the project with photos and notes.
 4. **Volunteer Management** — Volunteers register their skills, tools, and availability (`volunteers` form) and are matched to projects through the `swat-project-volunteers` junction form.
-5. **Events & Serve Days** — SWAT Leadership creates serve day `events`. Volunteers browse events and sign up via a Kinetic form (`serve-day-sign-up`). Leadership uses the Assign page (`/events/:eventId/assign`) to match signed-up volunteers to specific SWAT projects, creating `swat-project-volunteers` records and marking signups as `Assigned`.
+5. **Events & Serve Days** — SWAT Leadership creates serve day `events`. Each event gets its own sign-up form (cloned from `event-signup-template`) with a unique slug. **Public sign-up** is available at `/public/events/:formSlug` — anyone can sign up without an account by providing their name, email, and phone. After signup, users are prompted to create an account and volunteer profile. Leadership uses the Assign page (`/events/:eventId/assign`) to match signed-up volunteers to specific SWAT projects. The Assign page shows an "Unregistered" badge for anonymous signups that haven't created an account yet.
 
 ## Tech Stack
 
@@ -31,8 +31,13 @@ This is a **project management and volunteer coordination portal** built on the 
 portal/
   src/
     components/       # Reusable UI components (header, home sections, modals)
+      PublicLayout.jsx # Minimal branded layout for public (unauthenticated) pages
     helpers/           # API helpers, state management utilities
     pages/             # Route-based pages (home, projects, login, settings)
+      public/          # Public (no auth required) pages
+        PublicEventsList.jsx      # Browse open events
+        PublicEventSignup.jsx     # CoreForm-based event sign-up
+        PublicEventConfirmed.jsx  # Post-signup confirmation + kiosk re-signup
       projects/
         project/       # Individual project views (details, volunteers, expenses, photos)
     assets/            # Static assets
@@ -225,24 +230,31 @@ All forms live under the **`service-portal`** kapp.
 - **Field notes:**
   - `Event Status` choices: `Planning`, `Open`, `Closed`, `Completed`
   - `Sign Up Form Slug` — slug of the sign-up form to use for this event (defaults to `serve-day-sign-up` if blank)
-- **Portal access:** `/events` (volunteer-facing list), `/events/:eventId/assign` (leadership assignment view), `/admin/events` (admin CRUD via AdminFormRecords)
+- **Portal access:** `/events` (authenticated volunteer list), `/events/:eventId/assign` (leadership assignment view), `/admin/events` (admin CRUD via AdminFormRecords), `/public/events` (public listing, no auth), `/public/events/:formSlug?eventId=<id>` (public sign-up — `eventId` query param sets the Event ID field on the form)
 
 ### Event Sign-Up Forms
 
-Event sign-up forms are Kinetic forms with **type `Event Sign Up`**. They are queried kapp-wide (no form slug filter) by type + `values[Event ID]`. The active form is `serve-day-sign-up`; `event-signup-template` is an inactive template for creating new event-specific sign-up forms.
+Event sign-up forms are Kinetic forms with **type `Event Sign Up`**. They are queried kapp-wide (no form slug filter) by type + `values[Event ID]`. Each event gets its own sign-up form cloned from the template, with a unique slug that serves as the public URL.
+
+Sign-up forms support **anonymous (public) submissions** — `anonymous: true` is set on the form, and the Display security policy is "Everyone". This allows anyone to sign up without an account via the public portal at `/public/events/:formSlug?eventId=<id>`. The `eventId` query parameter is passed from the public events listing and propagated through the signup → confirmation → re-signup (kiosk) flow so that the `Event ID` field is always pre-populated via CoreForm's `values` prop. Authenticated users visiting `/public/events/*` are redirected to `/events`.
 
 #### Serve Day Sign-Up (`serve-day-sign-up`)
-- **Type:** Event Sign Up | **Status:** Active
-- **Description:** Standard sign-up form for serve day events
-- **Fields (5):** Event ID, Volunteer ID, Affiliated Organization, Notes, Signup Status
+- **Type:** Event Sign Up | **Status:** Active | **Anonymous:** Yes
+- **Description:** Default sign-up form for serve day events
+- **Fields (12):** First Name, Last Name, Email, Phone Number, Who is Serving, Total Number of Volunteers, Who Else Is Serving, Notes, Project Preference, Event ID, Volunteer ID, Signup Status
 - **Field notes:**
-  - `Event ID` — submission ID of the `events` record (pre-populated by the portal)
-  - `Volunteer ID` — submission ID of the `volunteers` record (pre-populated by the portal)
-  - `Signup Status` choices: `Pending`, `Assigned`, `Waitlisted`, `Attended`, `Cancelled`
+  - `First Name`, `Last Name`, `Email` — required contact fields (captured for anonymous signups)
+  - `Who is Serving` — radio: "Just Me" or "With Others" (conditionally shows group fields)
+  - `Event ID` — submission ID of the `events` record (pre-populated by the portal via `eventId` query param on public pages, or via `values` prop in `EventSignupModal` for authenticated users)
+  - `Volunteer ID` — optional; auto-populated from user profile attribute if logged in, empty for anonymous signups
+  - `Signup Status` choices: `Signed Up` (default), `Pending Assignment`, `Assigned`, `Waitlisted`, `Cancelled`
+- **Security:** Display = Everyone, Submission Access = Submitter or SWAT Leadership
 
 #### Event Signup Template (`event-signup-template`)
-- **Type:** Event Sign Up | **Status:** Inactive
-- **Description:** Template for creating event-specific sign-up forms with custom fields
+- **Type:** Event Sign Up | **Status:** Inactive | **Anonymous:** Yes
+- **Description:** Template for creating event-specific sign-up forms. Clone this form and set a unique slug for each event.
+- **Fields:** Same as `serve-day-sign-up` (First Name, Last Name, Email, Phone Number, Who is Serving, etc.)
+- **Security:** Display = Everyone, Submission Access = Submitter or SWAT Leadership
 
 ### Workflow/Approval Forms
 

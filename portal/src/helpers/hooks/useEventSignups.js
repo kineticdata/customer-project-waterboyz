@@ -17,14 +17,14 @@ const fetchEvents = ({ kappSlug }) =>
 
 const mySignupsQuery = defineKqlQuery()
   .equals('type', 'formType')
-  .equals('createdBy', 'username')
+  .equals('values[Email]', 'email')
   .end();
 
-const fetchMySignups = ({ kappSlug, username }) =>
+const fetchMySignups = ({ kappSlug, email }) =>
   searchSubmissions({
     kapp: kappSlug,
     search: {
-      q: mySignupsQuery({ formType: 'Event Sign Up', username }),
+      q: mySignupsQuery({ formType: 'Event Sign Up', email }),
       include: ['details', 'values'],
       limit: 500,
     },
@@ -56,7 +56,7 @@ export const useEventSignups = () => {
   } = useData(fetchEvents, eventsParams);
 
   const signupsParams = useMemo(
-    () => (profile?.username ? { kappSlug, username: profile.username } : null),
+    () => (profile?.email ? { kappSlug, email: profile.email } : null),
     [kappSlug, profile],
   );
   const {

@@ -171,7 +171,7 @@ const CategoryPickerComponent = forwardRef(
     // Sync selection back to the Kinetic field
     const syncToField = selectedSet => {
       const arr = [...selectedSet];
-      const value = arr.length > 0 ? JSON.stringify(arr) : '';
+      const value = JSON.stringify(arr);
       if (field) field.value(value);
       if (onChange) onChange(arr);
     };
@@ -244,7 +244,7 @@ const CategoryPickerComponent = forwardRef(
                   <Icon
                     name={group.icon || 'category'}
                     className="text-primary shrink-0"
-                    size="20"
+                    size={20}
                   />
                   <span className="font-semibold flex-auto">
                     {group.label}

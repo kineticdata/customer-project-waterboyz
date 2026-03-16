@@ -28,7 +28,7 @@ export const UpcomingProjectDetail = ({ projects, loading, error }) => {
   if (error) {
     return (
       <div className="gutter pb-24 md:pb-8">
-        <div className="max-w-screen-lg mx-auto pt-1 pb-6">
+        <div className="max-w-screen-lg mx-auto pt-6 pb-6">
           <PageHeading title="Project Details" backTo="/upcoming-projects" />
           <Error error={error} />
         </div>
@@ -39,7 +39,7 @@ export const UpcomingProjectDetail = ({ projects, loading, error }) => {
   if (loading && !project) {
     return (
       <div className="gutter pb-24 md:pb-8">
-        <div className="max-w-screen-lg mx-auto pt-1 pb-6">
+        <div className="max-w-screen-lg mx-auto pt-6 pb-6">
           <PageHeading title="Project Details" backTo="/upcoming-projects" />
           <Loading />
         </div>
@@ -50,7 +50,7 @@ export const UpcomingProjectDetail = ({ projects, loading, error }) => {
   if (!project) {
     return (
       <div className="gutter pb-24 md:pb-8">
-        <div className="max-w-screen-lg mx-auto pt-1 pb-6">
+        <div className="max-w-screen-lg mx-auto pt-6 pb-6">
           <PageHeading title="Project Details" backTo="/upcoming-projects" />
           <div className="rounded-box border border-base-200 bg-base-100 p-10 text-center">
             <Icon

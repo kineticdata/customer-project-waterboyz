@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Icon } from '../../atoms/Icon.jsx';
@@ -9,7 +9,10 @@ import { EventSignupModal } from '../../components/EventSignupModal.jsx';
 import { useData } from '../../helpers/hooks/useData.js';
 import { useEventSignups } from '../../helpers/hooks/useEventSignups.js';
 import { executeIntegration } from '../../helpers/api.js';
-import { getProfileAttributeValue } from '../../helpers/records.js';
+import {
+  getAttributeValue,
+  getProfileAttributeValue,
+} from '../../helpers/records.js';
 import { formatLocalDate } from '../../helpers/index.js';
 import { ActivityList, Shortcuts } from './Home.jsx';
 import { NominateSection } from './HomeNominator.jsx';
@@ -22,9 +25,10 @@ const fetchUpcomingProjects = ({ kappSlug }) =>
 export const HomeVolunteer = () => {
   const { profile, kappSlug } = useSelector(state => state.app);
 
+  const isVolunteer = !!getAttributeValue(profile, 'Volunteer Id');
   const profileLastUpdated = getProfileAttributeValue(
     profile,
-    'Profile Last Updated Date',
+    'Volunteer Profile Updated At',
   );
 
   const {
@@ -129,52 +133,77 @@ export const HomeVolunteer = () => {
                   event.values?.['Event Status'] === 'Completed';
 
                 return (
-                  <li key={event.id} className="flex-sc gap-3 px-4 py-3.5">
-                    <div className="flex-cc w-9 h-9 rounded-lg bg-primary/10 text-primary flex-none">
-                      <Icon name="calendar-event" size={18} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium line-clamp-1">
-                        {event.values?.['Event Name'] || '—'}
-                      </p>
-                      <p className="text-xs text-base-content/50 mt-0.5">
-                        {formatLocalDate(event.values?.['Event Date'], DATE_OPTIONS)}
-                      </p>
-                    </div>
-                    {isSignedUp ? (
-                      <div className="flex items-center gap-2 flex-none">
-                        <span className="badge badge-primary badge-sm">
-                          {signupStatus === 'Assigned'
-                            ? 'Assigned'
-                            : signupStatus === 'Waitlisted'
-                              ? 'Waitlisted'
-                              : 'Signed Up'}
-                        </span>
-                        {signupStatus !== 'Assigned' && (
-                          <button
-                            type="button"
-                            className="kbtn kbtn-xs kbtn-ghost text-error"
-                            disabled={isCancelling}
-                            onClick={() => handleCancel(event)}
-                          >
-                            {isCancelling ? '…' : 'Cancel'}
-                          </button>
-                        )}
+                  <React.Fragment key={event.id}>
+                    <li className="flex-sc gap-3 px-4 py-3.5">
+                      <div className="flex-cc w-9 h-9 rounded-lg bg-primary/10 text-primary flex-none">
+                        <Icon name="calendar-event" size={18} />
                       </div>
-                    ) : !isClosed ? (
-                      <button
-                        type="button"
-                        className="kbtn kbtn-sm kbtn-primary flex-none"
-                        onClick={() => setSignupModal({ event, signup: mySignup })}
-                      >
-                        {signupStatus === 'Cancelled' ? 'Re-register' : 'Register'}
-                      </button>
-                    ) : (
-                      <span className="badge badge-ghost badge-sm flex-none">
-                        {event.values?.['Event Status']}
-                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium line-clamp-1">
+                          {event.values?.['Event Name'] || '—'}
+                        </p>
+                        <p className="text-xs text-base-content/50 mt-0.5">
+                          {formatLocalDate(event.values?.['Event Date'], DATE_OPTIONS)}
+                        </p>
+                      </div>
+                      {isSignedUp ? (
+                        <div className="flex-c-st items-end gap-1 flex-none">
+                          <span className={`badge badge-sm font-semibold ${
+                            signupStatus === 'Assigned'
+                              ? 'badge-success'
+                              : signupStatus === 'Waitlisted'
+                                ? 'badge-warning'
+                                : 'badge-primary'
+                          }`}>
+                            {signupStatus === 'Assigned'
+                              ? 'Assigned'
+                              : signupStatus === 'Waitlisted'
+                                ? 'Waitlisted'
+                                : 'Signed Up'}
+                          </span>
+                          {signupStatus !== 'Assigned' && (
+                            <button
+                              type="button"
+                              className="text-xs text-error/70 hover:text-error hover:underline"
+                              disabled={isCancelling}
+                              onClick={() => handleCancel(event)}
+                            >
+                              {isCancelling ? '…' : 'Cancel'}
+                            </button>
+                          )}
+                        </div>
+                      ) : !isClosed ? (
+                        <button
+                          type="button"
+                          className="kbtn kbtn-sm kbtn-primary flex-none"
+                          onClick={() => setSignupModal({ event, signup: mySignup })}
+                        >
+                          {signupStatus === 'Cancelled' ? 'Re-register' : 'Register'}
+                        </button>
+                      ) : null}
+                    </li>
+                    {isSignedUp && !isVolunteer && (
+                      <li>
+                        <Link
+                          to="/profile?tab=volunteer"
+                          className="flex-sc gap-3 px-4 py-3 bg-warning/15 hover:bg-warning/20 transition-colors"
+                        >
+                          <div className="flex-cc w-9 h-9 rounded-lg bg-warning/15 text-warning flex-none">
+                            <Icon name="user-exclamation" size={18} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-warning-content">
+                              Complete your volunteer profile
+                            </p>
+                            <p className="text-xs text-base-content/50 mt-0.5">
+                              Required before you can be assigned to a project
+                            </p>
+                          </div>
+                          <Icon name="arrow-right" size={16} className="text-warning flex-none" />
+                        </Link>
+                      </li>
                     )}
-                  </li>
+                  </React.Fragment>
                 );
               })}
             </ul>

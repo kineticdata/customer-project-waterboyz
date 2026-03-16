@@ -400,6 +400,220 @@ const templates = {
     },
   },
 
+  'account-already-exists': {
+    subject: 'You Already Have a Waterboyz Account',
+    preheader: 'An account with this email already exists. Sign in or reset your password to get started.',
+    build: () => {
+      const body = [
+        heading('You Already Have an Account'),
+        paragraph(
+          'Hi <%= @results["Get User"]["Display Name"] %>,',
+        ),
+        paragraph(
+          "We received a request to create a new Waterboyz account for <strong><%= @results[\"Get User\"][\"Email\"] %></strong>, but an account with that email address already exists.",
+        ),
+        paragraph(
+          'If you remember your password, you can sign in directly. If not, use the button below to reset it:',
+        ),
+        action(
+          'Reset Your Password',
+          '<%= @results["Get Password Reset URL"]["Password Reset Link"] %>',
+        ),
+        note(
+          "This link will expire after 24 hours. If you didn't request this, you can safely ignore this email — your account has not been changed.",
+        ),
+        divider(),
+        paragraph(
+          `Need help? Contact us at <a href="mailto:${brand.supportEmail}" style="color:${brand.primary}; text-decoration:underline;">${brand.supportEmail}</a>.`,
+        ),
+        paragraph(
+          'The Waterboyz Team',
+        ),
+        spacer(),
+      ].join('');
+
+      return layout({
+        subject: 'You Already Have a Waterboyz Account',
+        preheader: 'An account with this email already exists. Sign in or reset your password to get started.',
+        body,
+      });
+    },
+  },
+
+  'signup-create-account': {
+    subject: 'Thanks for Signing Up — Create Your Waterboyz Account',
+    preheader: 'Complete these 2 quick steps so we can assign you to a project.',
+    build: () => {
+      const stepCircle = (num) => `<td width="36" valign="top" style="width:36px; vertical-align:top;"><div style="width:36px; height:36px; background-color:${brand.primary}; border-radius:50%; text-align:center; line-height:36px; font-size:16px; font-weight:700; color:#ffffff; font-family:${brand.fontFamily};">${num}</div></td>`;
+      const step = (num, title, description) => `
+    <tr>
+      <td style="padding:${num === 1 ? '24' : '16'}px 40px 0;" class="padding-mobile">
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+          <tr>
+            ${stepCircle(num)}
+            <td valign="top" style="padding-left:14px; vertical-align:top;">
+              <p style="margin:0; font-size:16px; font-weight:700; line-height:22px; color:${brand.dark};">${title}</p>
+              <p style="margin:4px 0 0; font-size:15px; line-height:24px; color:${brand.text};">${description}</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>`;
+
+      const body = [
+        heading('Thanks for Signing Up!'),
+        paragraph(
+          'Hi <%= @results["Get Signup"]["First Name"] %>,',
+        ),
+        paragraph(
+          "Thanks for signing up for <strong><%= @results[\"Get Event\"][\"Event Name\"] %></strong>! We're excited to have you join us.",
+        ),
+        paragraph(
+          "We noticed you don't have an account in the Waterboyz portal yet. <strong>You'll need to complete these two steps before we can assign you to a project:</strong>",
+        ),
+        step(1, 'Create Your Account', "You'll receive a separate email shortly with a link to set up your account. Keep an eye on your inbox."),
+        step(2, 'Fill Out Your Volunteer Profile', "Once you're logged in, complete your Volunteer Profile — it tells us about your skills, tools, and availability so we can match you to the right project. It only takes a minute."),
+        paragraph(
+          "We <strong>can't assign you to a project until both steps are complete</strong>, so please take care of them as soon as you can.",
+        ),
+        paragraph(
+          "Once your profile is set, you'll receive another email with your project assignment and all the details you need for Serve Day.",
+        ),
+        divider(),
+        paragraph(
+          `Questions? Reach out to us at <a href="mailto:${brand.supportEmail}" style="color:${brand.primary}; text-decoration:underline;">${brand.supportEmail}</a>.`,
+        ),
+        paragraph(
+          'See you on Serve Day!<br><strong>The Waterboyz Team</strong>',
+        ),
+        spacer(),
+      ].join('');
+
+      return layout({
+        subject: 'Thanks for Signing Up — Create Your Waterboyz Account',
+        preheader: 'Complete these 2 quick steps so we can assign you to a project.',
+        body,
+      });
+    },
+  },
+
+  'signup-complete-profile': {
+    subject: 'Complete Your Volunteer Profile — Waterboyz',
+    preheader: 'Fill out your Volunteer Profile so we can assign you to a project.',
+    build: () => {
+      const body = [
+        heading('Thanks for Signing Up!'),
+        paragraph(
+          'Hi <%= @results["Get User"]["Display Name"] %>,',
+        ),
+        paragraph(
+          "Thanks for signing up for <strong><%= @results[\"Get Event\"][\"Event Name\"] %></strong>! We're excited to have you join us.",
+        ),
+        paragraph(
+          "We noticed you haven't filled out your <strong>Volunteer Profile</strong> yet. We need your skills, tools, and availability info before we can match you to a project — <strong>we can't assign you until your profile is complete</strong>.",
+        ),
+        paragraph(
+          "It only takes a minute. Log in to the Waterboyz portal and complete your profile:",
+        ),
+        action('Complete Your Profile', `${brand.siteUrl}/#/profile?tab=volunteer`),
+        note(
+          "Once your profile is complete, you'll receive another email with your project assignment and all the details you need for Serve Day.",
+        ),
+        divider(),
+        paragraph(
+          `Questions? Reach out to us at <a href="mailto:${brand.supportEmail}" style="color:${brand.primary}; text-decoration:underline;">${brand.supportEmail}</a>.`,
+        ),
+        paragraph(
+          'See you on Serve Day!<br><strong>The Waterboyz Team</strong>',
+        ),
+        spacer(),
+      ].join('');
+
+      return layout({
+        subject: 'Complete Your Volunteer Profile — Waterboyz',
+        preheader: 'Fill out your Volunteer Profile so we can assign you to a project.',
+        body,
+      });
+    },
+  },
+
+  'reminder-create-account': {
+    subject: 'Reminder: Create Your Waterboyz Account',
+    preheader: "You signed up for Serve Day but haven't created your account yet.",
+    build: () => {
+      const body = [
+        heading("Don't Forget — Create Your Account"),
+        paragraph(
+          'Hi <%= @results["Get Signup"]["First Name"] %>,',
+        ),
+        paragraph(
+          "A few days ago you signed up for <strong><%= @results[\"Get Event\"][\"Event Name\"] %></strong> — we're glad you want to serve! But we noticed you <strong>haven't set up your Waterboyz account yet</strong>.",
+        ),
+        paragraph(
+          "We can't assign you to a project until your account is created and your Volunteer Profile is complete. Click below to get started — it only takes a minute:",
+        ),
+        action(
+          'Set Up Your Account',
+          "<%= @results['Get Password Reset URL']['Password Reset Link'] %>",
+        ),
+        note(
+          "This link will expire after 24 hours. If it has expired, visit the portal and use the \"Forgot Password\" option to request a new one.",
+        ),
+        divider(),
+        paragraph(
+          `Questions? Reach out to us at <a href="mailto:${brand.supportEmail}" style="color:${brand.primary}; text-decoration:underline;">${brand.supportEmail}</a>.`,
+        ),
+        paragraph(
+          'Hope to see you on Serve Day!<br><strong>The Waterboyz Team</strong>',
+        ),
+        spacer(),
+      ].join('');
+
+      return layout({
+        subject: 'Reminder: Create Your Waterboyz Account',
+        preheader: "You signed up for Serve Day but haven't created your account yet.",
+        body,
+      });
+    },
+  },
+
+  'reminder-complete-profile': {
+    subject: 'Reminder: Complete Your Volunteer Profile — Waterboyz',
+    preheader: "You have an account but we still need your Volunteer Profile before we can assign you.",
+    build: () => {
+      const body = [
+        heading("Don't Forget — Complete Your Profile"),
+        paragraph(
+          'Hi <%= @results["Get User"]["Display Name"] %>,',
+        ),
+        paragraph(
+          "A few days ago you signed up for <strong><%= @results[\"Get Event\"][\"Event Name\"] %></strong> — thanks for wanting to serve! You've created your account, but we noticed you <strong>haven't filled out your Volunteer Profile yet</strong>.",
+        ),
+        paragraph(
+          "We need your skills, tools, and availability info before we can match you to a project — <strong>we can't assign you until your profile is complete</strong>. It only takes a minute:",
+        ),
+        action('Complete Your Profile', `${brand.siteUrl}/#/profile?tab=volunteer`),
+        note(
+          "Once your profile is complete, you'll receive another email with your project assignment and all the details you need for Serve Day.",
+        ),
+        divider(),
+        paragraph(
+          `Questions? Reach out to us at <a href="mailto:${brand.supportEmail}" style="color:${brand.primary}; text-decoration:underline;">${brand.supportEmail}</a>.`,
+        ),
+        paragraph(
+          'Hope to see you on Serve Day!<br><strong>The Waterboyz Team</strong>',
+        ),
+        spacer(),
+      ].join('');
+
+      return layout({
+        subject: 'Reminder: Complete Your Volunteer Profile — Waterboyz',
+        preheader: "You have an account but we still need your Volunteer Profile before we can assign you.",
+        body,
+      });
+    },
+  },
+
   'volunteer-confirmation': {
     subject: "You're Signed Up — Waterboyz",
     preheader: "Thanks for volunteering! Here are the details for your upcoming project.",

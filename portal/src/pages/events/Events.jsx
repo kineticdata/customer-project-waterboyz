@@ -1,6 +1,6 @@
 import { Route, Routes } from 'react-router-dom';
 import { EventsList } from './EventsList.jsx';
-import { EventsAssign } from './EventsAssign.jsx';
+import { EventsAssign } from './assign/EventsAssign.jsx';
 
 export const Events = () => (
   <Routes>

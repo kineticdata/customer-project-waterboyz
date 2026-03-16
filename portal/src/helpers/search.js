@@ -7,7 +7,7 @@ import { regRedux } from '../redux.js';
  */
 const searchActions = regRedux(
   'search',
-  { open: false, searchOnly: false, popularForms: null },
+  { open: false, searchOnly: false },
   {
     open(state, { searchOnly } = {}) {
       state.open = true;
@@ -16,9 +16,6 @@ const searchActions = regRedux(
     close(state) {
       state.open = false;
       state.searchOnly = false;
-    },
-    setPopularForms(state, popularForms) {
-      state.popularForms = popularForms;
     },
   },
 );
@@ -40,10 +37,3 @@ export const closeSearch = () => {
   searchActions.close();
 };
 
-/**
- * Stores the popular forms into state.
- *  @param {object[]} popularForms List of popular forms
- */
-export const setPopularForms = popularForms => {
-  searchActions.setPopularForms(popularForms);
-};

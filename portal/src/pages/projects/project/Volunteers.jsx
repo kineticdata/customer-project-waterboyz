@@ -14,6 +14,7 @@ import { toastError, toastSuccess } from '../../../helpers/toasts.js';
 import { Icon } from '../../../atoms/Icon.jsx';
 import { Tooltip } from '../../../atoms/Tooltip.jsx';
 import { Modal } from '../../../atoms/Modal.jsx';
+import { VolunteerDetailModal } from '../../../components/VolunteerDetailModal.jsx';
 
 const RELATIONSHIP_FORM = 'swat-project-volunteers';
 const VOLUNTEERS_FORM = 'volunteers';
@@ -25,9 +26,8 @@ const FIELD_FIRST_NAME = 'First Name';
 const FIELD_LAST_NAME = 'Last Name';
 const FIELD_EMAIL = 'Email Address';
 const FIELD_PHONE = 'Phone Number';
-const FIELD_SKILL_AREAS = 'Skill Areas';
-const FIELD_TOOLS = 'Tools';
-const FIELD_BIO = 'Bio';
+const FIELD_DIETARY = 'Dietary Restrictions';
+const FIELD_PHOTO_CONSENT = 'Photo Consent';
 const FIELD_ADDITIONAL_VOLUNTEERS = 'Additional Volunteers Needed';
 
 // Build the KQL search used by the typeahead to find volunteers by last name.
@@ -111,11 +111,17 @@ const getVolunteerValues = (submission, volunteerDetails) => {
   );
 };
 
-const formatListValue = value => {
-  if (!value) return '—';
-  if (Array.isArray(value)) return value.join(', ') || '—';
-  return String(value);
+// Check if the volunteer has dietary/photo flags worth surfacing.
+const isGlutenFree = values => {
+  const dietary = values?.[FIELD_DIETARY];
+  if (Array.isArray(dietary)) return dietary.includes('Gluten Free');
+  if (typeof dietary === 'string') {
+    try { return JSON.parse(dietary).includes('Gluten Free'); } catch { return false; }
+  }
+  return false;
 };
+const noPhotoConsent = values => values?.[FIELD_PHOTO_CONSENT] === 'No';
+
 
 export const Volunteers = ({ project }) => {
   const { kappSlug } = useSelector(state => state.app);
@@ -454,15 +460,44 @@ export const Volunteers = ({ project }) => {
   const userAgent =
     typeof navigator === 'undefined' ? '' : navigator.userAgent || '';
   const smsHref = buildSmsHref(volunteerContacts.phones, userAgent);
-  const detailPhone = detailVolunteer?.values?.[FIELD_PHONE];
-  const detailPhoneDigits = normalizePhone(detailPhone);
-  const detailSmsHref = buildSmsHref(
-    detailPhoneDigits ? [detailPhoneDigits] : [],
-    userAgent,
-  );
 
   return (
-    <div className="rounded-box border bg-base-100 p-6">
+    <div className="flex-c-st gap-4">
+      <div className="rounded-box border border-base-200 bg-base-200/30 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-semibold">Additional Volunteers Needed</div>
+            <div className="mt-0.5 text-xs text-base-content/50">
+              If set to "No," volunteers won't see this project or receive it in
+              the weekly upcoming projects digest.
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              className={`kbtn kbtn-sm ${
+                additionalNeeded === 'Yes' ? 'kbtn-primary' : 'kbtn-outline'
+              }`}
+              onClick={() => handleAdditionalNeeded('Yes')}
+              disabled={savingAdditional}
+            >
+              Yes
+            </button>
+            <button
+              type="button"
+              className={`kbtn kbtn-sm ${
+                additionalNeeded === 'No' ? 'kbtn-primary' : 'kbtn-outline'
+              }`}
+              onClick={() => handleAdditionalNeeded('No')}
+              disabled={savingAdditional}
+            >
+              No
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-box border bg-base-100 p-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="text-lg font-semibold">Volunteers</div>
         <div className="flex items-center gap-2">
@@ -503,39 +538,8 @@ export const Volunteers = ({ project }) => {
           Add volunteers with emails or phone numbers to enable messaging.
         </div>
       )}
-      <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
-        <span className="ktext-base-content/60 text-xs uppercase tracking-wide">
-          Additional Volunteers Needed
-        </span>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            className={`kbtn kbtn-sm ${
-              additionalNeeded === 'Yes' ? 'kbtn-primary' : 'kbtn-ghost'
-            }`}
-            onClick={() => handleAdditionalNeeded('Yes')}
-            disabled={savingAdditional}
-          >
-            Yes
-          </button>
-          <button
-            type="button"
-            className={`kbtn kbtn-sm ${
-              additionalNeeded === 'No' ? 'kbtn-primary' : 'kbtn-ghost'
-            }`}
-            onClick={() => handleAdditionalNeeded('No')}
-            disabled={savingAdditional}
-          >
-            No
-          </button>
-        </div>
-      </div>
-      <div className="mt-1 text-xs ktext-base-content/60">
-        If set to “No,” volunteers won’t see this project or receive it in the
-        weekly upcoming projects digest.
-      </div>
 
-      {!initialized || (loading && !data.length) ? (
+      {(!initialized || (loading && !data.length)) ? (
         <div className="mt-3">
           <Loading />
         </div>
@@ -561,8 +565,20 @@ export const Volunteers = ({ project }) => {
                     className="rounded-box border bg-base-100 p-3"
                     onClick={() => openVolunteerDetail(submission)}
                   >
-                    <div className="text-sm font-semibold">
+                    <div className="flex items-center gap-2 text-sm font-semibold">
                       {name || 'Volunteer'}
+                      {isGlutenFree(values) && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-800">
+                          <Icon name="bread-off" size={13} />
+                          Gluten Free
+                        </span>
+                      )}
+                      {noPhotoConsent(values) && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-error/15 px-2 py-0.5 text-xs font-medium text-error">
+                          <Icon name="camera-off" size={13} />
+                          No Photo
+                        </span>
+                      )}
                     </div>
                     <div className="mt-2 grid gap-1 text-xs text-base-content/70">
                       <div>
@@ -577,28 +593,30 @@ export const Volunteers = ({ project }) => {
                         </span>{' '}
                         {values[FIELD_PHONE] || '—'}
                       </div>
-                      <div>
-                        <span className="font-medium text-base-content/80">
-                          Present:
-                        </span>{' '}
-                        {present ? 'Yes' : 'No'}
-                      </div>
                     </div>
                     <div className="mt-3">
                       <button
                         type="button"
-                        className="kbtn kbtn-ghost kbtn-sm"
+                        className={`kbtn kbtn-sm gap-1.5 ${present ? 'kbtn-success' : 'kbtn-outline'}`}
                         onClick={event => {
                           event.stopPropagation();
                           handleTogglePresent(submission);
                         }}
                         disabled={!!saving[submission.id]}
                       >
-                        {saving[submission.id]
-                          ? 'Saving...'
-                          : present
-                            ? 'Mark Not Present'
-                            : 'Mark Present'}
+                        {saving[submission.id] ? (
+                          'Saving...'
+                        ) : present ? (
+                          <>
+                            <Icon name="circle-check" size={16} />
+                            Present
+                          </>
+                        ) : (
+                          <>
+                            <Icon name="circle-dashed" size={16} />
+                            Mark Present
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
@@ -618,8 +636,7 @@ export const Volunteers = ({ project }) => {
                     <th className="px-4 py-2">Volunteer</th>
                     <th className="px-4 py-2">Email</th>
                     <th className="px-4 py-2">Phone</th>
-                    <th className="px-4 py-2">Present</th>
-                    <th className="px-4 py-2">Actions</th>
+                    <th className="px-4 py-2">Attendance</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -638,8 +655,20 @@ export const Volunteers = ({ project }) => {
                         onClick={() => openVolunteerDetail(submission)}
                       >
                         <td className="px-4 py-2">
-                          <div className="font-medium">
+                          <div className="flex items-center gap-2 font-medium">
                             {name || 'Volunteer'}
+                            {isGlutenFree(values) && (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-xs font-medium text-orange-800">
+                                <Icon name="bread-off" size={13} />
+                                Gluten Free
+                              </span>
+                            )}
+                            {noPhotoConsent(values) && (
+                              <span className="inline-flex items-center gap-1 rounded-full bg-error/15 px-2 py-0.5 text-xs font-medium text-error">
+                                <Icon name="camera-off" size={13} />
+                                No Photo
+                              </span>
+                            )}
                           </div>
                         </td>
                         <td className="px-4 py-2">
@@ -649,35 +678,28 @@ export const Volunteers = ({ project }) => {
                           {values[FIELD_PHONE] || '—'}
                         </td>
                         <td className="px-4 py-2">
-                          {present ? (
-                            <Icon
-                              name="check"
-                              size={18}
-                              className="text-success"
-                            />
-                          ) : (
-                            <Icon
-                              name="x"
-                              size={18}
-                              className="text-error"
-                            />
-                          )}
-                        </td>
-                        <td className="px-4 py-2">
                           <button
                             type="button"
-                            className="kbtn kbtn-ghost kbtn-sm"
+                            className={`kbtn kbtn-sm gap-1.5 ${present ? 'kbtn-success' : 'kbtn-outline'}`}
                             onClick={event => {
                               event.stopPropagation();
                               handleTogglePresent(submission);
                             }}
                             disabled={!!saving[submission.id]}
                           >
-                            {saving[submission.id]
-                              ? 'Saving...'
-                              : present
-                                ? 'Mark Not Present'
-                                : 'Mark Present'}
+                            {saving[submission.id] ? (
+                              'Saving...'
+                            ) : present ? (
+                              <>
+                                <Icon name="circle-check" size={16} />
+                                Present
+                              </>
+                            ) : (
+                              <>
+                                <Icon name="circle-dashed" size={16} />
+                                Mark Present
+                              </>
+                            )}
                           </button>
                         </td>
                       </tr>
@@ -904,88 +926,12 @@ export const Volunteers = ({ project }) => {
         </div>
       </Modal>
 
-      <Modal
+      <VolunteerDetailModal
         open={detailOpen}
-        onOpenChange={({ open }) => setDetailOpen(open)}
-        title="Volunteer Details"
-        size="sm"
-      >
-        <div slot="body" className="grid gap-3">
-          <div className="grid gap-1 text-sm">
-            <div className="text-xs uppercase tracking-wide text-base-content/60">
-              Name
-            </div>
-            <div className="font-semibold">
-              {formatVolunteerName(detailVolunteer?.values) || 'Volunteer'}
-            </div>
-          </div>
-          <div className="grid gap-1 text-sm">
-            <div className="text-xs uppercase tracking-wide text-base-content/60">
-              Email
-            </div>
-            {detailVolunteer?.values?.[FIELD_EMAIL] ? (
-              <a
-                href={`mailto:${detailVolunteer.values[FIELD_EMAIL]}`}
-                className="text-primary underline-offset-2 hover:underline"
-              >
-                {detailVolunteer.values[FIELD_EMAIL]}
-              </a>
-            ) : (
-              <div>—</div>
-            )}
-          </div>
-          <div className="grid gap-1 text-sm">
-            <div className="text-xs uppercase tracking-wide text-base-content/60">
-              Phone
-            </div>
-            {detailPhoneDigits && detailSmsHref ? (
-              <a
-                href={detailSmsHref}
-                className="text-primary underline-offset-2 hover:underline"
-              >
-                {detailVolunteer?.values?.[FIELD_PHONE]}
-              </a>
-            ) : (
-              <div>—</div>
-            )}
-          </div>
-          <div className="grid gap-1 text-sm">
-            <div className="text-xs uppercase tracking-wide text-base-content/60">
-              Skill Areas
-            </div>
-            <div>
-              {formatListValue(
-                detailVolunteer?.values?.[FIELD_SKILL_AREAS],
-              )}
-            </div>
-          </div>
-          <div className="grid gap-1 text-sm">
-            <div className="text-xs uppercase tracking-wide text-base-content/60">
-              Tools
-            </div>
-            <div>
-              {formatListValue(detailVolunteer?.values?.[FIELD_TOOLS])}
-            </div>
-          </div>
-          <div className="grid gap-1 text-sm">
-            <div className="text-xs uppercase tracking-wide text-base-content/60">
-              Bio
-            </div>
-            <div className="whitespace-pre-wrap">
-              {detailVolunteer?.values?.[FIELD_BIO] || '—'}
-            </div>
-          </div>
-        </div>
-        <div slot="footer" className="flex-ee gap-2">
-          <button
-            type="button"
-            className="kbtn kbtn-primary"
-            onClick={() => setDetailOpen(false)}
-          >
-            Close
-          </button>
-        </div>
-      </Modal>
+        onClose={() => setDetailOpen(false)}
+        volunteer={detailVolunteer}
+      />
+    </div>
     </div>
   );
 };

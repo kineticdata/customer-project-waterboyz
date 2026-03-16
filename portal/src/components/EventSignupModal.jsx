@@ -28,12 +28,12 @@ export const EventSignupModal = ({ event, signup, open, onClose, onCreated }) =>
   const isCancelledReregistration =
     signup?.values?.['Signup Status'] === 'Cancelled';
 
-  // When re-registering, reset the status to Pending before rendering the form
+  // When re-registering, reset the status to Signed Up before rendering the form
   const [isResetting, setIsResetting] = useState(false);
   useEffect(() => {
     if (open && isCancelledReregistration) {
       setIsResetting(true);
-      updateSubmission({ id: signup.id, values: { 'Signup Status': 'Pending' } }).then(
+      updateSubmission({ id: signup.id, values: { 'Signup Status': 'Signed Up' } }).then(
         result => {
           if (result?.error) {
             toastError({ title: 'Could not reset signup', description: result.error.message });
@@ -79,6 +79,7 @@ export const EventSignupModal = ({ event, signup, open, onClose, onCreated }) =>
               form={formSlug}
               values={{
                 'Event ID': event.id,
+                'Signup Status': 'Signed Up',
               }}
               components={{ Pending }}
               created={handleSubmitted}

@@ -10,6 +10,7 @@ import clsx from 'clsx';
 import { openSearch } from '../../helpers/search.js';
 import { FooterPortal } from '../footer/FooterPortal.jsx';
 import { useRoles } from '../../helpers/hooks/useRoles.js';
+import { useHasNominations } from '../../helpers/hooks/useHasNominations.js';
 
 export const Header = () => {
   const profile = useSelector(state => state.app.profile);
@@ -17,13 +18,14 @@ export const Header = () => {
   const mobile = useSelector(state => state.view.mobile);
   const roles = useRoles();
   const { hasProjectAccess } = roles;
+  const hasNominations = useHasNominations();
 
   return (
     <>
       {/* Top navigation bar */}
       <HeaderPortal>
-        <nav className="relative flex-sc gap-3 md:gap-5 h-16 md:h-18 px-4 md:px-6 bg-base-100 border-b border-base-200 z-20">
-          {!mobile && <HeaderMenu profile={profile} roles={roles} />}
+        <nav className="relative flex-sc gap-3 md:gap-5 h-16 md:h-18 px-4 md:px-6 bg-base-100 border-b-3 border-primary shadow-sm z-20">
+          {!mobile && <HeaderMenu profile={profile} roles={roles} hasNominations={hasNominations} />}
           <Link to="/" className="flex-initial" aria-label="Home">
             <img
               src={themeLogo || logo}
@@ -39,42 +41,55 @@ export const Header = () => {
                 end
                 className={({ isActive }) =>
                   clsx(
-                    'kbtn kbtn-ghost kbtn-sm font-medium',
-                    isActive && 'text-primary bg-primary/8',
+                    'kbtn kbtn-ghost kbtn-sm font-medium text-base-content/60 hover:text-primary',
+                    isActive && '!text-primary !bg-primary/8',
                   )
                 }
               >
                 Home
               </NavLink>
-              <NavLink
-                to="/nominations"
-                className={({ isActive }) =>
-                  clsx(
-                    'kbtn kbtn-ghost kbtn-sm font-medium',
-                    isActive && 'text-primary bg-primary/8',
-                  )
-                }
-              >
-                My Nominations
-              </NavLink>
+              {hasNominations && (
+                <NavLink
+                  to="/nominations"
+                  className={({ isActive }) =>
+                    clsx(
+                      'kbtn kbtn-ghost kbtn-sm font-medium text-base-content/60 hover:text-primary',
+                      isActive && '!text-primary !bg-primary/8',
+                    )
+                  }
+                >
+                  My Nominations
+                </NavLink>
+              )}
               <NavLink
                 to="/upcoming-projects"
                 className={({ isActive }) =>
                   clsx(
-                    'kbtn kbtn-ghost kbtn-sm font-medium',
-                    isActive && 'text-primary bg-primary/8',
+                    'kbtn kbtn-ghost kbtn-sm font-medium text-base-content/60 hover:text-primary',
+                    isActive && '!text-primary !bg-primary/8',
                   )
                 }
               >
                 Upcoming Projects
+              </NavLink>
+              <NavLink
+                to="/events"
+                className={({ isActive }) =>
+                  clsx(
+                    'kbtn kbtn-ghost kbtn-sm font-medium text-base-content/60 hover:text-primary',
+                    isActive && '!text-primary !bg-primary/8',
+                  )
+                }
+              >
+                Events
               </NavLink>
               {hasProjectAccess && (
                 <NavLink
                   to="/actions"
                   className={({ isActive }) =>
                     clsx(
-                      'kbtn kbtn-ghost kbtn-sm font-medium',
-                      isActive && 'text-primary bg-primary/8',
+                      'kbtn kbtn-ghost kbtn-sm font-medium text-base-content/60 hover:text-primary',
+                      isActive && '!text-primary !bg-primary/8',
                     )
                   }
                 >
@@ -86,8 +101,8 @@ export const Header = () => {
                   to="/project-captains"
                   className={({ isActive }) =>
                     clsx(
-                      'kbtn kbtn-ghost kbtn-sm font-medium',
-                      isActive && 'text-primary bg-primary/8',
+                      'kbtn kbtn-ghost kbtn-sm font-medium text-base-content/60 hover:text-primary',
+                      isActive && '!text-primary !bg-primary/8',
                     )
                   }
                 >
@@ -98,7 +113,7 @@ export const Header = () => {
           )}
           <div className="mx-auto" />
           <button
-            className="kbtn kbtn-ghost kbtn-square kbtn-md"
+            className="kbtn kbtn-ghost kbtn-square kbtn-md text-base-content/60 hover:text-primary"
             onClick={() => openSearch({ searchOnly: true })}
             aria-label="Search"
           >
@@ -115,12 +130,12 @@ export const Header = () => {
       </HeaderPortal>
 
       {/* Mobile bottom navigation */}
-      {mobile && <MobileBottomNav roles={roles} />}
+      {mobile && <MobileBottomNav roles={roles} hasNominations={hasNominations} />}
     </>
   );
 };
 
-const MobileBottomNav = ({ roles }) => {
+const MobileBottomNav = ({ roles, hasNominations }) => {
   const { isVolunteer, hasProjectAccess } = roles;
   const location = useLocation();
   const currentPath = location.pathname;
@@ -128,16 +143,9 @@ const MobileBottomNav = ({ roles }) => {
   const navItems = [
     { label: 'Home', to: '/', icon: 'home', exact: true },
     { label: 'Upcoming Projects', to: '/upcoming-projects', icon: 'calendar-event' },
-    isVolunteer
-      ? { label: 'Events', to: '/events', icon: 'calendar-heart' }
-      : {
-          label: 'Get Involved',
-          action: () => openSearch(),
-          icon: 'plus-circle',
-          isAction: true,
-        },
+    { label: 'Events', to: '/events', icon: 'calendar-heart' },
     isVolunteer && { label: 'My Volunteering', to: '/my-volunteering', icon: 'heart-handshake' },
-    { label: 'My Nominations', to: '/nominations', icon: 'file-text' },
+    hasNominations && { label: 'My Nominations', to: '/nominations', icon: 'file-text' },
     hasProjectAccess && { label: 'Projects', to: '/project-captains', icon: 'hammer' },
   ].filter(Boolean);
 
@@ -201,15 +209,15 @@ const MobileBottomNav = ({ roles }) => {
   );
 };
 
-const getMenuItems = (profile, roles = {}) => {
+const getMenuItems = (profile, roles = {}, { hasNominations } = {}) => {
   const { isVolunteer, hasProjectAccess, isAdmin, isLeadership } = roles;
   return [
     {
       items: [
         { label: 'Home', to: '/', icon: 'home' },
-        { label: 'My Nominations', to: '/nominations', icon: 'file-text' },
+        hasNominations && { label: 'My Nominations', to: '/nominations', icon: 'file-text' },
         { label: 'Upcoming Projects', to: '/upcoming-projects', icon: 'calendar-event' },
-        isVolunteer && { label: 'Events', to: '/events', icon: 'calendar-heart' },
+        { label: 'Events', to: '/events', icon: 'calendar-heart' },
         isVolunteer && { label: 'My Volunteering', to: '/my-volunteering', icon: 'heart-handshake' },
         hasProjectAccess && { label: 'My Tasks', to: '/actions', icon: 'clipboard-check' },
         hasProjectAccess && {
@@ -241,16 +249,16 @@ const getMenuItems = (profile, roles = {}) => {
   ].filter(Boolean);
 };
 
-const HeaderMenu = ({ profile, roles }) => {
+const HeaderMenu = ({ profile, roles, hasNominations }) => {
   const popover = usePopover();
   const close = () => popover.setOpen(false);
 
-  const menuItems = getMenuItems(profile, roles);
+  const menuItems = getMenuItems(profile, roles, { hasNominations });
 
   return (
     <Popover.RootProvider value={popover} autoFocus={false}>
       <Popover.Trigger asChild>
-        <button className="kbtn kbtn-ghost kbtn-square kbtn-md">
+        <button className="kbtn kbtn-ghost kbtn-square kbtn-md text-base-content/60 hover:text-primary">
           <Icon name="menu-2" size={20} />
         </button>
       </Popover.Trigger>
@@ -269,7 +277,7 @@ const HeaderMenu = ({ profile, roles }) => {
         })}
         style={{ transform: 'none' }}
       >
-        <Popover.Content className="flex-c-st h-full w-full gap-3 px-6 py-4 outline-0 bg-base-100 z-30 shadow-xl">
+        <Popover.Content className="flex-c-st h-full w-full gap-3 px-6 py-4 outline-0 bg-base-100 text-base-content z-30 shadow-xl">
           <ul className="kmenu flex-nowrap gap-1 p-0 w-full flex-auto overflow-auto">
             {menuItems.map((item, i) => (
               <Fragment key={i}>

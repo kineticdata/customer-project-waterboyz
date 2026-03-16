@@ -319,7 +319,7 @@ export const RequestDetail = () => {
 
   return (
     <div className="gutter">
-      <div className="max-w-screen-lg pt-1 pb-6">
+      <div className="max-w-screen-lg mx-auto pt-6 pb-6">
         <PageHeading
           title={data?.label}
           after={data && <StatusPill status={data.coreState} />}

@@ -37,7 +37,7 @@ export const ProjectsList = ({ listData, listActions, filters, setFilters, isLea
 
   return (
     <div className="gutter pb-24 md:pb-8">
-      <div className="max-w-screen-lg mx-auto pt-1 pb-6">
+      <div className="max-w-screen-lg mx-auto pt-6 pb-6">
         <PageHeading title="SWAT Projects" backTo="/" className="flex-wrap">
           <ProjectFilters
             type="projects"

@@ -1,5 +1,5 @@
 import { Modal } from '../../atoms/Modal.jsx';
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { debounce } from 'lodash-es';
 import { fetchCategory, fetchForms } from '@kineticdata/react';
 import { useSelector } from 'react-redux';
@@ -7,18 +7,14 @@ import { Loading } from '../states/Loading.jsx';
 import { Error } from '../states/Error.jsx';
 import { Icon } from '../../atoms/Icon.jsx';
 import { usePaginatedData } from '../../helpers/hooks/usePaginatedData.js';
-import {
-  openSearch,
-  closeSearch,
-  setPopularForms,
-} from '../../helpers/search.js';
+import { openSearch, closeSearch } from '../../helpers/search.js';
 import { getAttributeValue } from '../../helpers/records.js';
 import { Link } from 'react-router-dom';
 import { useData } from '../../helpers/hooks/useData.js';
 
 export const SearchModal = () => {
   // Get state from redux for the search modal and general app info
-  const { open, searchOnly, popularForms } = useSelector(state => state.search);
+  const { open, searchOnly } = useSelector(state => state.search);
   const { kapp, kappSlug } = useSelector(state => state.app);
 
   /*** SEARCH FUNCTIONALITY ***************************************************/
@@ -59,31 +55,6 @@ export const SearchModal = () => {
   const searchData = usePaginatedData(fetchForms, searchParams);
   const { error: searchError, forms: searchResults } =
     searchData.response || {};
-
-  /*** POPULAR FORMS FUNCTIONALITY ********************************************/
-
-  // Parameters for the popular services query (if null, the query will not run)
-  const popularParams = useMemo(
-    () =>
-      !popularForms
-        ? {
-            kappSlug,
-            categorySlug: 'popular-services',
-            include:
-              'categorizations.form,categorizations.form.attributesMap,categorizations.form.categorizations.category',
-          }
-        : null,
-    [popularForms, kappSlug],
-  );
-  // Retrieve the popular requests if they're not saved in state
-  const popularData = useData(fetchCategory, popularParams);
-  useEffect(() => {
-    if (!popularForms && popularData) {
-      setPopularForms(
-        popularData?.response?.category?.categorizations?.map(c => c?.form),
-      );
-    }
-  }, [popularData, popularForms]);
 
   /*** CATEGORIES FUNCTIONALITY ***********************************************/
 
@@ -326,17 +297,6 @@ export const SearchModal = () => {
                 </div>
               </>
             )}
-
-            {/* {!currentCategory && popularForms?.length > 0 && (
-              <>
-                <div className="text-2xl font-semibold mt-6">Popular</div>
-                <ul className="klist text-base p-3 border rounded-box">
-                  {popularForms.map(form => (
-                    <FormRow key={form.slug} form={form} />
-                  ))}
-                </ul>
-              </>
-            )} */}
 
             {(currentCategory || !hasCategories) && (
               <>

@@ -189,19 +189,15 @@ export const MyVolunteeringPage = () => {
   const volunteerRecord = volunteerResponse?.submissions?.[0] ?? null;
 
   const skills = useMemo(() => {
-    try {
-      return JSON.parse(volunteerRecord?.values?.['Skill Areas'] || '[]');
-    } catch {
-      return [];
-    }
+    const raw = volunteerRecord?.values?.['Skill Areas'];
+    if (Array.isArray(raw)) return raw.filter(Boolean);
+    try { return JSON.parse(raw || '[]'); } catch { return []; }
   }, [volunteerRecord]);
 
   const tools = useMemo(() => {
-    try {
-      return JSON.parse(volunteerRecord?.values?.['Tools'] || '[]');
-    } catch {
-      return [];
-    }
+    const raw = volunteerRecord?.values?.['Tools'];
+    if (Array.isArray(raw)) return raw.filter(Boolean);
+    try { return JSON.parse(raw || '[]'); } catch { return []; }
   }, [volunteerRecord]);
 
   const availability = volunteerRecord?.values?.['How often can you volunteer'] || null;
@@ -287,7 +283,7 @@ export const MyVolunteeringPage = () => {
   if (profile && !volunteerId) {
     return (
       <div className="gutter pb-24 md:pb-8">
-        <div className="max-w-screen-lg mx-auto pt-1 pb-6">
+        <div className="max-w-screen-lg mx-auto pt-6 pb-6">
           <PageHeading title="My Volunteering" backTo="/" />
           <div className="rounded-box border border-base-200 bg-base-100 p-10 text-center">
             <Icon
@@ -312,7 +308,7 @@ export const MyVolunteeringPage = () => {
 
   return (
     <div className="gutter pb-24 md:pb-8">
-      <div className="max-w-screen-lg mx-auto pt-1 pb-6">
+      <div className="max-w-screen-lg mx-auto pt-6 pb-6">
         <PageHeading title="My Volunteering" backTo="/" />
 
         {!initialized ? (

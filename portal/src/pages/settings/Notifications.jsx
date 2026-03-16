@@ -175,7 +175,7 @@ export const Notifications = () => {
 
   return (
     <div className="gutter">
-      <div className="pt-1 pb-6">
+      <div className="pt-6 pb-6">
         <PageHeading title="Notifications" backTo="/" />
 
         <div className="rounded-box md:border md:p-8">

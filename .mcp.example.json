@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "kinetic-platform": {
+      "command": "node",
+      "args": ["/Users/jamesdavies/dev/mcps/kinetic-platform-mcp/dist/index.js", "--stdio"],
+      "env": {
+        "KINETIC_OAS_DIR": "/Users/jamesdavies/dev/mcps/kinetic-platform-mcp/oas",
+        "KINETIC_SERVER_URL": "https://space.kinops.io",
+        "KINETIC_USERNAME": "username",
+        "KINETIC_PASSWORD": "password"
+      }
+    }
+  }
+}

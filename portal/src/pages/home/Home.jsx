@@ -40,7 +40,7 @@ export const ActivityList = ({ limit = 5, onLoaded }) => {
           .equals('submittedBy', 'username')
           .equals('values[Requested For]', 'username')
           .end()
-          .end()({ types: ['Service'], username }),
+          .end()({ types: ['Nominations'], username }),
         include: ['details', 'form', 'form.attributesMap'],
         limit,
       },

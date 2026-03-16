@@ -90,7 +90,7 @@ export const AdminFormRecords = ({ adminForms }) => {
   const showForm = typeof id === 'string';
 
   return (
-    <div className="max-w-screen-lg full-form:max-w-full pt-1 pb-6">
+    <div className="max-w-screen-lg full-form:max-w-full pt-6 pb-6">
       <PageHeading
         title={['Admin', form?.name, submissionLabel(id, response?.submissions)]
           .filter(Boolean)

@@ -14,7 +14,7 @@ export const SettingsForm = () => {
   const { kappSlug } = useSelector(state => state.app);
 
   return (
-    <div className="max-w-screen-lg full-form:max-w-full pt-1 pb-6">
+    <div className="max-w-screen-lg full-form:max-w-full pt-6 pb-6">
       <PageHeading
         title={['Settings', form?.name?.()].filter(Boolean).join(' / ')}
       />

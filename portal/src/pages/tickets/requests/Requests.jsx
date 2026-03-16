@@ -29,7 +29,7 @@ const buildMyRequestsSearch = (profile, filters) => {
 
   return {
     q: search.end()({
-      types: ['Service'],
+      types: ['Nominations'],
       statuses: [
         filters.status.draft && 'Draft',
         filters.status.open && 'Submitted',

@@ -25,7 +25,7 @@ const getMetaData = submission => {
           dateString: `Opened ${timeAgo(submission.createdAt)}`,
         };
     }
-  } else if (['Service'].includes(submission.type)) {
+  } else if (['Service', 'Nominations'].includes(submission.type)) {
     switch (submission.coreState) {
       case 'Draft':
         return {
@@ -52,7 +52,7 @@ const getMetaData = submission => {
  * submission form. Otherwise, render the details route.
  */
 const getToPath = submission =>
-  ['Service'].includes(submission.type) && submission.coreState === 'Draft'
+  ['Service', 'Nominations'].includes(submission.type) && submission.coreState === 'Draft'
     ? `${submission.id}/edit`
     : submission.id;
 

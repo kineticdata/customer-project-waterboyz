@@ -63,7 +63,7 @@ export const Admin = ({ adminForms }) => {
 
   if (!adminForms) {
     return (
-      <div className="max-w-screen-lg pt-1 pb-6">
+      <div className="max-w-screen-lg pt-6 pb-6">
         <PageHeading title="Admin" backTo="/" />
         <Loading />
       </div>
@@ -80,7 +80,7 @@ export const Admin = ({ adminForms }) => {
   const cards = [...dynamicCards, ...staticCards];
 
   return (
-    <div className="max-w-screen-lg pt-1 pb-6">
+    <div className="max-w-screen-lg pt-6 pb-6">
       <PageHeading title="Admin" backTo="/" />
       <div className="flex flex-col gap-4 mb-4 md:mb-6 md:grid md:grid-cols-[auto_auto_1fr]">
         {cards.map(card => (
