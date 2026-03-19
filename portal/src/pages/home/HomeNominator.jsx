@@ -10,7 +10,6 @@ import { useEventSignups } from '../../helpers/hooks/useEventSignups.js';
 import { executeIntegration } from '../../helpers/api.js';
 import { formatLocalDate } from '../../helpers/index.js';
 import { HomeSection } from '../../components/home/HomeSection.jsx';
-import { Shortcuts } from './Home.jsx';
 
 const FALLBACK_PROGRAMS = [
   {
@@ -416,8 +415,6 @@ export const HomeNominator = () => {
         </div>
       </div>
 
-      {/* Shortcuts */}
-      <Shortcuts className="gutter mt-12 md:mt-14 pb-4" />
     </div>
   );
 };

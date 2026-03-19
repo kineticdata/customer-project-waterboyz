@@ -3,8 +3,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { searchSubmissions, updateSubmission } from '@kineticdata/react';
 import { useData } from '../../../helpers/hooks/useData.js';
+import { useRoles } from '../../../helpers/hooks/useRoles.js';
 import { toastError, toastSuccess } from '../../../helpers/toasts.js';
+import { FamilyInformation } from './FamilyInformation.jsx';
 
+const FIELD_PROJECT_CAPTAIN = 'Project Captain';
 const FIELD_PROJECT_STATUS = 'Project Status';
 const FIELD_SCHEDULED_DATE = 'Scheduled Date';
 const FIELD_COMPLETION_DATE = 'Completion Date';
@@ -13,6 +16,15 @@ const FIELD_EQUIPMENT_NEEDED = 'Equipment Needed';
 const FIELD_TASKS_MAN_HOURS_TOTAL = 'Project Tasks Man Hours Total';
 const FIELD_TOTAL_MAN_HOURS = 'Total Project Man Hours';
 const FIELD_ASSOCIATED_EVENT = 'Associated Event';
+const FIELD_FAMILY_COMM_COMPLETE = 'Family Communication Complete';
+const FIELD_FAMILY_TYPE = 'Family Type';
+
+const FAMILY_TYPE_OPTIONS = [
+  'Foster Family',
+  'Special Needs Family',
+  'Single Parent Family',
+  'Other',
+];
 
 const normalizeDateValue = value =>
   value ? String(value).trim().slice(0, 10) : '';
@@ -51,11 +63,14 @@ const fetchEvents = ({ kappSlug }) =>
 
 export const ProjectDetails = ({
   project,
-  family: _family,
-  familyLoading: _familyLoading,
+  familyRecord,
+  familyLoading,
   reloadProject,
+  captains,
 }) => {
   const { kappSlug } = useSelector(state => state.app);
+  const { isLeadership } = useRoles();
+  const [projectCaptain, setProjectCaptain] = useState('');
   const [status, setStatus] = useState('');
   const [scheduledDate, setScheduledDate] = useState('');
   const [completionDate, setCompletionDate] = useState('');
@@ -63,6 +78,8 @@ export const ProjectDetails = ({
   const [equipmentNeeded, setEquipmentNeeded] = useState('');
   const [totalManHours, setTotalManHours] = useState('');
   const [associatedEventId, setAssociatedEventId] = useState('');
+  const [familyCommComplete, setFamilyCommComplete] = useState(false);
+  const [familyType, setFamilyType] = useState([]);
   const [saving, setSaving] = useState(false);
 
   const eventsParams = useMemo(() => ({ kappSlug }), [kappSlug]);
@@ -71,6 +88,16 @@ export const ProjectDetails = ({
     () => eventsResponse?.submissions ?? [],
     [eventsResponse],
   );
+
+  const captainOptions = useMemo(
+    () =>
+      (captains ?? []).map(c => ({
+        username: c['User Name'],
+        displayName: c['User Display Name'],
+      })),
+    [captains],
+  );
+  const requiresVolunteerInfo = status && status !== 'Planning';
   const isCompleted = status === 'Completed';
   const taskHoursTotal = parseFloat(
     project?.values?.[FIELD_TASKS_MAN_HOURS_TOTAL],
@@ -83,6 +110,7 @@ export const ProjectDetails = ({
   }, [project]);
 
   useEffect(() => {
+    setProjectCaptain(project?.values?.[FIELD_PROJECT_CAPTAIN] || '');
     setStatus(project?.values?.[FIELD_PROJECT_STATUS] || '');
     setScheduledDate(
       normalizeDateValue(project?.values?.[FIELD_SCHEDULED_DATE]),
@@ -94,6 +122,13 @@ export const ProjectDetails = ({
     setEquipmentNeeded(project?.values?.[FIELD_EQUIPMENT_NEEDED] || '');
     setTotalManHours(project?.values?.[FIELD_TOTAL_MAN_HOURS] || '');
     setAssociatedEventId(project?.values?.[FIELD_ASSOCIATED_EVENT] || '');
+    setFamilyCommComplete(
+      (project?.values?.[FIELD_FAMILY_COMM_COMPLETE] || '').includes('true'),
+    );
+    try {
+      const raw = project?.values?.[FIELD_FAMILY_TYPE];
+      setFamilyType(raw ? JSON.parse(raw) : []);
+    } catch { setFamilyType([]); }
   }, [project]);
 
   // When an event is selected, auto-populate Scheduled Date from the event date.
@@ -111,12 +146,24 @@ export const ProjectDetails = ({
 
   const handleSave = useCallback(async () => {
     if (!project?.id) return;
-    if (isCompleted && !completionDate) return;
-    if (isCompleted && !totalManHours) return;
+    const missing = [];
+    if (requiresVolunteerInfo && !familyCommComplete) missing.push('Family Communication Complete');
+    if (requiresVolunteerInfo && !skillsNeeded) missing.push('Skills Needed');
+    if (requiresVolunteerInfo && !equipmentNeeded) missing.push('Equipment Needed');
+    if (isCompleted && !completionDate) missing.push('Completion Date');
+    if (isCompleted && !totalManHours) missing.push('Total Project Man Hours');
+    if (missing.length > 0) {
+      toastError({
+        title: 'Required fields missing',
+        description: missing.join(', '),
+      });
+      return;
+    }
     setSaving(true);
     const result = await updateSubmission({
       id: project.id,
       values: {
+        [FIELD_PROJECT_CAPTAIN]: projectCaptain || null,
         [FIELD_PROJECT_STATUS]: status,
         [FIELD_SCHEDULED_DATE]: scheduledDate || null,
         [FIELD_COMPLETION_DATE]: completionDate || null,
@@ -124,6 +171,8 @@ export const ProjectDetails = ({
         [FIELD_EQUIPMENT_NEEDED]: equipmentNeeded || null,
         [FIELD_TOTAL_MAN_HOURS]: totalManHours || null,
         [FIELD_ASSOCIATED_EVENT]: associatedEventId || null,
+        [FIELD_FAMILY_COMM_COMPLETE]: familyCommComplete ? '["true"]' : '[]',
+        [FIELD_FAMILY_TYPE]: JSON.stringify(familyType),
       },
     });
 
@@ -138,40 +187,61 @@ export const ProjectDetails = ({
     }
 
     setSaving(false);
-  }, [project, scheduledDate, completionDate, status, isCompleted, skillsNeeded, equipmentNeeded, totalManHours, associatedEventId, reloadProject]);
+  }, [project, projectCaptain, scheduledDate, completionDate, status, requiresVolunteerInfo, isCompleted, skillsNeeded, equipmentNeeded, totalManHours, associatedEventId, familyCommComplete, familyType, reloadProject]);
 
   return (
+    <>
+    <FamilyInformation familyRecord={familyRecord} familyLoading={familyLoading} />
     <div className="krounded-box border kbg-base-100 p-6">
       <div className="text-lg font-semibold">Project Details</div>
       <p className="mt-2 ktext-base-content/70">
         Update project status and scheduled date.
       </p>
 
-      <div className="mt-4">
-        <label className="klabel flex flex-col items-start gap-2">
-          <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
-            Associated Event
-          </span>
-          <select
-            className="kselect kselect-bordered w-full"
-            value={associatedEventId}
-            onChange={e => handleEventChange(e.target.value)}
-          >
-            <option value="">— No event —</option>
-            {events.map(e => (
-              <option key={e.id} value={e.id}>
-                {e.values?.['Event Name']}
-                {e.values?.['Event Date'] ? ` — ${e.values['Event Date']}` : ''}
-              </option>
-            ))}
-          </select>
-          {associatedEventId && (
-            <span className="text-xs ktext-base-content/60">
-              Scheduled Date will be set to the event date when saved.
+      {isLeadership && (
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <label className="klabel flex flex-col items-start gap-2">
+            <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+              Project Captain
             </span>
-          )}
-        </label>
-      </div>
+            <select
+              className="kselect kselect-bordered w-full"
+              value={projectCaptain}
+              onChange={e => setProjectCaptain(e.target.value)}
+            >
+              <option value="">— Select a captain —</option>
+              {captainOptions.map(c => (
+                <option key={c.username} value={c.username}>
+                  {c.displayName} ({c.username})
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="klabel flex flex-col items-start gap-2">
+            <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+              Associated Event
+            </span>
+            <select
+              className="kselect kselect-bordered w-full"
+              value={associatedEventId}
+              onChange={e => handleEventChange(e.target.value)}
+            >
+              <option value="">— No event —</option>
+              {events.map(e => (
+                <option key={e.id} value={e.id}>
+                  {e.values?.['Event Name']}
+                  {e.values?.['Event Date'] ? ` — ${e.values['Event Date']}` : ''}
+                </option>
+              ))}
+            </select>
+            {associatedEventId && (
+              <span className="text-xs ktext-base-content/60">
+                Scheduled Date will be set to the event date when saved.
+              </span>
+            )}
+          </label>
+        </div>
+      )}
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <label className="klabel flex flex-col items-start gap-2">
@@ -250,6 +320,69 @@ export const ProjectDetails = ({
         )}
       </div>
 
+      {/* Family Type — visible to leadership, shown prominently during close-out */}
+      {isLeadership && (
+        <div className="mt-4">
+          <div className="text-sm font-medium">
+            Family Type
+            {isCompleted && familyType.length === 0 && (
+              <span className="text-warning ml-1 text-xs">(recommended for grant reporting)</span>
+            )}
+          </div>
+          <p className="mt-1 text-xs ktext-base-content/60">
+            Select all that apply. Used for grant reporting.
+          </p>
+          <div className="mt-2 flex flex-wrap gap-3">
+            {FAMILY_TYPE_OPTIONS.map(option => (
+              <label key={option} className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="kcheckbox kcheckbox-primary kcheckbox-sm"
+                  checked={familyType.includes(option)}
+                  onChange={e => {
+                    setFamilyType(prev =>
+                      e.target.checked
+                        ? [...prev, option]
+                        : prev.filter(v => v !== option),
+                    );
+                  }}
+                />
+                <span className="text-sm">{option}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="mt-6">
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            className="kcheckbox kcheckbox-primary mt-0.5"
+            checked={familyCommComplete}
+            onChange={e => setFamilyCommComplete(e.target.checked)}
+          />
+          <div>
+            <span className="text-sm font-medium">
+              Family Communication Complete
+              {requiresVolunteerInfo && !familyCommComplete && (
+                <span className="text-error ml-1">*</span>
+              )}
+            </span>
+            <p className="text-xs ktext-base-content/60 mt-0.5">
+              Check this after you have contacted the family, reviewed the
+              project, and clearly communicated the scope of work.
+            </p>
+            {requiresVolunteerInfo && !familyCommComplete && (
+              <span className="text-error text-xs mt-1 block">
+                Family communication must be completed before progressing past
+                Planning.
+              </span>
+            )}
+          </div>
+        </label>
+      </div>
+
       <div className="mt-6">
         <div className="text-sm font-medium">Volunteer Requirements</div>
         <p className="mt-1 text-xs ktext-base-content/60">
@@ -261,27 +394,39 @@ export const ProjectDetails = ({
       <div className="mt-3 grid gap-4 md:grid-cols-2">
         <label className="klabel flex flex-col items-start gap-2">
           <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
-            Skills Needed
+            Skills Needed {requiresVolunteerInfo && <span className="text-error">*</span>}
           </span>
           <textarea
             className="ktextarea ktextarea-bordered w-full"
             rows={4}
             placeholder="List skills needed for this project..."
             value={skillsNeeded}
+            required={requiresVolunteerInfo}
             onChange={event => setSkillsNeeded(event.target.value)}
           />
+          {requiresVolunteerInfo && !skillsNeeded && (
+            <span className="text-error text-xs mt-1">
+              Skills needed is required.
+            </span>
+          )}
         </label>
         <label className="klabel flex flex-col items-start gap-2">
           <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
-            Equipment Needed
+            Equipment Needed {requiresVolunteerInfo && <span className="text-error">*</span>}
           </span>
           <textarea
             className="ktextarea ktextarea-bordered w-full"
             rows={4}
             placeholder="List equipment needed for this project..."
             value={equipmentNeeded}
+            required={requiresVolunteerInfo}
             onChange={event => setEquipmentNeeded(event.target.value)}
           />
+          {requiresVolunteerInfo && !equipmentNeeded && (
+            <span className="text-error text-xs mt-1">
+              Equipment needed is required.
+            </span>
+          )}
         </label>
       </div>
 
@@ -296,12 +441,14 @@ export const ProjectDetails = ({
         </button>
       </div>
     </div>
+    </>
   );
 };
 
 ProjectDetails.propTypes = {
   project: t.object,
-  family: t.any,
+  familyRecord: t.object,
   familyLoading: t.bool,
   reloadProject: t.func,
+  captains: t.array,
 };

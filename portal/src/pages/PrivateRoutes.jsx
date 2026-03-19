@@ -11,13 +11,14 @@ import { UpcomingProjects } from './upcoming-projects/UpcomingProjects.jsx';
 import { Events } from './events/Events.jsx';
 import { Privacy } from './privacy/Privacy.jsx';
 import { AdminRouting } from './admin/index.jsx';
-import { MyVolunteering } from './my-volunteering/MyVolunteering.jsx';
+import { MyVolunteeringPage } from './my-volunteering/MyVolunteeringPage.jsx';
 import { NominationConfirmed } from './nominations/NominationConfirmed.jsx';
 
 import { Header } from '../components/header/Header.jsx';
 import { SiteFooter } from '../components/footer/SiteFooter.jsx';
 import { SearchModal } from '../components/search/SearchModal.jsx';
 import { VolunteerProfilePrompt } from '../components/VolunteerProfilePrompt.jsx';
+import { useInitHasNominations } from '../helpers/hooks/useHasNominations.js';
 import { Theme } from './theme/index.jsx';
 
 const Redirect = ({ to }) => {
@@ -32,6 +33,8 @@ const Redirect = ({ to }) => {
 
 export const PrivateRoutes = () => {
   const spaceAdmin = useSelector(state => state.app.profile?.spaceAdmin);
+  // Fetch nominations once on login and store result in Redux
+  useInitHasNominations();
   return (
     <Routes>
       {/* Theme page */}
@@ -67,7 +70,7 @@ export const PrivateRoutes = () => {
 
               {/* Portal routes */}
               <Route path="/admin/*" element={<AdminRouting />} />
-              <Route path="/my-volunteering/*" element={<MyVolunteering />} />
+              <Route path="/my-volunteering/*" element={<MyVolunteeringPage />} />
               <Route path="/actions/*" element={<Actions />} />
               <Route path="/nominations/confirmed" element={<NominationConfirmed />} />
               <Route path="/nominations/*" element={<Requests />} />

@@ -29,14 +29,14 @@ export const PublicEventsList = () => {
   const authenticated = useSelector(state => state.app.authenticated);
   const kappSlug = useSelector(state => state.app.kappSlug);
   const params = useMemo(() => (kappSlug ? { kappSlug } : null), [kappSlug]);
-
-  if (authenticated) return <Navigate to="/events" replace />;
   const { initialized, loading, response } = useData(fetchOpenEvents, params);
 
   const events = useMemo(
     () => response?.submissions ?? [],
     [response],
   );
+
+  if (authenticated) return <Navigate to="/events" replace />;
 
   return (
     <PublicLayout>

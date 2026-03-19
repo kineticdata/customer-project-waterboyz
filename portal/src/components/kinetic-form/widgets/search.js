@@ -8,11 +8,7 @@ import {
   useState,
 } from 'react';
 import t from 'prop-types';
-import {
-  Combobox,
-  createListCollection,
-  useListCollection,
-} from '@ark-ui/react/combobox';
+import { Combobox, useListCollection } from '@ark-ui/react/combobox';
 import { Portal } from '@ark-ui/react/portal';
 import { defineFilter } from '@kineticdata/react';
 import { debounce } from 'lodash-es';

@@ -14,7 +14,7 @@ import {
   getProfileAttributeValue,
 } from '../../helpers/records.js';
 import { formatLocalDate } from '../../helpers/index.js';
-import { ActivityList, Shortcuts } from './Home.jsx';
+import { ActivityList } from './Home.jsx';
 import { NominateSection } from './HomeNominator.jsx';
 
 const DATE_OPTIONS = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
@@ -306,8 +306,6 @@ export const HomeVolunteer = () => {
         {/* Nominate a Family */}
         <NominateSection className="gutter mt-8 md:mt-10" />
 
-        {/* Shortcuts */}
-        <Shortcuts className="gutter mt-8 md:mt-10 pb-4" />
       </div>
 
       <EventSignupModal

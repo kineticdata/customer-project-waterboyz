@@ -62,6 +62,7 @@ module.exports = defineConfig([
   },
   globalIgnores([
     '**/dist',
+    '**/build',
     'eslint.config.cjs',
     'vite.config.js',
     'src/setupEnv.cjs',

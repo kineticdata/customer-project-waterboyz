@@ -25,7 +25,7 @@ export const Header = () => {
       {/* Top navigation bar */}
       <HeaderPortal>
         <nav className="relative flex-sc gap-3 md:gap-5 h-16 md:h-18 px-4 md:px-6 bg-base-100 border-b-3 border-primary shadow-sm z-20">
-          {!mobile && <HeaderMenu profile={profile} roles={roles} hasNominations={hasNominations} />}
+          <HeaderMenu profile={profile} roles={roles} hasNominations={hasNominations} />
           <Link to="/" className="flex-initial" aria-label="Home">
             <img
               src={themeLogo || logo}
@@ -62,7 +62,7 @@ export const Header = () => {
                 </NavLink>
               )}
               <NavLink
-                to="/upcoming-projects"
+                to="/my-volunteering"
                 className={({ isActive }) =>
                   clsx(
                     'kbtn kbtn-ghost kbtn-sm font-medium text-base-content/60 hover:text-primary',
@@ -70,18 +70,7 @@ export const Header = () => {
                   )
                 }
               >
-                Upcoming Projects
-              </NavLink>
-              <NavLink
-                to="/events"
-                className={({ isActive }) =>
-                  clsx(
-                    'kbtn kbtn-ghost kbtn-sm font-medium text-base-content/60 hover:text-primary',
-                    isActive && '!text-primary !bg-primary/8',
-                  )
-                }
-              >
-                Events
+                My Volunteering
               </NavLink>
               {hasProjectAccess && (
                 <NavLink
@@ -136,15 +125,13 @@ export const Header = () => {
 };
 
 const MobileBottomNav = ({ roles, hasNominations }) => {
-  const { isVolunteer, hasProjectAccess } = roles;
+  const { hasProjectAccess } = roles;
   const location = useLocation();
   const currentPath = location.pathname;
 
   const navItems = [
     { label: 'Home', to: '/', icon: 'home', exact: true },
-    { label: 'Upcoming Projects', to: '/upcoming-projects', icon: 'calendar-event' },
-    { label: 'Events', to: '/events', icon: 'calendar-heart' },
-    isVolunteer && { label: 'My Volunteering', to: '/my-volunteering', icon: 'heart-handshake' },
+    { label: 'My Volunteering', to: '/my-volunteering', icon: 'heart-handshake' },
     hasNominations && { label: 'My Nominations', to: '/nominations', icon: 'file-text' },
     hasProjectAccess && { label: 'Projects', to: '/project-captains', icon: 'hammer' },
   ].filter(Boolean);
@@ -210,26 +197,34 @@ const MobileBottomNav = ({ roles, hasNominations }) => {
 };
 
 const getMenuItems = (profile, roles = {}, { hasNominations } = {}) => {
-  const { isVolunteer, hasProjectAccess, isAdmin, isLeadership } = roles;
+  const { hasProjectAccess, isAdmin, isLeadership } = roles;
   return [
     {
       items: [
         { label: 'Home', to: '/', icon: 'home' },
+        { label: 'My Volunteering', to: '/my-volunteering', icon: 'heart-handshake' },
         hasNominations && { label: 'My Nominations', to: '/nominations', icon: 'file-text' },
         { label: 'Upcoming Projects', to: '/upcoming-projects', icon: 'calendar-event' },
-        { label: 'Events', to: '/events', icon: 'calendar-heart' },
-        isVolunteer && { label: 'My Volunteering', to: '/my-volunteering', icon: 'heart-handshake' },
+        !(isAdmin || isLeadership) && { label: 'Events', to: '/events', icon: 'calendar-heart' },
         hasProjectAccess && { label: 'My Tasks', to: '/actions', icon: 'clipboard-check' },
         hasProjectAccess && {
           label: 'Projects',
           to: '/project-captains',
           icon: 'hammer',
         },
-        (isAdmin || isLeadership) && { label: 'Admin', to: '/admin', icon: 'shield' },
       ].filter(Boolean),
     },
-    profile?.spaceAdmin && {
+    (isAdmin || isLeadership) && {
       title: 'Admin',
+      items: [
+        { label: 'Events', to: '/events', icon: 'calendar-heart' },
+        { label: 'SWAT Reports', to: '/admin/reports', icon: 'report-analytics' },
+        { label: 'Volunteer Management', to: '/admin/volunteer-management', icon: 'table' },
+        { label: 'Settings', to: '/settings/datastore', icon: 'settings' },
+      ],
+    },
+    profile?.spaceAdmin && {
+      title: 'System Admin',
       items: [
         { label: 'Theme Editor', to: '/theme', icon: 'palette' },
         {

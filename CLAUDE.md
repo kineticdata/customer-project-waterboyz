@@ -19,7 +19,8 @@ This is a **project management and volunteer coordination portal** built on the 
 ## Tech Stack
 
 - **Frontend:** React 18, Vite, React Router 6, Redux Toolkit
-- **Styling:** Tailwind CSS, DaisyUI
+- **Styling:** Tailwind CSS v4, DaisyUI (prefixed with `k`)
+- **Table:** `@tanstack/react-table` v8 (used by Volunteer Management)
 - **Platform:** Kinetic Data Platform (REST API + workflow engine)
 - **SDK:** `@kineticdata/react` for API interactions (submissions, forms, integrations)
 - **Testing:** Playwright (in `frontend-testing/`)
@@ -34,6 +35,8 @@ portal/
       PublicLayout.jsx # Minimal branded layout for public (unauthenticated) pages
     helpers/           # API helpers, state management utilities
     pages/             # Route-based pages (home, projects, login, settings)
+      admin/
+        volunteer-management/  # Volunteer Management admin page (see below)
       public/          # Public (no auth required) pages
         PublicEventsList.jsx      # Browse open events
         PublicEventSignup.jsx     # CoreForm-based event sign-up
@@ -120,41 +123,29 @@ All forms live under the **`service-portal`** kapp.
 
 | Category | Slug | Icon | Forms |
 |----------|------|------|-------|
-| Christmas Alive | `christmas-alive` | `christmas-tree` | `christmas-alive-sponsor-a-family`, `christmas-alive-family-nomination` |
-| SWAT | `swat` | `tool` | `swat-project-nomination`, `volunteer-for-an-upcoming-swat-project` |
+| Christmas Alive | `christmas-alive` | `christmas-tree` | `christmas-alive-family-nomination` |
+| SWAT | `swat` | `tool` | `swat-project-nomination` |
 | Popular Services | `popular-services` | *(none)* | `volunteers` *(hidden category)* |
 
 ---
 
 ## Forms — Detailed Field Reference
 
-### Service Forms (user-facing requests)
+### Nomination Forms (user-facing requests)
 
 #### Christmas Alive Family Nomination (`christmas-alive-family-nomination`)
-- **Type:** Service | **Status:** Active
+- **Type:** Nominations | **Status:** Active
 - **Category:** `christmas-alive` | **Icon:** `pointer-cancel`
 - **Description:** Nominate a family for Christmas Alive
 - **Fields:** First Name, Last Name, Email, Phone Number, Address, County, Native Language, Needs Interpreter, Family Members JSON, Support Received, Background on the Family, Total Adults, Total Children, Family Status, Requested By
 - **Workflows:** "Nomination Process" (on Submitted), "On Update" (on Updated)
 
-#### Sponsor a Family (`christmas-alive-sponsor-a-family`)
-- **Type:** Service | **Status:** Active
-- **Category:** `christmas-alive` | **Icon:** `gift`
-- **Description:** Sponsor a Family for Christmas Alive
-- **Fields:** Affiliated Org
-
 #### Nominate a SWAT Project (`swat-project-nomination`)
-- **Type:** Service | **Status:** Active
+- **Type:** Nominations | **Status:** Active
 - **Category:** `swat`
 - **Description:** Nominate a family in need for a SWAT project
 - **Fields:** Nominator Type, Nominator Full Name, Nominator Phone Number, Nominator Email, Associated Organization, First Name, Last Name, Phone Number, Email, Project Urgency, Project Photos, Address Line 1, Address Line 2, City, State, Zip, County, Project Notes, Status
 - **Workflows:** "SWAT Project Initiation" (on Submitted) — creates a Family record, then routes to SWAT Project Approval
-
-#### Volunteer for an upcoming SWAT project (`volunteer-for-an-upcoming-swat-project`)
-- **Type:** Service | **Status:** Active
-- **Category:** `swat`
-- **Description:** Request to join an upcoming project
-- **Fields:** *(none visible — rendered via CoreForm)*
 
 ### Datastore Forms (backend data)
 
@@ -182,16 +173,19 @@ All forms live under the **`service-portal`** kapp.
   - `Family ID` → links to `families` datastore submission ID
 
 #### Volunteers (`volunteers`)
-- **Type:** Datastore | **Status:** New
+- **Type:** Datastore | **Status:** Active
 - **Description:** Volunteer directory
-- **Fields (18):** First Name, Last Name, Email Address, Phone Number, Address Line 1, Address Line 2, City, State, Zip, Skill Areas, Other Skills, Tools, Bio, How often can you volunteer, Other Availability, Preferred Service Area, Dietary Restrictions, Username
+- **Fields (21):** First Name, Last Name, Email Address, Phone Number, Affiliated Organization, Address Line 1, Address Line 2, City, State, Zip, Bio, Languages You Know, Skill Areas, Other Skills, Tools, How often can you volunteer, Other Availability, Preferred Service Area, Dietary Restrictions, Photo Consent, Username
+- **Field notes:**
+  - `Skill Areas`, `Tools`, `Languages You Know`, `Preferred Service Area`, `Dietary Restrictions` — stored as JSON-serialized string arrays (e.g., `'["Plumbing","Painting"]'`)
+  - `Affiliated Organization` — freetext or selected from `affiliates` datastore
 - **Key Relationships:**
   - `Username` → links to a user account (user attribute "Volunteer Id" links back)
 
 #### SWAT Project Volunteers (`swat-project-volunteers`)
 - **Type:** Datastore | **Status:** New
 - **Description:** Junction table linking volunteers to projects
-- **Fields (3):** Volunteer ID, Present, Project ID
+- **Fields (4):** Volunteer ID, Present, Project ID, Status
 - **Key Relationships:**
   - `Project ID` → links to `swat-projects` submission ID
   - `Volunteer ID` → links to `volunteers` submission ID
@@ -216,6 +210,16 @@ All forms live under the **`service-portal`** kapp.
 - **Type:** Datastore | **Status:** Active
 - **Fields (2):** State Abbr, County Name
 
+#### Tools (`tools`)
+- **Type:** Datastore | **Status:** Active
+- **Description:** Reference data for tool categories
+- **Fields (2):** Tool Category, Tool
+
+#### Affiliates (`affiliates`)
+- **Type:** Datastore | **Status:** Active
+- **Description:** Organizations affiliated with Waterboyz (churches, community orgs)
+- **Fields (2):** Name, Primary POC Email
+
 #### Portal Shortcuts (`portal-shortcuts`)
 - **Type:** Datastore | **Status:** Active
 - **Description:** Home page shortcuts configuration
@@ -231,6 +235,12 @@ All forms live under the **`service-portal`** kapp.
   - `Event Status` choices: `Planning`, `Open`, `Closed`, `Completed`
   - `Sign Up Form Slug` — slug of the sign-up form to use for this event (defaults to `serve-day-sign-up` if blank)
 - **Portal access:** `/events` (authenticated volunteer list), `/events/:eventId/assign` (leadership assignment view), `/admin/events` (admin CRUD via AdminFormRecords), `/public/events` (public listing, no auth), `/public/events/:formSlug?eventId=<id>` (public sign-up — `eventId` query param sets the Event ID field on the form)
+
+#### Programs (`programs`)
+- **Type:** Admin | **Status:** Active
+- **Description:** Configurable programs displayed on the home page (SWAT, Christmas Alive, etc.)
+- **Fields (7):** Program Name, Description, Icon, Color, Status, Nomination Form Slug, Home Page Order
+- **Used by:** `HomeNominator.jsx` fetches active programs to render nomination cards; falls back to hardcoded SWAT/Christmas Alive if no programs are configured
 
 ### Event Sign-Up Forms
 
@@ -292,20 +302,12 @@ Sign-up forms support **anonymous (public) submissions** — `anonymous: true` i
 - **Fields (2):** Email Address, Display Name
 - **Workflows:** "Account Registration" (on Submitted)
 
-#### Kitchen Sink Form (`kitchen-sink-form`)
-- **Type:** Utility | **Status:** Active | **Icon:** `infinity`
-- **Description:** Test form with all field types (attachment, checkbox, date, datetime, dropdown, radio, text, time, etc.)
-
-#### Widgets (`widgets`)
-- **Type:** Utility | **Status:** Active
-- **Fields (3):** Requested For, Signature File, Markdown Content
-
 ---
 
 ## Data Relationships Diagram
 
 ```
-swat-project-nomination (Service)
+swat-project-nomination (Nominations)
   │  [Submission Submitted → "SWAT Project Initiation" workflow]
   │
   ├──creates──→ families (Datastore)
@@ -517,6 +519,104 @@ The app interacts with Kinetic Platform using these patterns from `@kineticdata/
 - **`executeIntegration()`** — Call server-side integrations (e.g., "Family - Retrieve By ID", "Family Members - Retrieve")
 - **`CoreForm`** component — Render Kinetic forms directly in the UI
 - **`defineKqlQuery()`** — Build KQL query objects for submission searches
+
+---
+
+## Volunteer Management (Admin Page)
+
+An Airtable-like data management page at `/admin/volunteer-management` for SWAT Leadership to search, filter, and manage all volunteers. Requires SWAT Leadership or Space Admin role (enforced by `AdminRouting`).
+
+### File Structure
+
+```
+portal/src/pages/admin/volunteer-management/
+  VolunteerManagement.jsx          # Main page: toolbar + @tanstack/react-table spreadsheet
+  VolunteerDetailDrawer.jsx        # Slide-in drawer: header, tabs (Profile/Events/Projects), edit button
+  useVolunteerManagementData.js    # Data hook: fetches volunteers, projects, events, assignments, signups
+  useVolunteerAssociations.js      # CRUD hook: assignToProject, removeFromProject, signUpForEvent, cancelSignup
+  EditVolunteerModal.jsx           # Modal wrapping KineticForm for editing the volunteer datastore record
+  ProjectAssociations.jsx          # Projects tab: list/search/assign/remove project assignments
+  EventAssociations.jsx            # Events tab: list/search/signup/cancel event signups
+```
+
+### Features
+
+- **Desktop: Spreadsheet table** (`@tanstack/react-table`) with sortable columns, per-column filters (text search or multi-select dropdowns), global search, and column visibility toggle. Wrapped in `overflow-x-auto` for horizontal scrolling when many columns are visible.
+- **Mobile: Card list** — responsive card layout showing name, contact info, skills, and tools for each volunteer. Tap to open the detail drawer.
+- **Default visible columns:** First Name, Last Name, Email, Phone, Org, Languages, Skills, Tools, Service Area, City, State, Projects count, Events count
+- **Hidden by default (toggle via Columns picker):** Address, Zip, Other Skills, Bio, Availability, Other Availability, Dietary Restrictions, Photo Consent, Username
+- **Filter types:** Multi-select dropdowns for array fields (Skills, Tools, Languages, Service Area) and scalar enumerations (Organization, City, State, Availability); text search for everything else
+- **Volunteer detail drawer** (slide-in from right) with three tabs:
+  - **Profile** — read-only view of all volunteer fields, organized into sections (Location & Languages, Skills & Tools, Availability, Preferences, Bio)
+  - **Events** — current signups with status badges; "Sign Up for Event" picker (shows Open/Planning events); cancel signup with confirmation
+  - **Projects** — current assignments with status badges and links to project detail; "Assign to Project" picker; remove with confirmation
+- **Edit volunteer** — pencil icon in the drawer header opens `EditVolunteerModal`, which renders the full Kinetic `volunteers` form via `CoreForm` (including all widgets like CategoryPicker for skills/tools)
+- **Layout** — uses `gutter` class for consistent padding; table renders outside the standard admin gutter wrapper to avoid double-padding
+
+### Data Flow
+
+`useVolunteerManagementData` fetches six collections in parallel:
+1. `volunteers` (datastore) — all volunteer records
+2. `swat-project-volunteers` (datastore) — all project assignments
+3. `swat-projects` (datastore) — all projects (for name/status lookup)
+4. `events` (admin form) — all events (for name/date lookup)
+5. Event signups (kapp-wide, `type = "Event Sign Up"`) — all signups
+6. `affiliates` (datastore) — organization names
+
+These are joined client-side to produce enriched volunteer rows with `projects[]`, `events[]`, `projectCount`, and `eventCount`. Raw arrays are also exposed for the association components.
+
+`useVolunteerAssociations` provides four mutation functions:
+- `assignToProject(volunteerId, projectId)` — creates `swat-project-volunteers` record (reactivates "Removed" record if one exists)
+- `removeFromProject(assignmentId)` — sets assignment `Status` to `"Removed"`
+- `signUpForEvent(volunteer, event)` — creates a submission on the event's signup form
+- `cancelSignup(signupId)` — sets `Signup Status` to `"Cancelled"`
+
+All mutations call `reload()` on success, which refetches all six collections.
+
+### Routing
+
+Defined in `portal/src/pages/admin/index.jsx`:
+- `/admin/volunteer-management` → `<VolunteerManagement />` (rendered outside the gutter wrapper since it manages its own gutter)
+- Admin landing page at `/admin` shows a "Volunteer Management" card
+
+---
+
+## SWAT Reports (Admin Page)
+
+A reporting dashboard at `/admin/reports` for SWAT Leadership to view project metrics and manage project data inline.
+
+### File
+
+`portal/src/pages/admin/Reports.jsx`
+
+### Features
+
+- **Summary cards** — Total Projects, Total Man Hours, Completed count, Counties Served
+- **Breakdown charts** — horizontal bar charts for projects by County, Family Type, and Status
+- **Filterable project table** with labeled filter controls:
+  - Search (text), County (dropdown), Family Type (dropdown), Status (dropdown), Completed/Scheduled After (date), Completed/Scheduled Before (date)
+- **Inline editing** (SWAT Leadership only) — click any Status, Hours, or Family Type cell to edit it in-place with optimistic UI updates
+- **Project links** — clicking a project name navigates to `/project-captains/:id/details` with `state.backPath` set to `/admin/reports` so the back button returns correctly
+- **Print-friendly** — hint at bottom suggests Ctrl+P for exporting
+
+### Data
+
+Fetches all `swat-projects` submissions in one call (limit 1000). Filters are applied client-side. Inline edits use `updateSubmission` with optimistic state overrides.
+
+---
+
+## Admin Navigation
+
+SWAT Leadership and Space Admins see an **Admin** section in the hamburger menu (visible on both desktop and mobile):
+
+| Menu Item | Route | Description |
+|-----------|-------|-------------|
+| Events | `/events` | Event management + volunteer assignment |
+| SWAT Reports | `/admin/reports` | Project reporting dashboard |
+| Volunteer Management | `/admin/volunteer-management` | Spreadsheet-style volunteer directory |
+| Settings | `/settings/datastore` | Datastore configuration (skills, tools, affiliates, etc.) |
+
+The hamburger menu is always visible in the top nav bar (both desktop and mobile). Mobile also has a bottom navigation bar for quick access to Home, My Volunteering, My Nominations, and Projects.
 
 ---
 

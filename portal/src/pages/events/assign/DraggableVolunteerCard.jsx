@@ -12,7 +12,6 @@ import { getSignupName, toArray } from '../../../helpers/format.js';
  */
 export const DraggableVolunteerCard = ({
   signup,
-  vol,
   volunteerId,
   isStaged,
   children,

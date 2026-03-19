@@ -25,6 +25,7 @@ const byIdListQuery = defineKqlQuery()
 
 const byProjectIdsQuery = defineKqlQuery()
   .in('values[Project ID]', 'projectIds')
+  .equals('values[Status]', 'status')
   .end();
 
 const fetchAllEvents = ({ kappSlug }) =>
@@ -60,7 +61,7 @@ const fetchAssignments = ({ kappSlug, projectIds }) =>
     kapp: kappSlug,
     form: ASSIGNMENTS_FORM,
     search: {
-      q: byProjectIdsQuery({ projectIds }),
+      q: byProjectIdsQuery({ projectIds, status: 'Active' }),
       include: ['details', 'values'],
       limit: 500,
     },

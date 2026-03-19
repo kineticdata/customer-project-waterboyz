@@ -1,9 +1,6 @@
 import t from 'prop-types';
-import { useMemo } from 'react';
-import { executeIntegration } from '../../../helpers/api.js';
-import { useData } from '../../../helpers/hooks/useData.js';
-import { useSelector } from 'react-redux';
 import { Icon } from '../../../atoms/Icon.jsx';
+import { formatPhone } from '../../../helpers/format.js';
 
 const formatValue = value => {
   if (value === null || value === undefined || value === '') return '—';
@@ -12,8 +9,6 @@ const formatValue = value => {
 };
 
 export const FamilyInformation = ({ familyRecord, familyLoading }) => {
-  const { kappSlug } = useSelector(state => state.app);
-  const mobile = useSelector(state => state.view.mobile);
   const {
     firstName,
     lastName,
@@ -31,39 +26,12 @@ export const FamilyInformation = ({ familyRecord, familyLoading }) => {
     city,
     state,
     zip,
-    familyId,
   } = familyRecord || {};
   const mapHref = fullAddress
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
         fullAddress,
       )}`
     : '';
-
-  const familyMembersParams = useMemo(
-    () =>
-      familyId
-        ? {
-            kappSlug,
-            integrationName: 'Family Members - Retrieve',
-            parameters: { 'Family ID': familyId },
-          }
-        : null,
-    [kappSlug, familyId],
-  );
-
-  const {
-    initialized: familyMembersInitialized,
-    loading: familyMembersLoading,
-    response: familyMembersResponse,
-  } = useData(executeIntegration, familyMembersParams);
-
-  const familyMembersError = familyMembersResponse?.error;
-  const familyMembers =
-    familyMembersResponse?.['Family Members'] ||
-    familyMembersResponse?.Result ||
-    familyMembersResponse?.familyMembers ||
-    familyMembersResponse?.data ||
-    [];
 
   const handleDownloadContact = () => {
     const fullName = [firstName, lastName].filter(Boolean).join(' ') || 'Family';
@@ -144,8 +112,8 @@ export const FamilyInformation = ({ familyRecord, familyLoading }) => {
                 <a
                   href={`tel:${phoneDigits}`}
                   className="kbtn kbtn-ghost kbtn-circle kbtn-sm"
-                  title={formatValue(phone)}
-                  aria-label={`Call ${formatValue(phone)}`}
+                  title={formatPhone(phone)}
+                  aria-label={`Call ${formatPhone(phone)}`}
                 >
                   <Icon name="phone" size={16} />
                 </a>
@@ -190,7 +158,7 @@ export const FamilyInformation = ({ familyRecord, familyLoading }) => {
                 className="flex-sc gap-1.5 hover:text-primary transition-colors"
               >
                 <Icon name="phone" size={14} />
-                {formatValue(phone)}
+                {formatPhone(phone)}
               </a>
             )}
             {email && (
@@ -219,143 +187,11 @@ export const FamilyInformation = ({ familyRecord, familyLoading }) => {
       )}
 
       </div>
-
-      {familyRecord && (
-        <div className="rounded-box border bg-base-100 p-6">
-          <div className="text-lg font-semibold">Family Members</div>
-
-          {!familyMembersInitialized && (
-            <div className="mt-3 text-sm text-base-content/60">
-              Loading family members...
-            </div>
-          )}
-
-          {familyMembersLoading && (
-            <div className="mt-3 text-sm text-base-content/60">
-              Loading family members...
-            </div>
-          )}
-
-          {familyMembersError && (
-            <div className="mt-3 text-sm text-error">
-              Unable to load family members.
-            </div>
-          )}
-
-          {!familyMembersLoading &&
-            !familyMembersError &&
-            Array.isArray(familyMembers) &&
-            familyMembers.length === 0 && (
-              <div className="mt-3 text-sm text-base-content/60">
-                No family members found.
-              </div>
-            )}
-
-          {!familyMembersLoading &&
-            !familyMembersError &&
-            Array.isArray(familyMembers) &&
-            familyMembers.length > 0 && (
-              <>
-                {mobile ? (
-                  <div className="mt-3 grid gap-3">
-                    {familyMembers.map((member, index) => (
-                      <div
-                        key={`${member['Submission Id'] || index}`}
-                        className="rounded-box border bg-base-100 p-3"
-                      >
-                        <div className="text-sm font-semibold">
-                          {[member['First Name'], member['Last Name']]
-                            .filter(Boolean)
-                            .join(' ') || 'Family Member'}
-                        </div>
-                        <div className="mt-2 grid gap-1 text-xs text-base-content/70">
-                          <div>
-                            <span className="font-medium text-base-content/80">
-                              Type:
-                            </span>{' '}
-                            {member['Type'] || '—'}
-                          </div>
-                          <div>
-                            <span className="font-medium text-base-content/80">
-                              Gender:
-                            </span>{' '}
-                            {member['Gender'] || '—'}
-                          </div>
-                          <div>
-                            <span className="font-medium text-base-content/80">
-                              Age:
-                            </span>{' '}
-                            {member['Age'] || '—'}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="mt-3 overflow-hidden rounded-box border bg-base-100">
-                    <table className="w-full min-w-[560px] text-left text-sm">
-                      <thead className="bg-base-200 text-xs uppercase tracking-wide text-base-content/70">
-                        <tr>
-                          <th className="px-4 py-2">Type</th>
-                          <th className="px-4 py-2">First Name</th>
-                          <th className="px-4 py-2">Last Name</th>
-                          <th className="px-4 py-2">Gender</th>
-                          <th className="px-4 py-2">Age</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {familyMembers.map((member, index) => (
-                          <tr
-                            key={`${member['Submission Id'] || index}`}
-                            className="border-t border-base-200"
-                          >
-                            <td className="px-4 py-2">
-                              {member['Type'] || '—'}
-                            </td>
-                            <td className="px-4 py-2">
-                              {member['First Name'] || '—'}
-                            </td>
-                            <td className="px-4 py-2">
-                              {member['Last Name'] || '—'}
-                            </td>
-                            <td className="px-4 py-2">
-                              {member['Gender'] || '—'}
-                            </td>
-                            <td className="px-4 py-2">
-                              {member['Age'] || '—'}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </>
-            )}
-        </div>
-      )}
     </div>
   );
 };
 
 FamilyInformation.propTypes = {
-  familyRecord: t.shape({
-    firstName: t.string,
-    lastName: t.string,
-    email: t.string,
-    phone: t.any,
-    phoneDigits: t.string,
-    nativeLanguage: t.any,
-    needsInterpreter: t.any,
-    addressLines: t.arrayOf(t.string),
-    cityLine: t.string,
-    fullAddress: t.string,
-    county: t.any,
-    address1: t.any,
-    address2: t.any,
-    city: t.any,
-    state: t.any,
-    zip: t.any,
-  }),
+  familyRecord: t.object,
   familyLoading: t.bool,
 };

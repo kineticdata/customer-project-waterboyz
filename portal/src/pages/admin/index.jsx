@@ -6,7 +6,8 @@ import { useRoles } from '../../helpers/hooks/useRoles.js';
 import { useData } from '../../helpers/hooks/useData.js';
 import { Admin } from './Admin.jsx';
 import { AdminFormRecords } from './AdminFormRecords.jsx';
-import { AdminVolunteers } from './AdminVolunteers.jsx';
+import { VolunteerManagement } from './volunteer-management/VolunteerManagement.jsx';
+import { Reports } from './Reports.jsx';
 
 export const AdminRouting = () => {
   const { isAdmin, isLeadership } = useRoles();
@@ -29,19 +30,30 @@ export const AdminRouting = () => {
   }
 
   return (
-    <div className="gutter">
-      <Routes>
-        <Route path="/" element={<Admin adminForms={adminForms} />} />
-        <Route path="/volunteers" element={<AdminVolunteers />} />
-        <Route
-          path="/:formSlug"
-          element={<AdminFormRecords adminForms={adminForms} />}
-        />
-        <Route
-          path="/:formSlug/:id"
-          element={<AdminFormRecords adminForms={adminForms} />}
-        />
-      </Routes>
-    </div>
+    <Routes>
+      {/* Full-bleed route (no gutter — table needs max width) */}
+      <Route path="/volunteer-management" element={<VolunteerManagement />} />
+
+      {/* Standard gutter routes */}
+      <Route
+        path="/*"
+        element={
+          <div className="gutter">
+            <Routes>
+              <Route path="/" element={<Admin adminForms={adminForms} />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route
+                path="/:formSlug"
+                element={<AdminFormRecords adminForms={adminForms} />}
+              />
+              <Route
+                path="/:formSlug/:id"
+                element={<AdminFormRecords adminForms={adminForms} />}
+              />
+            </Routes>
+          </div>
+        }
+      />
+    </Routes>
   );
 };

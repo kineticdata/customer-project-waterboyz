@@ -1,9 +1,7 @@
 import { regRedux } from '../redux.js';
 
 /**
- * Use redux state to store the open state of the confirmation modal. When
- * options are not null, then a modal should be shown, using the options data
- * as the content for the modal.
+ * Use redux state to store the open state of the search modal.
  */
 const searchActions = regRedux(
   'search',
@@ -21,7 +19,7 @@ const searchActions = regRedux(
 );
 
 /**
- * Opens a confirmation modal to allow the user to confirm an action.
+ * Opens the search modal.
  *
  * @param {object} [options]
  * @param {boolean} [options.searchOnly] Should the modal only show the search.
@@ -31,7 +29,7 @@ export const openSearch = options => {
 };
 
 /**
- * Closes the current confirmation modal.
+ * Closes the search modal.
  */
 export const closeSearch = () => {
   searchActions.close();

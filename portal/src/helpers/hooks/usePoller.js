@@ -12,8 +12,9 @@ export function usePoller(fn) {
 
   useEffect(() => {
     if (typeof fn === 'function') {
-      startPoller(fn, poller.current);
-      return () => clearTimeout(poller.current.id);
+      const state = poller.current;
+      startPoller(fn, state);
+      return () => clearTimeout(state.id);
     }
   }, [fn]);
 }

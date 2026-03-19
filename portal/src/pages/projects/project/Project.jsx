@@ -17,16 +17,22 @@ import clsx from 'clsx';
 import { Panel } from '../../../atoms/Panel.jsx';
 import { Icon } from '../../../atoms/Icon.jsx';
 import { executeIntegration } from '../../../helpers/api.js';
-import { FamilyInformation } from './FamilyInformation.jsx';
 import { ProjectDetails } from './ProjectDetails.jsx';
 import { ProjectExpenses } from './ProjectExpenses.jsx';
 import { ProjectNotes } from './ProjectNotes.jsx';
 import { ProjectPhotos } from './ProjectPhotos.jsx';
 import { ProjectTasks } from './ProjectTasks.jsx';
+import { ProjectInstructions } from './ProjectInstructions.jsx';
 import { Volunteers } from './Volunteers.jsx';
 
+const fetchCaptains = ({ kappSlug }) =>
+  executeIntegration({
+    kappSlug,
+    integrationName: 'Project Captains Retrieve',
+  });
+
 const navItems = [
-  { label: 'Family', to: 'family', icon: 'users' },
+  { label: 'Instructions', to: 'instructions', icon: 'list-check' },
   { label: 'Details', to: 'details', icon: 'info-circle' },
   { label: 'Volunteers', to: 'volunteers', icon: 'heart-handshake' },
   { label: 'Notes', to: 'notes', icon: 'notes' },
@@ -41,6 +47,8 @@ export const Project = () => {
   const { kappSlug } = useSelector(state => state.app);
   const mobile = useSelector(state => state.view.mobile);
   const backTo = location.state?.backPath || '/project-captains';
+  const captainsParams = useMemo(() => ({ kappSlug }), [kappSlug]);
+  const { response: captainsResponse } = useData(fetchCaptains, captainsParams);
   const [navOpen, setNavOpen] = useState(false);
   const [family, setFamily] = useState(null);
   const [familyRecord, setFamilyRecord] = useState(null);
@@ -203,6 +211,14 @@ export const Project = () => {
                 {projectStatus}
               </span>
             </div>
+            {data?.values?.['Project Captain'] && (
+              <p className="text-sm text-base-content/60 mt-1">
+                <span className="font-medium">Captain:</span>{' '}
+                {captainsResponse?.['Team Captains']?.find(
+                  c => c['User Name'] === data.values['Project Captain'],
+                )?.['User Display Name'] || data.values['Project Captain']}
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -298,17 +314,10 @@ export const Project = () => {
                 </div>
               )}
               <Routes>
-                <Route index element={<Navigate to="family" replace />} />
+                <Route index element={<Navigate to="instructions" replace />} />
                 <Route
-                  path="family"
-                  element={
-                    <FamilyInformation
-                      project={data}
-                      family={family}
-                      familyRecord={familyRecord}
-                      familyLoading={familyLoading}
-                    />
-                  }
+                  path="instructions"
+                  element={<ProjectInstructions />}
                 />
                 <Route
                   path="volunteers"
@@ -323,15 +332,7 @@ export const Project = () => {
                 />
                 <Route
                   path="notes"
-                  element={
-                    <ProjectNotes
-                      project={data}
-                      family={family}
-                      familyRecord={familyRecord}
-                      familyLoading={familyLoading}
-                      reloadProject={reloadProject}
-                    />
-                  }
+                  element={<ProjectNotes project={data} />}
                 />
                 <Route
                   path="tasks"
@@ -358,10 +359,10 @@ export const Project = () => {
                   element={
                     <ProjectDetails
                       project={data}
-                      family={family}
                       familyRecord={familyRecord}
                       familyLoading={familyLoading}
                       reloadProject={reloadProject}
+                      captains={captainsResponse?.['Team Captains'] ?? []}
                     />
                   }
                 />

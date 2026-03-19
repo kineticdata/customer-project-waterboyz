@@ -19,10 +19,10 @@ export const PublicEventConfirmed = () => {
           {/* Heading */}
           <div className="flex-c-cc gap-2">
             <h1 className="text-2xl md:text-3xl font-bold">
-              You're signed up!
+              You&apos;re signed up!
             </h1>
             <p className="text-base-content/65 text-sm md:text-base max-w-sm">
-              Thank you for volunteering with Waterboyz for Jesus. We're excited
+              Thank you for volunteering with Waterboyz for Jesus. We&apos;re excited
               to have you join us!
             </p>
           </div>

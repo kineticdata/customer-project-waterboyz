@@ -14,16 +14,16 @@ export const PublicEventSignup = () => {
   const kappSlug = useSelector(state => state.app.kappSlug);
   const navigate = useNavigate();
 
-  if (authenticated) return <Navigate to="/events" replace />;
-
   const handleCreated = useCallback(
     response => {
       if (response.submission.coreState === 'Submitted') {
         navigate(`/public/events/${formSlug}/confirmed${eventId ? `?eventId=${eventId}` : ''}`);
       }
     },
-    [formSlug, navigate],
+    [formSlug, navigate, eventId],
   );
+
+  if (authenticated) return <Navigate to="/events" replace />;
 
   return (
     <PublicLayout>
@@ -42,7 +42,7 @@ export const PublicEventSignup = () => {
                   Signing up individually or as a group?
                 </p>
                 <p>
-                  If you're signing up for multiple people (a family, a group),
+                  If you&apos;re signing up for multiple people (a family, a group),
                   you only need to submit once — mention everyone in the Notes
                   field. If each person wants their own account and volunteer
                   profile, have them sign up individually.

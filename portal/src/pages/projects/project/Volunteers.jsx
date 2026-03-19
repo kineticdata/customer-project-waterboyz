@@ -12,6 +12,8 @@ import { Loading } from '../../../components/states/Loading.jsx';
 import { Error } from '../../../components/states/Error.jsx';
 import { toastError, toastSuccess } from '../../../helpers/toasts.js';
 import { Icon } from '../../../atoms/Icon.jsx';
+import { formatPhone } from '../../../helpers/format.js';
+import { useRoles } from '../../../helpers/hooks/useRoles.js';
 import { Tooltip } from '../../../atoms/Tooltip.jsx';
 import { Modal } from '../../../atoms/Modal.jsx';
 import { VolunteerDetailModal } from '../../../components/VolunteerDetailModal.jsx';
@@ -28,30 +30,34 @@ const FIELD_EMAIL = 'Email Address';
 const FIELD_PHONE = 'Phone Number';
 const FIELD_DIETARY = 'Dietary Restrictions';
 const FIELD_PHOTO_CONSENT = 'Photo Consent';
+const FIELD_STATUS = 'Status';
 const FIELD_ADDITIONAL_VOLUNTEERS = 'Additional Volunteers Needed';
 
-// Build the KQL search used by the typeahead to find volunteers by last name.
-// We keep this narrow for performance and predictable ordering.
-const buildVolunteerSearch = term => {
-  const search = defineKqlQuery();
-  search.startsWith(`values[${FIELD_LAST_NAME}]`, 'term');
-
-  return {
-    q: search.end()({ term }),
-    orderBy: `values[${FIELD_LAST_NAME}]`,
-    include: ['details', 'values'],
-    limit: 20,
-  };
-};
+// Build KQL searches for the typeahead. Range operators (startsWith / =*)
+// require orderBy on the same field, so OR across two different fields needs
+// two separate queries whose results are merged client-side.
+const buildFirstNameSearch = term => ({
+  q: defineKqlQuery().startsWith(`values[${FIELD_FIRST_NAME}]`, 'term').end()({ term }),
+  orderBy: `values[${FIELD_FIRST_NAME}]`,
+  include: ['details', 'values'],
+  limit: 20,
+});
+const buildLastNameSearch = term => ({
+  q: defineKqlQuery().startsWith(`values[${FIELD_LAST_NAME}]`, 'term').end()({ term }),
+  orderBy: `values[${FIELD_LAST_NAME}]`,
+  include: ['details', 'values'],
+  limit: 20,
+});
 
 // Build the KQL search to list volunteers already associated to a project.
 const buildVolunteersSearch = projectId => {
   const search = defineKqlQuery();
   search.equals(`values[${FIELD_PROJECT_ID}]`, 'projectId');
+  search.equals(`values[${FIELD_STATUS}]`, 'status');
   search.end();
 
   return {
-    q: search.end()({ projectId }),
+    q: search.end()({ projectId, status: 'Active' }),
     include: ['details', 'values'],
     limit: 200,
   };
@@ -81,6 +87,7 @@ const normalizePhone = phone => {
   }
   return digits;
 };
+
 
 // Build a platform-appropriate sms: link (iOS/macOS require sms://open).
 // Caller supplies the user agent to keep this function pure/testable.
@@ -126,6 +133,8 @@ const noPhotoConsent = values => values?.[FIELD_PHOTO_CONSENT] === 'No';
 export const Volunteers = ({ project }) => {
   const { kappSlug } = useSelector(state => state.app);
   const mobile = useSelector(state => state.view.mobile);
+  const { isLeadership, isProjectCaptain } = useRoles();
+  const canRemove = isLeadership || isProjectCaptain;
   const projectId = project?.id;
   // Search term for the typeahead input.
   const [searchTerm, setSearchTerm] = useState('');
@@ -174,7 +183,7 @@ export const Volunteers = ({ project }) => {
   } = useData(searchSubmissions, params);
 
   // Relationship submissions (project -> volunteer).
-  const data = response?.submissions || [];
+  const data = useMemo(() => response?.submissions || [], [response]);
   const error = response?.error;
 
   // IDs of volunteers already associated with this project.
@@ -221,35 +230,51 @@ export const Volunteers = ({ project }) => {
     return map;
   }, [volunteerDetailsResponse]);
 
-  // Typeahead search parameters (only when at least 2 chars are entered).
-  const volunteerSearchParams = useMemo(
+  // Typeahead search parameters — two queries (first name, last name) merged.
+  const firstNameSearchParams = useMemo(
     () =>
       isSearchReady
-        ? {
-          kapp: kappSlug,
-          form: VOLUNTEERS_FORM,
-          search: buildVolunteerSearch(searchTermTrimmed),
-        }
+        ? { kapp: kappSlug, form: VOLUNTEERS_FORM, search: buildFirstNameSearch(searchTermTrimmed) }
+        : null,
+    [isSearchReady, kappSlug, searchTermTrimmed],
+  );
+  const lastNameSearchParams = useMemo(
+    () =>
+      isSearchReady
+        ? { kapp: kappSlug, form: VOLUNTEERS_FORM, search: buildLastNameSearch(searchTermTrimmed) }
         : null,
     [isSearchReady, kappSlug, searchTermTrimmed],
   );
 
   const {
-    initialized: searchInitialized,
-    loading: searchLoading,
-    response: searchResponse,
-  } = useData(searchSubmissions, volunteerSearchParams);
+    initialized: fnInitialized,
+    loading: fnLoading,
+    response: fnResponse,
+  } = useData(searchSubmissions, firstNameSearchParams);
+  const {
+    initialized: lnInitialized,
+    loading: lnLoading,
+    response: lnResponse,
+  } = useData(searchSubmissions, lastNameSearchParams);
 
-  // Filter search results to exclude volunteers already associated.
+  const searchInitialized = fnInitialized && lnInitialized;
+  const searchLoading = fnLoading || lnLoading;
+
+  // Merge and deduplicate results from both queries, excluding already-associated.
   const searchResults = useMemo(() => {
-    const results = searchResponse?.submissions || [];
-    if (volunteerIds.length === 0) return results;
+    const fnResults = fnResponse?.submissions || [];
+    const lnResults = lnResponse?.submissions || [];
+    const seen = new Set();
     const existingIds = new Set(volunteerIds);
-    return results.filter(result => {
+    const merged = [];
+    for (const result of [...lnResults, ...fnResults]) {
       const id = getVolunteerIdFromSubmission(result);
-      return id && !existingIds.has(id);
-    });
-  }, [searchResponse, volunteerIds]);
+      if (!id || seen.has(id) || existingIds.has(id)) continue;
+      seen.add(id);
+      merged.push(result);
+    }
+    return merged;
+  }, [fnResponse, lnResponse, volunteerIds]);
 
   useEffect(() => {
     setAdditionalNeeded(
@@ -282,20 +307,74 @@ export const Volunteers = ({ project }) => {
     [reloadData],
   );
 
-  // Create the relationship submission to add a volunteer to this project.
+  // Remove a volunteer from this project by setting Status to "Removed".
+  const handleRemoveVolunteer = useCallback(
+    async submission => {
+      if (!submission?.id) return;
+      setSaving(s => ({ ...s, [submission.id]: true }));
+      const result = await updateSubmission({
+        id: submission.id,
+        values: { [FIELD_STATUS]: 'Removed' },
+      });
+
+      if (result?.error) {
+        toastError({
+          title: 'Unable to remove volunteer',
+          description: result.error.message,
+        });
+      } else {
+        toastSuccess({ title: 'Volunteer removed' });
+        reloadData();
+      }
+
+      setSaving(s => ({ ...s, [submission.id]: false }));
+    },
+    [reloadData],
+  );
+
+  // Add a volunteer to this project. If a "Removed" record already exists
+  // (unique index on [Volunteer ID, Project ID]), reactivate it instead.
   const handleAddVolunteer = useCallback(
     async volunteerId => {
       if (!projectId || !volunteerId) return;
       setAdding(true);
-      const result = await createSubmission({
-        kappSlug,
-        formSlug: RELATIONSHIP_FORM,
-        values: {
-          [FIELD_PROJECT_ID]: projectId,
-          [FIELD_VOLUNTEER_ID]: volunteerId,
-          [FIELD_PRESENT]: 'No'
+
+      // Check for an existing removed association (uses unique index on [Volunteer ID, Project ID])
+      const existingQuery = defineKqlQuery()
+        .equals(`values[${FIELD_VOLUNTEER_ID}]`, 'volunteerId')
+        .equals(`values[${FIELD_PROJECT_ID}]`, 'projectId')
+        .end();
+      const existing = await searchSubmissions({
+        kapp: kappSlug,
+        form: RELATIONSHIP_FORM,
+        search: {
+          q: existingQuery({ volunteerId, projectId }),
+          include: ['values'],
+          limit: 1,
         },
       });
+      const removedRecord = existing?.submissions?.find(
+        s => s.values?.[FIELD_STATUS] === 'Removed',
+      );
+
+      let result;
+      if (removedRecord) {
+        result = await updateSubmission({
+          id: removedRecord.id,
+          values: { [FIELD_STATUS]: 'Active', [FIELD_PRESENT]: 'No' },
+        });
+      } else {
+        result = await createSubmission({
+          kappSlug,
+          formSlug: RELATIONSHIP_FORM,
+          values: {
+            [FIELD_PROJECT_ID]: projectId,
+            [FIELD_VOLUNTEER_ID]: volunteerId,
+            [FIELD_PRESENT]: 'No',
+            [FIELD_STATUS]: 'Active',
+          },
+        });
+      }
 
       if (result?.error) {
         toastError({
@@ -379,7 +458,8 @@ export const Volunteers = ({ project }) => {
       values: {
         [FIELD_PROJECT_ID]: projectId,
         [FIELD_VOLUNTEER_ID]: volunteerId,
-        [FIELD_PRESENT]: 'No'
+        [FIELD_PRESENT]: 'No',
+          [FIELD_STATUS]: 'Active'
       },
     });
 
@@ -468,7 +548,7 @@ export const Volunteers = ({ project }) => {
           <div>
             <div className="text-sm font-semibold">Additional Volunteers Needed</div>
             <div className="mt-0.5 text-xs text-base-content/50">
-              If set to "No," volunteers won't see this project or receive it in
+              If set to &quot;No,&quot; volunteers won&apos;t see this project or receive it in
               the weekly upcoming projects digest.
             </div>
           </div>
@@ -591,10 +671,10 @@ export const Volunteers = ({ project }) => {
                         <span className="font-medium text-base-content/80">
                           Phone:
                         </span>{' '}
-                        {values[FIELD_PHONE] || '—'}
+                        {formatPhone(values[FIELD_PHONE]) || '—'}
                       </div>
                     </div>
-                    <div className="mt-3">
+                    <div className="mt-3 flex gap-2">
                       <button
                         type="button"
                         className={`kbtn kbtn-sm gap-1.5 ${present ? 'kbtn-success' : 'kbtn-outline'}`}
@@ -618,6 +698,19 @@ export const Volunteers = ({ project }) => {
                           </>
                         )}
                       </button>
+                      {canRemove && (
+                        <button
+                          type="button"
+                          className="kbtn kbtn-sm kbtn-ghost text-error"
+                          onClick={event => {
+                            event.stopPropagation();
+                            handleRemoveVolunteer(submission);
+                          }}
+                          disabled={!!saving[submission.id]}
+                        >
+                          <Icon name="trash" size={16} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
@@ -637,6 +730,7 @@ export const Volunteers = ({ project }) => {
                     <th className="px-4 py-2">Email</th>
                     <th className="px-4 py-2">Phone</th>
                     <th className="px-4 py-2">Attendance</th>
+                    {canRemove && <th className="px-4 py-2 w-12"></th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -675,7 +769,7 @@ export const Volunteers = ({ project }) => {
                           {values[FIELD_EMAIL] || '—'}
                         </td>
                         <td className="px-4 py-2">
-                          {values[FIELD_PHONE] || '—'}
+                          {formatPhone(values[FIELD_PHONE]) || '—'}
                         </td>
                         <td className="px-4 py-2">
                           <button
@@ -702,6 +796,22 @@ export const Volunteers = ({ project }) => {
                             )}
                           </button>
                         </td>
+                        {canRemove && (
+                          <td className="px-4 py-2">
+                            <button
+                              type="button"
+                              className="kbtn kbtn-sm kbtn-ghost text-error kbtn-circle"
+                              onClick={event => {
+                                event.stopPropagation();
+                                handleRemoveVolunteer(submission);
+                              }}
+                              disabled={!!saving[submission.id]}
+                              aria-label="Remove volunteer"
+                            >
+                              <Icon name="trash" size={16} />
+                            </button>
+                          </td>
+                        )}
                       </tr>
                     );
                   })}
@@ -729,7 +839,7 @@ export const Volunteers = ({ project }) => {
               <input
                 type="text"
                 className="input input-bordered w-full"
-                placeholder="Search volunteers by LAST NAME"
+                placeholder="Search volunteers by name"
                 value={searchTerm}
                 onChange={event => setSearchTerm(event.target.value)}
               />
@@ -751,7 +861,10 @@ export const Volunteers = ({ project }) => {
                         <button
                           type="button"
                           className="kbtn kbtn-ghost kbtn-sm w-fit"
-                          onClick={() => setNewVolunteerOpen(true)}
+                          onClick={() => {
+                            setNewVolunteerValues(v => ({ ...v, lastName: searchTermTrimmed }));
+                            setNewVolunteerOpen(true);
+                          }}
                         >
                           Add New Volunteer
                         </button>
@@ -776,9 +889,6 @@ export const Volunteers = ({ project }) => {
                             <span className="font-medium">
                               {name || 'Volunteer'}
                             </span>
-                            <span className="ml-2 text-xs text-base-content/60">
-                              {id}
-                            </span>
                             {email && (
                               <span className="ml-2 text-xs text-base-content/60">
                                 {email}
@@ -786,7 +896,7 @@ export const Volunteers = ({ project }) => {
                             )}
                             {phone && (
                               <span className="ml-2 text-xs text-base-content/60">
-                                {phone}
+                                {formatPhone(phone)}
                               </span>
                             )}
                             <span className="ml-auto text-xs font-semibold">
@@ -811,14 +921,15 @@ export const Volunteers = ({ project }) => {
         size="md"
       >
         <div slot="body">
-          <div className="grid gap-3">
-            <div className="grid gap-2 sm:grid-cols-2">
-              <label className="kinput kvalidator">
-                First Name
+          <div className="grid gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="klabel flex flex-col items-start gap-2">
+                <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+                  First Name
+                </span>
                 <input
                   type="text"
-                  required="true"
-                  className="grow"
+                  className="kinput kinput-bordered w-full"
                   value={newVolunteerValues.firstName}
                   onChange={event =>
                     setNewVolunteerValues(values => ({
@@ -828,12 +939,14 @@ export const Volunteers = ({ project }) => {
                   }
                 />
               </label>
-              <label className="kinput kvalidator">
-                Last Name
+              <label className="klabel flex flex-col items-start gap-2">
+                <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+                  Last Name <span className="text-error">*</span>
+                </span>
                 <input
                   type="text"
-                  required="true"
-                  className="grow"
+                  className="kinput kinput-bordered w-full"
+                  required
                   value={newVolunteerValues.lastName}
                   onChange={event =>
                     setNewVolunteerValues(values => ({
@@ -844,24 +957,14 @@ export const Volunteers = ({ project }) => {
                 />
               </label>
             </div>
-            <label className="kinput kvalidator">
-              <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <g
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                  strokeWidth="2.5"
-                  fill="none"
-                  stroke="currentColor"
-                >
-                  <rect width="20" height="16" x="2" y="4" rx="2"></rect>
-                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
-                </g>
-              </svg>
+            <label className="klabel flex flex-col items-start gap-2">
+              <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+                Email
+              </span>
               <input
                 type="email"
+                className="kinput kinput-bordered w-full"
                 placeholder="mail@site.com"
-                className="input input-bordered"
-                title="Enter valid email address"
                 value={newVolunteerValues.email}
                 onChange={event =>
                   setNewVolunteerValues(values => ({
@@ -871,24 +974,14 @@ export const Volunteers = ({ project }) => {
                 }
               />
             </label>
-            <label className="kinput kvalidator">
-              <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
-                <g fill="none">
-                  <path
-                    d="M7.25 11.5C6.83579 11.5 6.5 11.8358 6.5 12.25C6.5 12.6642 6.83579 13 7.25 13H8.75C9.16421 13 9.5 12.6642 9.5 12.25C9.5 11.8358 9.16421 11.5 8.75 11.5H7.25Z"
-                    fill="currentColor"
-                  ></path>
-                  <path
-                    fillRule="evenodd"
-                    clipRule="evenodd"
-                    d="M6 1C4.61929 1 3.5 2.11929 3.5 3.5V12.5C3.5 13.8807 4.61929 15 6 15H10C11.3807 15 12.5 13.8807 12.5 12.5V3.5C12.5 2.11929 11.3807 1 10 1H6ZM10 2.5H9.5V3C9.5 3.27614 9.27614 3.5 9 3.5H7C6.72386 3.5 6.5 3.27614 6.5 3V2.5H6C5.44771 2.5 5 2.94772 5 3.5V12.5C5 13.0523 5.44772 13.5 6 13.5H10C10.5523 13.5 11 13.0523 11 12.5V3.5C11 2.94772 10.5523 2.5 10 2.5Z"
-                    fill="currentColor"
-                  ></path>
-                </g>
-              </svg>
+            <label className="klabel flex flex-col items-start gap-2">
+              <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+                Phone
+              </span>
               <input
                 type="tel"
-                className="ktabular-nums"
+                className="kinput kinput-bordered w-full"
+                placeholder="(555) 555-5555"
                 value={newVolunteerValues.phone}
                 onChange={event =>
                   setNewVolunteerValues(values => ({
@@ -896,14 +989,8 @@ export const Volunteers = ({ project }) => {
                     phone: event.target.value,
                   }))
                 }
-                placeholder="Phone"
-                pattern="[0-9]*"
-                minLength="10"
-                maxLength="10"
-                title="Must be 10 digits"
               />
             </label>
-
           </div>
         </div>
         <div slot="footer" className="flex-ee gap-2">

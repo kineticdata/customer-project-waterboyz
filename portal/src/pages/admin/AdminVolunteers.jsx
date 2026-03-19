@@ -6,6 +6,7 @@ import { useData } from '../../helpers/hooks/useData.js';
 import { Loading } from '../../components/states/Loading.jsx';
 import { Error } from '../../components/states/Error.jsx';
 import { PageHeading } from '../../components/PageHeading.jsx';
+import { formatPhone } from '../../helpers/format.js';
 
 const FORM_SLUG = 'volunteers';
 
@@ -95,7 +96,7 @@ export const AdminVolunteers = () => {
                       <td>{nameCell}</td>
                       <td>{v.values?.['Last Name'] || '—'}</td>
                       <td>{v.values?.['Email Address'] || '—'}</td>
-                      <td>{v.values?.['Phone Number'] || '—'}</td>
+                      <td>{formatPhone(v.values?.['Phone Number']) || '—'}</td>
                       <td className="text-sm text-base-content/70">
                         {parseSkillAreas(v.values?.['Skill Areas'])}
                       </td>

@@ -1,7 +1,7 @@
 import { Icon } from '../atoms/Icon.jsx';
 import { Modal } from '../atoms/Modal.jsx';
 import { DetailRow, BulletList } from '../atoms/DetailRow.jsx';
-import { toArray, buildSmsHref } from '../helpers/format.js';
+import { toArray, buildSmsHref, formatPhone } from '../helpers/format.js';
 
 /**
  * Shared volunteer detail modal used by EventsAssign and project Volunteers.
@@ -66,10 +66,10 @@ export const VolunteerDetailModal = ({ open, onClose, volunteer, signup }) => {
                     href={smsHref}
                     className="text-sm text-primary underline-offset-2 hover:underline"
                   >
-                    {phone}
+                    {formatPhone(phone)}
                   </a>
                 ) : (
-                  <p className="text-sm">{phone}</p>
+                  <p className="text-sm">{formatPhone(phone)}</p>
                 )}
               </DetailRow>
             )}

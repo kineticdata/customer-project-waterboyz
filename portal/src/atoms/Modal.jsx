@@ -50,6 +50,7 @@ export const Modal = ({
   size = 'sm',
   closeOnEscape,
   closeOnInteractOutside,
+  closeTrigger = true,
   toasterId,
   portal,
   children,
@@ -84,11 +85,13 @@ export const Modal = ({
               'md:w-screen': size === 'xl',
             })}
           >
-            <Dialog.CloseTrigger asChild>
-              <button className="kbtn kbtn-sm kbtn-circle kbtn-ghost absolute right-2 top-2">
-                <Icon name="x" size={20} />
-              </button>
-            </Dialog.CloseTrigger>
+            {closeTrigger !== false && (
+              <Dialog.CloseTrigger asChild>
+                <button className="kbtn kbtn-sm kbtn-circle kbtn-ghost absolute right-2 top-2">
+                  <Icon name="x" size={20} />
+                </button>
+              </Dialog.CloseTrigger>
+            )}
             <div className="flex justify-between items-center gap-2">
               <Dialog.Title className="flex-auto" asChild={!!slots.title}>
                 {slots.title || title}
@@ -135,6 +138,7 @@ Modal.propTypes = {
   onExitComplete: t.func,
   closeOnEscape: t.bool,
   closeOnInteractOutside: t.bool,
+  closeTrigger: t.bool,
   title: t.string,
   size: t.string,
   toasterId: t.string,

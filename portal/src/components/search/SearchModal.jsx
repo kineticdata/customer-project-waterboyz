@@ -1,6 +1,5 @@
 import { Modal } from '../../atoms/Modal.jsx';
 import { useState, useMemo, useCallback } from 'react';
-import { debounce } from 'lodash-es';
 import { fetchCategory, fetchForms } from '@kineticdata/react';
 import { useSelector } from 'react-redux';
 import { Loading } from '../states/Loading.jsx';
@@ -19,24 +18,8 @@ export const SearchModal = () => {
 
   /*** SEARCH FUNCTIONALITY ***************************************************/
 
-  // State for query value and its debounced value
+  // State for query value
   const [query, setQuery] = useState('');
-  const [inputValue, setInputValue] = useState('');
-
-  // Debounce the query by 300ms
-  const debouncedSetQuery = useMemo(
-    () =>
-      debounce(value => {
-        setQuery(value);
-      }, 300),
-    [],
-  );
-
-  const handleSearchInputChange = e => {
-    const value = e.target.value;
-    setInputValue(value);
-    debouncedSetQuery(value);
-  };
 
   // Parameters for the search query
   const searchParams = useMemo(
@@ -161,7 +144,6 @@ export const SearchModal = () => {
 
   // Clear search when the modal is closed
   const onModalExit = () => {
-    setInputValue('');
     setQuery('');
     setPath([]);
     setCategoryIndex([0]);

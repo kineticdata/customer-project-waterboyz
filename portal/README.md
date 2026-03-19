@@ -1,123 +1,147 @@
-# Customer Project Waterboyz
+# Waterboyz Portal
 
-This repo contains all configurations and front-end portal code for the Waterboyz project. 
-
-Waterboyz is a non-profit organization that feeds and supports families in need of help. The portal enables people to nominate families for help (projects around their home as well as for sponsorship for christams gifts and food during the holidays).
-
-The esential function of the project is to map volunteers with families in need and coordinate projects and events.
+A volunteer coordination and project management portal for Waterboyz, a nonprofit organization that helps underserved families with home repair and improvement projects. Built on the [Kinetic Platform](https://waterboyz.kinops.io).
 
 ## Table of Contents
 
 - [Quick Start](#quick-start)
-- [Included Libraries](#included-libraries)
+- [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
+- [Key Features](#key-features)
+- [Admin Tools](#admin-tools)
 - [Documentation](#documentation)
 
 ## Quick Start
 
-### Clone the Repository
+### Prerequisites
 
-```
-git clone https://github.com/kineticdata/customer-project-waterboyz
-```
+- Node.js v18+
+- Yarn v1
 
-The front end code can be found in the `portal` directory of the repo.
-
-### Install Dependencies
+### Install & Run
 
 ```bash
-# make sure you are in the `portal` directory
-$ yarn install
+cd portal
+yarn install
+yarn start     # dev server at http://localhost:3000
 ```
 
-Requires `node` `v18` or later, and `yarn` `v1`.
+On first run, you'll be prompted for a Kinetic Platform URL (stored in `.env.development.local`).
 
-### Start Local Dev Server
+### Build
 
 ```bash
-# starts the dev server with hot reload at http://localhost:3000
-$ yarn start
+yarn build     # production build → build/
 ```
 
-The first time you run the above command, you will be prompted to enter a URL to a Kinetic Platform server, which the dev server will proxy to. This URL will be stores in the `.env.development.local` file and can later be changed there.
+## Tech Stack
 
-The local server will be available at [http://localhost:3000](http://localhost:3000). Changes to source files will update automatically.
-
-### Create Production Build
-
-```bash
-# build for production with minification
-$ yarn build
-```
-
-The build artifacts will be stored in the `build/` directory.
-
-## Included Libraries
-
-The following list summarizes the different libraries that have been used to create this project.
-
-[Vite](https://vite.dev/): Build tooling for the project.  
-[React](https://react.dev/): Framework for building out the application.  
-[React Router](https://reactrouter.com/en/main): Routing library.  
-[Redux Toolkit](https://redux-toolkit.js.org/) + [ReactRedux](https://react-redux.js.org/): Global state storage.  
-[Ark UI](https://ark-ui.com/): Headless component library.  
-[Tailwind CSS](https://tailwindcss.com/): Utility-first CSS framework.  
-[Tabler Icons](https://tabler.io/icons): Icon library.  
-[@kineticdata/react](https://components.kineticdata.com/apis): Kinetic API helpers, authentication, form rendering, and i18n.  
-[date-fns](https://date-fns.org/): Date utility library.  
-[immer](https://immerjs.github.io/immer/): Immutable data helper.  
-[clsx](https://github.com/lukeed/clsx): Class name helper.
+| Library | Purpose |
+|---------|---------|
+| [React 18](https://react.dev/) | UI framework |
+| [Vite](https://vite.dev/) | Build tooling & dev server |
+| [React Router 6](https://reactrouter.com/) | Client-side routing |
+| [Redux Toolkit](https://redux-toolkit.js.org/) | Global state (app, theme, view) |
+| [Tailwind CSS v4](https://tailwindcss.com/) | Utility-first CSS |
+| [DaisyUI](https://daisyui.com/) | Component classes (prefixed with `k`) |
+| [Ark UI](https://ark-ui.com/) | Headless components (Dialog, Popover, etc.) |
+| [Tabler Icons](https://tabler.io/icons) | Icon library (lazy-loaded) |
+| [@tanstack/react-table](https://tanstack.com/table) | Data table (Volunteer Management) |
+| [@kineticdata/react](https://components.kineticdata.com/apis) | Kinetic API helpers, CoreForm, auth |
+| [date-fns](https://date-fns.org/) | Date utilities |
+| [clsx](https://github.com/lukeed/clsx) | Conditional class names |
 
 ## Project Structure
 
 ```
-momentum-portal/portal
-├── src/                    # project source code
-│   ├── assets/             # static assets (e.g. styles, fonts)
-│   ├── atoms/              # design system components
-│   ├── components/         # components used by pages
-│   ├── helpers/            # helper functions
-│   ├── pages/              # pages within the app
-│   │
-│   ├── App.js              # app renderer
-│   ├── index.js            # javascript root
-│   ├── redux.js            # redux toolkit setup
-│   └── setupEnv.cjs        # prestart script to set up local env file
-│
-├── .env.development        # dev environment variables
-├── .env.development.local  # local dev environment variables
-├── .env.production         # prod environment variables
-├── index.html              # html root
-├── package.json
-├── postcss.config.js       # postcss config used by tailwind
-├── tailwind.config.js      # tailwind config
-├── vite.config.mjs         # vite config
-└── yarn.lock               # dependency lock file - DO NOT EDIT OR DELETE
+portal/src/
+├── assets/styles/        # Tailwind layers, DaisyUI config, custom utilities
+├── atoms/                # Design system primitives (Button, Icon, Modal, Avatar, etc.)
+├── components/
+│   ├── header/           # Header, hamburger menu, mobile bottom nav
+│   ├── footer/           # Site footer, footer portal
+│   ├── home/             # Home page sections (Hero, shortcuts)
+│   ├── kinetic-form/     # KineticForm wrapper, widgets (CategoryPicker, Search, etc.)
+│   ├── search/           # Global search modal
+│   └── states/           # Loading, Error, Empty state components
+├── helpers/
+│   ├── hooks/            # useData, useRoles, usePoller, useVolunteerRecord, etc.
+│   ├── format.js         # Phone formatting, toArray, SMS link builders
+│   ├── state.js          # Redux slices (app, theme, view)
+│   ├── search.js         # Global search logic
+│   └── toasts.js         # Toast notification helpers
+├── pages/
+│   ├── admin/
+│   │   ├── index.jsx              # Admin routing (role-gated)
+│   │   ├── Admin.jsx              # Admin landing page with cards
+│   │   ├── Reports.jsx            # SWAT Reports dashboard
+│   │   ├── AdminFormRecords.jsx   # Generic CRUD for admin forms (events, programs)
+│   │   └── volunteer-management/  # Volunteer Management feature (see below)
+│   ├── events/                    # Event list, assignment UI (drag-and-drop)
+│   ├── home/                      # Role-based home pages
+│   ├── my-volunteering/           # Volunteer's event history & upcoming
+│   ├── profile/                   # User profile + volunteer form
+│   ├── projects/project/          # Project detail tabs (details, volunteers, expenses, etc.)
+│   ├── public/                    # Public pages (event signup, events list, confirmation)
+│   └── settings/                  # App settings, datastore browser
+├── App.jsx               # Root app: auth, routing, KineticLib provider
+├── index.css             # Tailwind imports, theme config, @source directives
+└── redux.js              # Redux store setup with regRedux helper
 ```
+
+### Volunteer Management (`pages/admin/volunteer-management/`)
+
+A spreadsheet-style admin page for SWAT Leadership to manage all volunteers.
+
+```
+volunteer-management/
+├── VolunteerManagement.jsx          # Main page: toolbar, table (desktop) / card list (mobile)
+├── VolunteerDetailDrawer.jsx        # Slide-in drawer: profile, events, projects tabs
+├── useVolunteerManagementData.js    # Data hook: fetches & joins 6 collections
+├── useVolunteerAssociations.js      # CRUD: assign/remove projects, signup/cancel events
+├── EditVolunteerModal.jsx           # Modal with KineticForm for editing volunteer records
+├── ProjectAssociations.jsx          # Projects tab: list, search, assign, remove
+└── EventAssociations.jsx            # Events tab: list, search, signup, cancel
+```
+
+## Key Features
+
+### For Volunteers
+- **Public event signup** — browse and sign up for serve day events without an account
+- **Volunteer profile** — register skills, tools, languages, availability, and service area preferences
+- **My Volunteering** — view past and upcoming event signups and project assignments
+
+### For Project Captains
+- **Project management** — manage tasks, volunteers, expenses, photos, and notes for assigned projects
+- **Volunteer recruitment** — search and add volunteers to projects, track attendance
+
+### For SWAT Leadership
+- **Nomination review** — approve/reject SWAT project nominations, set budgets, assign captains
+- **Event management** — create serve day events, assign volunteers to projects via drag-and-drop
+- **Volunteer Management** — searchable/filterable directory of all volunteers with inline editing, project/event association management
+- **SWAT Reports** — project metrics dashboard with breakdowns by county, family type, and status; inline-editable fields
+
+### For Everyone
+- **Responsive design** — mobile card layouts with bottom nav; desktop tables with hamburger menu
+- **Global search** — search across all portal content
+- **Role-based home pages** — different dashboards for volunteers, captains, nominators, and leadership
+
+## Admin Tools
+
+Accessible via the hamburger menu (Admin section, visible to SWAT Leadership and Space Admins):
+
+| Tool | Route | Description |
+|------|-------|-------------|
+| Events | `/events` | Manage serve day events; assign volunteers to projects |
+| SWAT Reports | `/admin/reports` | Project metrics, filtered reporting, inline editing |
+| Volunteer Management | `/admin/volunteer-management` | Full volunteer directory with filters, editing, associations |
+| Settings | `/settings/datastore` | Edit reference data (skills, tools, affiliates, etc.) |
 
 ## Documentation
 
-[Kinetic Widgets Documentation &#x2B9E;](src/components/kinetic-form/widgets/README.md)
-
-See the [Kinetic Data Documentation Library](https://docs.kineticdata.com/) for more information.
-
-## Portal S3 Deployment
-
-The Momentum Portal code can be found in an S3 bucket. The base URL for the S3 bucket is: `https://s3.amazonaws.com/kinetic-portals/portals/momentum-portal/versions/`
-
-There are versioned directories in S3 that correspond to specific Github Workflow actions that trigger based on events that take place in the repository. The workflow files can be found [here](../.github/workflows/).
-
-| Github Event          | Version Directory | Github Action Workflow File | Example Usage                                  |
-| --------------------- | ----------------- | --------------------------- | ---------------------------------------------- |
-| Tag Push              | vXX.YY.ZZ         | portal-tag-push.yaml        | Releasing a tagged version.                    |
-| Commit to Main Branch | latest            | portal-main-commits.yaml    | Testing latest commits to main.                |
-| Run Dispatch Workflow | YYYYMMDD-abcd1234 | portal-build-dispatch.yaml  | Testing code on a particular branch or commit. |
-
-Example: merging a PR (which causes a commit in the `main` branch) would result in the portal path of `https://s3.amazonaws.com/kinetic-portals/portals/momentum-portal/versions/latest/`
-
-You can also view the output to determine the S3 bucket by viewing the Github Action workflow run.
-
-[github_actions_directory](../.github/workflows/)
+- [CLAUDE.md](../CLAUDE.md) — Comprehensive project documentation (platform config, forms, fields, workflows, data relationships, API patterns, admin features)
+- [Kinetic Form Widgets](src/components/kinetic-form/widgets/README.md) — Widget system documentation
+- [Kinetic Data Docs](https://docs.kineticdata.com/) — Platform documentation
 
 ### License
 

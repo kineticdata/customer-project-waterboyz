@@ -1,88 +1,61 @@
-import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { fetchForms } from '@kineticdata/react';
-import { Icon } from '../../atoms/Icon.jsx';
-import { useData } from '../../helpers/hooks/useData.js';
 import { HomeHero } from '../../components/home/HomeHero.jsx';
-import { HomeSection } from '../../components/home/HomeSection.jsx';
-import { WorkList, Shortcuts } from './Home.jsx';
-
-const STATIC_LINKS = [
-  {
-    to: '/admin/volunteers',
-    icon: 'users',
-    label: 'Volunteers',
-    description: 'View volunteer directory',
-  },
-  {
-    to: '/project-captains',
-    icon: 'tool',
-    label: 'Projects',
-    description: 'View all SWAT projects',
-  },
-];
+import { ActivityList, WorkList } from './Home.jsx';
+import { NominateSection } from './HomeNominator.jsx';
 
 export const HomeAdmin = () => {
-  const { profile, kappSlug } = useSelector(state => state.app);
-
-  const adminFormsParams = useMemo(
-    () => ({
-      kappSlug,
-      include: 'attributesMap',
-      q: 'type = "Admin" AND (status = "Active" OR status = "New")',
-    }),
-    [kappSlug],
-  );
-
-  const { response } = useData(fetchForms, adminFormsParams);
-
-  const adminLinks = useMemo(() => {
-    const dynamic = (response?.forms ?? []).map(form => ({
-      to: `/admin/${form.slug}`,
-      icon: form.attributesMap?.['Icon']?.[0] || 'settings',
-      label: form.name,
-      description: form.description || '',
-    }));
-    return [...dynamic, ...STATIC_LINKS];
-  }, [response]);
+  const { profile } = useSelector(state => state.app);
 
   return (
     <div className="flex-c-st gap-0 pb-24 md:pb-8">
       <HomeHero
-        eyebrow="Admin"
+        eyebrow="SWAT Leadership"
         title={profile?.displayName}
-        subtitle="Manage the Waterboyz portal."
+        subtitle="Manage projects, volunteers, and events."
       />
 
-      {/* Admin Quick Nav — custom "Admin area" link instead of generic "View all" */}
-      <HomeSection title="Administration" viewAllTo="/admin">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-          {adminLinks.map(({ to, icon, label, description }) => (
-            <Link
-              key={to}
-              to={to}
-              className="flex-c-cc gap-2 p-4 bg-base-100 rounded-box border border-base-200 text-center hover:bg-base-200/60 hover:-translate-y-0.5 transition-all"
-            >
-              <div className="flex-cc w-10 h-10 rounded-full bg-primary/10 text-primary">
-                <Icon name={icon} size={20} />
+      {/* Two-column layout: nominations left, tasks sidebar right */}
+      <div className="gutter mt-8 md:mt-10">
+        <div className="max-w-screen-xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10">
+          {/* Left column — nominations, nominate a family */}
+          <div className="lg:col-span-2 flex-c-st gap-8 md:gap-10">
+            <div className="flex-c-st gap-4">
+              <div className="flex-bc">
+                <h2 className="text-lg md:text-xl font-bold">My Nominations</h2>
+                <Link
+                  to="/nominations"
+                  className="text-sm text-primary font-medium hover:underline"
+                >
+                  View all
+                </Link>
               </div>
-              <span className="text-sm font-semibold">{label}</span>
-              <span className="text-xs text-base-content/50 leading-snug">
-                {description}
-              </span>
-            </Link>
-          ))}
-        </div>
-      </HomeSection>
+              <div className="bg-base-100 rounded-box border border-base-200 overflow-hidden">
+                <ActivityList limit={3} />
+              </div>
+            </div>
 
-      <HomeSection title="My Tasks" viewAllTo="/actions">
-        <div className="bg-base-100 rounded-box border border-base-200 overflow-hidden">
-          <WorkList limit={5} />
-        </div>
-      </HomeSection>
+            <NominateSection />
+          </div>
 
-      <Shortcuts className="gutter mt-8 md:mt-10 pb-4" />
+          {/* Right column — tasks sidebar (sticky on desktop) */}
+          <div className="lg:sticky lg:top-6 lg:self-start flex-c-st gap-4">
+            <div className="flex-bc">
+              <h2 className="text-lg md:text-xl font-bold">My Tasks</h2>
+              <Link
+                to="/actions"
+                className="text-sm text-primary font-medium hover:underline"
+              >
+                View all
+              </Link>
+            </div>
+            <div className="bg-base-100 rounded-box border border-base-200 overflow-hidden">
+              <WorkList limit={10} />
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 };

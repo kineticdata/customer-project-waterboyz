@@ -1,21 +1,18 @@
 import { useMemo, useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { updateProfile } from '@kineticdata/react';
 import { Modal } from '../atoms/Modal.jsx';
 import { Icon } from '../atoms/Icon.jsx';
 import {
   getAttributeValue,
   getProfileAttributeValue,
 } from '../helpers/records.js';
-import { appActions } from '../helpers/state.js';
+import { useVolunteerRecord } from '../helpers/hooks/useVolunteerRecord.js';
 
 const STALE_DAYS = 90;
 
 /**
  * Checks if a volunteer profile is stale (not updated in STALE_DAYS days).
- * Returns true if the user is a volunteer and their profile is stale or has
- * never been marked as updated.
  */
 function isProfileStale(profile) {
   const volunteerId = getAttributeValue(profile, 'Volunteer Id');
@@ -30,54 +27,121 @@ function isProfileStale(profile) {
   const lastUpdated = new Date(updatedAt);
   if (isNaN(lastUpdated.getTime())) return true;
 
-  const daysSince = (Date.now() - lastUpdated.getTime()) / (1000 * 60 * 60 * 24);
+  const daysSince =
+    (Date.now() - lastUpdated.getTime()) / (1000 * 60 * 60 * 24);
   return daysSince >= STALE_DAYS;
 }
 
 /**
- * Updates the "Volunteer Profile Updated At" profile attribute to now and
- * syncs the updated profile into Redux.
+ * Determines whether a captain/leadership user needs a volunteer profile.
+ *
+ * Check order:
+ * 1. If profile data isn't loaded yet → loading
+ * 2. If user has `Volunteer Id` attribute → not required (no async needed)
+ * 3. If user is not Captain/Leadership → not required (no async needed)
+ * 4. Search datastore for a volunteer record by username (via useVolunteerRecord):
+ *    - Still loading → loading
+ *    - Record found → not required (workflow just hasn't linked it yet)
+ *    - No record → required
  */
-export const markVolunteerProfileUpdated = async () => {
-  const { error, profile } = await updateProfile({
-    profile: {
-      profileAttributes: {
-        'Volunteer Profile Updated At': [new Date().toISOString()],
-      },
-    },
-    include: 'profileAttributesMap,attributesMap,memberships',
-  });
-  if (!error && profile) {
-    appActions.updateProfile(profile);
-  }
-  return { error, profile };
-};
+function useNeedsVolunteerProfile() {
+  const profile = useSelector(state => state.app.profile);
+  const { volunteerId, loading: volunteerLoading } = useVolunteerRecord();
+
+  // Profile not fully loaded yet
+  const profileReady = !!profile?.attributesMap && !!profile?.memberships;
+
+  // Is Captain or Leadership?
+  const isProjectRole = useMemo(() => {
+    if (!profileReady) return false;
+    const teamNames = profile.memberships.map(({ team }) => team.name);
+    return (
+      teamNames.includes('SWAT Project Captains') ||
+      teamNames.includes('SWAT Leadership')
+    );
+  }, [profileReady, profile?.memberships]);
+
+  if (!profileReady) return { loading: true, required: false };
+  if (volunteerId) return { loading: false, required: false };
+  if (!isProjectRole) return { loading: false, required: false };
+  if (volunteerLoading) return { loading: true, required: false };
+  return { loading: false, required: true };
+}
 
 /**
- * Renders a modal prompt when a volunteer's profile hasn't been updated in
- * more than 90 days. Shown once per session.
+ * Two-mode volunteer profile prompt:
+ *
+ * 1. **Required** — Project Captains / Leadership who have no Volunteer Id
+ *    attribute AND no existing volunteer record in the datastore see a
+ *    non-dismissible modal blocking the portal.
+ *
+ * 2. **Nudge** — Existing volunteers whose profile hasn't been updated in
+ *    90 days see a dismissible modal (once per session).
  */
 export const VolunteerProfilePrompt = () => {
   const profile = useSelector(state => state.app.profile);
+  const volunteerProfilePending = useSelector(
+    state => state.app.volunteerProfilePending,
+  );
   const navigate = useNavigate();
   const location = useLocation();
 
+  const { loading: checkLoading, required } = useNeedsVolunteerProfile();
   const stale = useMemo(() => isProfileStale(profile), [profile]);
   const [dismissed, setDismissed] = useState(false);
-  const open = stale && !dismissed;
 
-  const handleUpdate = useCallback(() => {
-    setDismissed(true);
-    // Preserve the current location so the profile page can redirect back
+  const onProfilePage = location.pathname === '/profile';
+
+  // Required: show only after the full check completes and confirms no record.
+  // Suppress while loading, pending (just submitted), or on the profile page.
+  const showRequired =
+    !checkLoading && required && !volunteerProfilePending && !onProfilePage;
+  // Nudge: open until dismissed (once per session)
+  const showNudge = !required && stale && !dismissed && !onProfilePage;
+  const open = showRequired || showNudge;
+
+  const handleGoToProfile = useCallback(() => {
+    if (!required) setDismissed(true);
     const returnTo = location.pathname + location.search;
     navigate('/profile?tab=volunteer', {
       state: { returnTo: returnTo !== '/profile' ? returnTo : undefined },
     });
-  }, [navigate, location]);
+  }, [navigate, location, required]);
 
   const handleDismiss = useCallback(() => {
     setDismissed(true);
   }, []);
+
+  if (showRequired) {
+    return (
+      <Modal
+        open={true}
+        onOpenChange={() => {}}
+        title="Create Your Volunteer Profile"
+        closeOnInteractOutside={false}
+        closeOnEscape={false}
+        closeTrigger={false}
+      >
+        <div slot="description">
+          <p className="text-base-content/70">
+            As a Project Captain, you need a volunteer profile before you can be
+            assigned to projects. This only takes a minute — fill in your skills,
+            tools, and availability so we can match you with the right work.
+          </p>
+        </div>
+        <div slot="footer">
+          <button
+            type="button"
+            className="kbtn kbtn-primary"
+            onClick={handleGoToProfile}
+          >
+            <Icon name="user-plus" size={18} />
+            Set Up Volunteer Profile
+          </button>
+        </div>
+      </Modal>
+    );
+  }
 
   return (
     <Modal
@@ -90,7 +154,7 @@ export const VolunteerProfilePrompt = () => {
     >
       <div slot="description">
         <p className="text-base-content/70">
-          It's been a while since you last updated your volunteer profile.
+          It&apos;s been a while since you last updated your volunteer profile.
           Keeping your skills, tools, and availability up to date helps us match
           you with the right projects.
         </p>
@@ -99,7 +163,7 @@ export const VolunteerProfilePrompt = () => {
         <button
           type="button"
           className="kbtn kbtn-primary"
-          onClick={handleUpdate}
+          onClick={handleGoToProfile}
         >
           <Icon name="user-edit" size={18} />
           Update Profile

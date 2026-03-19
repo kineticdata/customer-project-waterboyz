@@ -36,6 +36,12 @@ export const appActions = regRedux(
     profile: null,
     // Error from fetching any app data
     error: null,
+    // True after a captain/leader creates their volunteer profile but the
+    // server-side workflow hasn't set the Volunteer Id attribute yet.
+    // Prevents the required-profile modal from reappearing during the gap.
+    volunteerProfilePending: false,
+    // Whether the current user has any nominations (fetched once on load)
+    hasNominations: false,
   },
   {
     setAuthenticated(state, payload) {
@@ -62,6 +68,12 @@ export const appActions = regRedux(
     },
     updateProfile(state, profile) {
       Object.assign(state.profile, profile);
+    },
+    setVolunteerProfilePending(state, pending) {
+      state.volunteerProfilePending = pending;
+    },
+    setHasNominations(state, value) {
+      state.hasNominations = value;
     },
   },
 );

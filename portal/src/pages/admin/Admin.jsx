@@ -48,10 +48,18 @@ export const Admin = ({ adminForms }) => {
 
   const staticCards = [
     {
-      icon: 'users',
-      label: 'Volunteers',
-      description: 'View and manage the volunteer directory.',
-      to: '/admin/volunteers',
+      icon: 'report-analytics',
+      label: 'SWAT Reports',
+      description:
+        'Project reporting by county, hours, and family type for grant applications.',
+      to: '/admin/reports',
+    },
+    {
+      icon: 'table',
+      label: 'Volunteer Management',
+      description:
+        'Search and filter all volunteers by skills, location, language, and more.',
+      to: '/admin/volunteer-management',
     },
     isAdmin && {
       icon: 'database',

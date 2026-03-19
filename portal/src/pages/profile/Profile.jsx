@@ -2,16 +2,18 @@ import { useSelector } from 'react-redux';
 import { useState, useCallback } from 'react';
 import { useSearchParams, useLocation, useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
-import { getAttributeValue } from '../../helpers/records.js';
 import { fetchProfile, updateProfile } from '@kineticdata/react';
+import { useRoles } from '../../helpers/hooks/useRoles.js';
+import { useVolunteerRecord } from '../../helpers/hooks/useVolunteerRecord.js';
 import { usePoller } from '../../helpers/hooks/usePoller.js';
 import { Avatar } from '../../atoms/Avatar.jsx';
 import { Icon } from '../../atoms/Icon.jsx';
 import { validateEmail } from '../../helpers/index.js';
+import { getAttributeValue } from '../../helpers/records.js';
 import { appActions } from '../../helpers/state.js';
 import { toastError, toastSuccess } from '../../helpers/toasts.js';
 import { KineticForm } from '../../components/kinetic-form/KineticForm.jsx';
-import { markVolunteerProfileUpdated } from '../../components/VolunteerProfilePrompt.jsx';
+import { markVolunteerProfileUpdated } from '../../helpers/volunteer.js';
 
 export const Profile = () => {
   const { profile, kappSlug } = useSelector(state => state.app);
@@ -19,6 +21,8 @@ export const Profile = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const returnTo = location.state?.returnTo;
+
+  // Account form state
   const [newPassword, setNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showChangedPassword, setShowChangedPassword] = useState(false);
@@ -29,11 +33,21 @@ export const Profile = () => {
     newDisplayName: '',
     newPassword: '',
   });
-  const [volunteerId] = useState(getAttributeValue(profile, 'Volunteer Id'));
-  const [showVolunteerForm, setShowVolunteerForm] = useState(false);
+
+  // Volunteer record — checks user attribute first, falls back to datastore lookup
+  const { volunteerId, loading: volunteerLoading } = useVolunteerRecord();
+  const { hasProjectAccess } = useRoles();
+
+  // Auto-show the create form for captains/leadership who don't have a record
+  const [showVolunteerForm, setShowVolunteerForm] = useState(
+    !getAttributeValue(profile, 'Volunteer Id') && hasProjectAccess,
+  );
   const [activeTab, setActiveTab] = useState(
     searchParams.get('tab') || 'account',
   );
+
+  // Polling for the Volunteer Id user attribute after creating a new record.
+  // The workflow sets this asynchronously after submission.
   const [pollingForVolunteerId, setPollingForVolunteerId] = useState(false);
 
   const pollForVolunteerId = useCallback(async () => {
@@ -42,7 +56,9 @@ export const Profile = () => {
     });
     if (updatedProfile && getAttributeValue(updatedProfile, 'Volunteer Id')) {
       appActions.setProfile({ profile: updatedProfile });
+      appActions.setVolunteerProfilePending(false);
       setPollingForVolunteerId(false);
+      toastSuccess({ title: 'Volunteer profile is ready!' });
       if (returnTo) {
         navigate(returnTo, { state: { persistToasts: true } });
       }
@@ -52,10 +68,15 @@ export const Profile = () => {
   usePoller(pollingForVolunteerId ? pollForVolunteerId : null);
 
   const handleVolunteerCreated = useCallback(() => {
-    toastSuccess({ title: 'Volunteer profile saved.' });
+    toastSuccess({
+      title: 'Volunteer profile saved.',
+      description: 'Setting up your account — this may take a moment.',
+    });
     markVolunteerProfileUpdated();
+    appActions.setVolunteerProfilePending(true);
+    pollForVolunteerId();
     setPollingForVolunteerId(true);
-  }, []);
+  }, [pollForVolunteerId]);
 
   const handleVolunteerSaved = useCallback(() => {
     toastSuccess({ title: 'Volunteer profile saved.' });
@@ -110,6 +131,10 @@ export const Profile = () => {
     },
     [newPassword, newDisplayName, showChangedPassword, newEmail],
   );
+
+  // Show a waiting state after the volunteer form was submitted but the
+  // Volunteer Id hasn't propagated yet (workflow still running)
+  const showVolunteerPendingState = pollingForVolunteerId && !volunteerId;
 
   return (
     <div className="gutter pb-24 md:pb-8">
@@ -274,7 +299,30 @@ export const Profile = () => {
 
             {activeTab === 'volunteer' && (
               <div>
-                {volunteerId ? (
+                {showVolunteerPendingState ? (
+                  <div className="flex-c-cc gap-4 py-12">
+                    <Icon
+                      name="loader-2"
+                      size={36}
+                      className="animate-spin text-primary"
+                    />
+                    <p className="font-semibold">
+                      Setting up your volunteer profile…
+                    </p>
+                    <p className="text-sm text-base-content/60 text-center max-w-sm">
+                      We&apos;re linking your account to your volunteer record.
+                      This usually takes just a few seconds.
+                    </p>
+                  </div>
+                ) : volunteerLoading ? (
+                  <div className="flex-cc py-12">
+                    <Icon
+                      name="loader-2"
+                      size={28}
+                      className="animate-spin text-base-content/30"
+                    />
+                  </div>
+                ) : volunteerId ? (
                   <KineticForm
                     kappSlug={kappSlug}
                     formSlug="volunteers"

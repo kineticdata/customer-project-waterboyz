@@ -2,13 +2,19 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import {
   createSubmission,
-  deleteSubmission,
+  defineKqlQuery,
+  searchSubmissions,
   updateSubmission,
 } from '@kineticdata/react';
 import { openConfirm } from '../../../helpers/confirm.js';
 import { toastError, toastSuccess } from '../../../helpers/toasts.js';
 
 const ASSIGNMENTS_FORM = 'swat-project-volunteers';
+
+const existingAssignmentQuery = defineKqlQuery()
+  .equals('values[Volunteer ID]', 'volunteerId')
+  .equals('values[Project ID]', 'projectId')
+  .end();
 
 /**
  * Manages local (staged) volunteer-to-project assignments.
@@ -129,11 +135,14 @@ export const useStagedAssignments = ({
     try {
       const errors = [];
 
-      // Delete removed assignments
+      // Mark removed assignments as "Removed"
       for (const { volunteerId, assignmentId } of toDelete) {
-        const result = await deleteSubmission({ id: assignmentId });
+        const result = await updateSubmission({
+          id: assignmentId,
+          values: { Status: 'Removed' },
+        });
         if (result?.error) {
-          errors.push(`Delete failed for volunteer: ${result.error.message}`);
+          errors.push(`Remove failed for volunteer: ${result.error.message}`);
         } else {
           // Revert signup status
           const signup = signupByVolunteerId[volunteerId];
@@ -146,11 +155,14 @@ export const useStagedAssignments = ({
         }
       }
 
-      // Handle moves: delete old assignment, create new one
+      // Handle moves: mark old assignment as "Removed", create new one
       for (const { volunteerId, toProjectId, assignmentId } of toMove) {
-        const delResult = await deleteSubmission({ id: assignmentId });
-        if (delResult?.error) {
-          errors.push(`Move failed for volunteer: ${delResult.error.message}`);
+        const removeResult = await updateSubmission({
+          id: assignmentId,
+          values: { Status: 'Removed' },
+        });
+        if (removeResult?.error) {
+          errors.push(`Move failed for volunteer: ${removeResult.error.message}`);
           continue;
         }
         const createResult = await createSubmission({
@@ -160,6 +172,7 @@ export const useStagedAssignments = ({
             'Volunteer ID': volunteerId,
             'Project ID': toProjectId,
             Present: 'No',
+            Status: 'Active',
           },
         });
         if (createResult?.error) {
@@ -167,17 +180,40 @@ export const useStagedAssignments = ({
         }
       }
 
-      // Create new assignments
+      // Create new assignments (reactivate "Removed" records if they exist)
       for (const { volunteerId, projectId } of toCreate) {
-        const result = await createSubmission({
-          kappSlug,
-          formSlug: ASSIGNMENTS_FORM,
-          values: {
-            'Volunteer ID': volunteerId,
-            'Project ID': projectId,
-            Present: 'No',
+        // Check for existing removed record (unique index on [Volunteer ID, Project ID])
+        const existing = await searchSubmissions({
+          kapp: kappSlug,
+          form: ASSIGNMENTS_FORM,
+          search: {
+            q: existingAssignmentQuery({ volunteerId, projectId }),
+            include: ['values'],
+            limit: 1,
           },
         });
+        const removedRecord = existing?.submissions?.find(
+          s => s.values?.Status === 'Removed',
+        );
+
+        let result;
+        if (removedRecord) {
+          result = await updateSubmission({
+            id: removedRecord.id,
+            values: { Status: 'Active', Present: 'No' },
+          });
+        } else {
+          result = await createSubmission({
+            kappSlug,
+            formSlug: ASSIGNMENTS_FORM,
+            values: {
+              'Volunteer ID': volunteerId,
+              'Project ID': projectId,
+              Present: 'No',
+              Status: 'Active',
+            },
+          });
+        }
         if (result?.error) {
           errors.push(`Assign failed: ${result.error.message}`);
         } else {

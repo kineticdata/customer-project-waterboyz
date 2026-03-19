@@ -103,6 +103,8 @@ export const Form = ({ review, listActions }) => {
         }
       }
     },
+    // NOMINATION_FORM_SLUGS is a module-level constant
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [navigate, formSlug],
   );
 

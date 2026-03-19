@@ -5,7 +5,7 @@ import clsx from 'clsx';
 import { produce } from 'immer';
 import { debounce, isEqualWith } from 'lodash-es';
 import { ColorPicker, parseColor } from '@ark-ui/react/color-picker';
-import { updateKapp, updateSpace } from '@kineticdata/react';
+import { updateKapp } from '@kineticdata/react';
 import { Avatar } from '../../atoms/Avatar.jsx';
 import { ChipButton, CloseButton } from '../../atoms/Button.jsx';
 import { Icon } from '../../atoms/Icon.jsx';
@@ -328,7 +328,7 @@ export const Theme = () => {
         4000,
       );
     });
-  }, []);
+  }, [kapp?.slug]);
 
   // Check if the theme is dirty, and if there are any changes from the default
   const [isDirty, isChanged] = useDirtyCheck(currentTheme, savedTheme);

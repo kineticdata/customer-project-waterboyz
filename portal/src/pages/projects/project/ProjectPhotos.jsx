@@ -36,6 +36,7 @@ const normalizeAttachments = value => {
 const sanitizeAttachment = attachment => {
   if (!attachment || typeof attachment !== 'object') return attachment;
   // Mirror Kinetic's serializer: only strip the link property.
+  // eslint-disable-next-line no-unused-vars
   const { link, ...rest } = attachment;
   return rest;
 };
@@ -76,7 +77,7 @@ const attachDocumentIds = (attachments, valuesRaw, fieldName) => {
   if (typeof entry.rawValue === 'string') {
     try {
       rawList = JSON.parse(entry.rawValue) || [];
-    } catch (error) {
+    } catch {
       rawList = [];
     }
   } else if (Array.isArray(entry.rawValue)) {
@@ -89,12 +90,7 @@ const attachDocumentIds = (attachments, valuesRaw, fieldName) => {
   }));
 };
 
-export const ProjectPhotos = ({
-  project,
-  family: _family,
-  familyLoading: _familyLoading,
-  reloadProject,
-}) => {
+export const ProjectPhotos = ({ project, reloadProject }) => {
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [fileNames, setFileNames] = useState({});

@@ -62,11 +62,7 @@ const getAttachmentUrl = attachment =>
   attachment?.previewUrl ||
   '';
 
-export const ProjectExpenses = ({
-  project,
-  family: _family,
-  familyLoading: _familyLoading,
-}) => {
+export const ProjectExpenses = ({ project }) => {
   const { kappSlug } = useSelector(state => state.app);
   const projectId = project?.id;
   const editorRef = useRef(null);

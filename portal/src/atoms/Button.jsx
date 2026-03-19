@@ -1,9 +1,7 @@
 import t from 'prop-types';
-import { Link, useLocation } from 'react-router-dom';
 import clsx from 'clsx';
 import { Icon } from './Icon.jsx';
 import { useSelector } from 'react-redux';
-import { forwardRef } from 'react';
 
 /**
  * Component for rendering a chip style button.
