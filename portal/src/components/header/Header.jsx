@@ -226,6 +226,7 @@ const getMenuItems = (profile, roles = {}, { hasNominations } = {}) => {
     profile?.spaceAdmin && {
       title: 'System Admin',
       items: [
+        { label: 'Scheduled Jobs', to: '/admin/scheduled-jobs', icon: 'clock' },
         { label: 'Theme Editor', to: '/theme', icon: 'palette' },
         {
           label: 'Platform Console',

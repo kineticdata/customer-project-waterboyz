@@ -8,6 +8,8 @@ import { Admin } from './Admin.jsx';
 import { AdminFormRecords } from './AdminFormRecords.jsx';
 import { VolunteerManagement } from './volunteer-management/VolunteerManagement.jsx';
 import { Reports } from './Reports.jsx';
+import { ScheduledJobs } from './ScheduledJobs.jsx';
+import { ScheduledJobHistory } from './ScheduledJobHistory.jsx';
 
 export const AdminRouting = () => {
   const { isAdmin, isLeadership } = useRoles();
@@ -42,6 +44,8 @@ export const AdminRouting = () => {
             <Routes>
               <Route path="/" element={<Admin adminForms={adminForms} />} />
               <Route path="/reports" element={<Reports />} />
+              <Route path="/scheduled-jobs" element={<ScheduledJobs />} />
+              <Route path="/scheduled-jobs/:jobId/history" element={<ScheduledJobHistory />} />
               <Route
                 path="/:formSlug"
                 element={<AdminFormRecords adminForms={adminForms} />}
