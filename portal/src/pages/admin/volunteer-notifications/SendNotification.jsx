@@ -23,6 +23,7 @@ const NOTIFICATION_TYPES = [
     label: 'Skills-Based',
     description: 'Notify volunteers whose skills match project needs',
     icon: 'target-arrow',
+    disabled: true,
   },
 ];
 
@@ -130,30 +131,44 @@ export const SendNotification = () => {
                 <button
                   key={t.value}
                   type="button"
+                  disabled={t.disabled}
+                  title={t.disabled ? 'Coming soon' : undefined}
                   onClick={() => {
+                    if (t.disabled) return;
                     setType(t.value);
                     if (t.value !== 'Skills-Based') setSelectedSkills([]);
                   }}
                   className={clsx(
                     'rounded-box border-2 p-4 text-left transition-all',
-                    type === t.value
-                      ? 'border-primary bg-primary/5'
-                      : 'border-base-300 bg-base-100 hover:border-base-content/20',
+                    t.disabled
+                      ? 'border-base-300 bg-base-200/50 opacity-60 cursor-not-allowed'
+                      : type === t.value
+                        ? 'border-primary bg-primary/5'
+                        : 'border-base-300 bg-base-100 hover:border-base-content/20',
                   )}
                 >
                   <div className="flex-sc gap-3">
                     <div
                       className={clsx(
                         'flex-cc w-10 h-10 rounded-full flex-none',
-                        type === t.value
-                          ? 'bg-primary/15 text-primary'
-                          : 'bg-base-200 text-base-content/50',
+                        t.disabled
+                          ? 'bg-base-200 text-base-content/30'
+                          : type === t.value
+                            ? 'bg-primary/15 text-primary'
+                            : 'bg-base-200 text-base-content/50',
                       )}
                     >
                       <Icon name={t.icon} size={20} />
                     </div>
                     <div>
-                      <div className="font-semibold text-sm">{t.label}</div>
+                      <div className="flex-sc gap-2">
+                        <span className="font-semibold text-sm">{t.label}</span>
+                        {t.disabled && (
+                          <span className="kbadge kbadge-xs kbadge-ghost">
+                            Coming soon
+                          </span>
+                        )}
+                      </div>
                       <div className="text-xs text-base-content/50 mt-0.5">
                         {t.description}
                       </div>
