@@ -77,7 +77,7 @@ function groupItems(
   }));
 }
 
-const CategoryPickerComponent = forwardRef(
+export const CategoryPickerComponent = forwardRef(
   (
     {
       integration,
@@ -256,7 +256,7 @@ const CategoryPickerComponent = forwardRef(
                   )}
                   <Icon
                     name={isExpanded ? 'chevron-up' : 'chevron-down'}
-                    size="16"
+                    size={16}
                     className="text-base-content/50 shrink-0"
                   />
                 </button>

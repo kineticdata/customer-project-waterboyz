@@ -702,6 +702,45 @@ const templates = {
     },
   },
 
+  'request-approved': {
+    subject: 'Your Request Has Been Approved — Waterboyz',
+    preheader: "You've been approved to join a SWAT project. Your team captain will be in touch soon.",
+    build: () => {
+      const body = [
+        heading('You\'re In!'),
+        paragraph(
+          'Hi <%= @results["Get Volunteer"]["First Name"] %>,',
+        ),
+        paragraph(
+          'Great news — your request to join <strong><%= @results["Get Project"]["Name"] %></strong> has been approved!',
+        ),
+        paragraph(
+          '<strong>Project:</strong> <%= @results["Get Project"]["Name"] %><br><strong>Date:</strong> <% if @results["Get Project"]["Scheduled Date"] && !@results["Get Project"]["Scheduled Date"].empty? %><%= Date.parse(@results["Get Project"]["Scheduled Date"]).strftime("%B %-d, %Y") %><% else %>TBD<% end %><br><strong>Address:</strong> <%= @results["Get Project"]["Address Line 1"] %><% if @results["Get Project"]["Address Line 2"] && !@results["Get Project"]["Address Line 2"].empty? %><br><%= @results["Get Project"]["Address Line 2"] %><% end %><br><%= @results["Get Project"]["City"] %>, <%= @results["Get Project"]["State"] %> <%= @results["Get Project"]["Zip"] %>',
+        ),
+        paragraph(
+          'Your team captain is <strong><%= @results["Get Captain"]["Display Name"] %></strong>. They will be reaching out to you soon to coordinate details.',
+        ),
+        paragraph(
+          'You can also reach your team captain directly at <a href="mailto:<%= @results[\'Get Captain\'][\'Email\'] %>" style="color:${brand.primary}; text-decoration:underline;"><%= @results["Get Captain"]["Email"] %></a> or via phone at <%= @results["Get Captain Volunteer Profile"]["Phone Number"] %>.',
+        ),
+        divider(),
+        paragraph(
+          'Thank you for stepping up to serve — we\'ll see you out there!',
+        ),
+        paragraph(
+          'The Waterboyz Team',
+        ),
+        spacer(),
+      ].join('');
+
+      return layout({
+        subject: 'Your Request Has Been Approved — Waterboyz',
+        preheader: "You've been approved to join a SWAT project. Your team captain will be in touch soon.",
+        body,
+      });
+    },
+  },
+
   'project-join-request': {
     subject: 'New Volunteer Request — Waterboyz',
     preheader: 'A volunteer has requested to join one of your SWAT projects.',
@@ -739,6 +778,42 @@ const templates = {
       return layout({
         subject: 'New Volunteer Request — Waterboyz',
         preheader: 'A volunteer has requested to join one of your SWAT projects.',
+        body,
+      });
+    },
+  },
+
+  'volunteer-notification': {
+    subject: 'Volunteers Needed — Waterboyz',
+    preheader: 'Upcoming SWAT projects need your help. Check out where you can serve!',
+    build: () => {
+      const body = [
+        heading('Volunteers Needed!'),
+        '<% if @results["Get Submission"]["Custom Message"] && !@results["Get Submission"]["Custom Message"].empty? %>',
+        paragraph('<%= @results["Get Submission"]["Custom Message"] %>'),
+        '<% end %>',
+        divider(),
+        `
+    <tr>
+      <td style="padding:16px 40px 0;" class="padding-mobile">
+        <%= @results["Build Email Body"]["Project HTML"] %>
+      </td>
+    </tr>`,
+        spacer(12),
+        action('View Projects', `${brand.siteUrl}/#/upcoming-projects`),
+        divider(),
+        paragraph(
+          'Thank you for serving your community — every pair of hands makes a difference!',
+        ),
+        paragraph(
+          'The Waterboyz Team',
+        ),
+        spacer(),
+      ].join('');
+
+      return layout({
+        subject: 'Volunteers Needed — Waterboyz',
+        preheader: 'Upcoming SWAT projects need your help. Check out where you can serve!',
         body,
       });
     },
