@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { lazy, Suspense, useMemo } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { fetchForms } from '@kineticdata/react';
 import { useSelector } from 'react-redux';
@@ -6,10 +6,11 @@ import { useRoles } from '../../helpers/hooks/useRoles.js';
 import { useData } from '../../helpers/hooks/useData.js';
 import { Admin } from './Admin.jsx';
 import { AdminFormRecords } from './AdminFormRecords.jsx';
-import { VolunteerManagement } from './volunteer-management/VolunteerManagement.jsx';
-import { Reports } from './Reports.jsx';
-import { ScheduledJobs } from './ScheduledJobs.jsx';
-import { ScheduledJobHistory } from './ScheduledJobHistory.jsx';
+import { Loading } from '../../components/states/Loading.jsx';
+
+const VolunteerManagement = lazy(() => import('./volunteer-management/VolunteerManagement.jsx').then(m => ({ default: m.VolunteerManagement })));
+const Reports = lazy(() => import('./Reports.jsx').then(m => ({ default: m.Reports })));
+const VolunteerNotifications = lazy(() => import('./volunteer-notifications/VolunteerNotifications.jsx').then(m => ({ default: m.VolunteerNotifications })));
 
 export const AdminRouting = () => {
   const { isAdmin, isLeadership } = useRoles();
@@ -34,7 +35,7 @@ export const AdminRouting = () => {
   return (
     <Routes>
       {/* Full-bleed route (no gutter — table needs max width) */}
-      <Route path="/volunteer-management" element={<VolunteerManagement />} />
+      <Route path="/volunteer-management" element={<Suspense fallback={<Loading />}><VolunteerManagement /></Suspense>} />
 
       {/* Standard gutter routes */}
       <Route
@@ -43,9 +44,8 @@ export const AdminRouting = () => {
           <div className="gutter">
             <Routes>
               <Route path="/" element={<Admin adminForms={adminForms} />} />
-              <Route path="/reports" element={<Reports />} />
-              <Route path="/scheduled-jobs" element={<ScheduledJobs />} />
-              <Route path="/scheduled-jobs/:jobId/history" element={<ScheduledJobHistory />} />
+              <Route path="/reports" element={<Suspense fallback={<Loading />}><Reports /></Suspense>} />
+              <Route path="/notify-volunteers/*" element={<Suspense fallback={<Loading />}><VolunteerNotifications /></Suspense>} />
               <Route
                 path="/:formSlug"
                 element={<AdminFormRecords adminForms={adminForms} />}

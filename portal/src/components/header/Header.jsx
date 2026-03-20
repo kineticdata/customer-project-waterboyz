@@ -220,13 +220,13 @@ const getMenuItems = (profile, roles = {}, { hasNominations } = {}) => {
         { label: 'Events', to: '/events', icon: 'calendar-heart' },
         { label: 'SWAT Reports', to: '/admin/reports', icon: 'report-analytics' },
         { label: 'Volunteer Management', to: '/admin/volunteer-management', icon: 'table' },
+        { label: 'Volunteer Notifications', to: '/admin/notify-volunteers', icon: 'mail' },
         { label: 'Settings', to: '/settings/datastore', icon: 'settings' },
       ],
     },
     profile?.spaceAdmin && {
       title: 'System Admin',
       items: [
-        { label: 'Scheduled Jobs', to: '/admin/scheduled-jobs', icon: 'clock' },
         { label: 'Theme Editor', to: '/theme', icon: 'palette' },
         {
           label: 'Platform Console',
