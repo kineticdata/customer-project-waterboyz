@@ -283,15 +283,6 @@ const HeaderMenu = ({ profile, roles, hasNominations }) => {
               </Fragment>
             ))}
           </ul>
-          <ul className="kmenu p-0 w-full gap-1 flex-none">
-            <hr className="my-2" />
-            <HeaderMenuItem
-              label="Settings"
-              to="/settings"
-              icon="settings"
-              close={close}
-            />
-          </ul>
         </Popover.Content>
       </Popover.Positioner>
     </Popover.RootProvider>
