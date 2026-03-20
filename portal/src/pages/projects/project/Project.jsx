@@ -37,7 +37,7 @@ const navItems = [
   { label: 'Volunteers', to: 'volunteers', icon: 'heart-handshake' },
   { label: 'Notes', to: 'notes', icon: 'notes' },
   { label: 'Tasks', to: 'tasks', icon: 'checklist' },
-  { label: 'Expenses', to: 'expenses', icon: 'receipt' },
+  { label: 'Expenses', to: 'expenses', icon: 'receipt', disabled: true },
   { label: 'Photos', to: 'photos', icon: 'camera' },
 ];
 
@@ -257,44 +257,69 @@ export const Project = () => {
                     </button>
                   </div>
                   <nav className="flex flex-col gap-1">
-                    {navItems.map(item => (
-                      <NavLink
-                        key={item.to}
-                        to={item.to}
-                        onClick={() => setNavOpen(false)}
-                        className={({ isActive }) =>
-                          clsx(
-                            'kbtn kbtn-ghost justify-start gap-3',
-                            isActive && 'bg-primary/8 text-primary',
-                          )
-                        }
-                      >
-                        <Icon name={item.icon} size={18} />
-                        {item.label}
-                      </NavLink>
-                    ))}
+                    {navItems.map(item =>
+                      item.disabled ? (
+                        <span
+                          key={item.to}
+                          title="Coming soon"
+                          className="kbtn kbtn-ghost justify-start gap-3 opacity-40 cursor-not-allowed"
+                        >
+                          <Icon name={item.icon} size={18} />
+                          {item.label}
+                          <span className="kbadge kbadge-xs kbadge-ghost ml-auto">
+                            Coming soon
+                          </span>
+                        </span>
+                      ) : (
+                        <NavLink
+                          key={item.to}
+                          to={item.to}
+                          onClick={() => setNavOpen(false)}
+                          className={({ isActive }) =>
+                            clsx(
+                              'kbtn kbtn-ghost justify-start gap-3',
+                              isActive && 'bg-primary/8 text-primary',
+                            )
+                          }
+                        >
+                          <Icon name={item.icon} size={18} />
+                          {item.label}
+                        </NavLink>
+                      ),
+                    )}
                   </nav>
                 </div>
               </Panel>
             ) : (
               <nav className="flex flex-col gap-1">
-                {navItems.map(item => (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    className={({ isActive }) =>
-                      clsx(
-                        'flex-sc gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                        isActive
-                          ? 'bg-primary/8 text-primary'
-                          : 'text-base-content/60 hover:bg-base-200 hover:text-base-content',
-                      )
-                    }
-                  >
-                    <Icon name={item.icon} size={18} />
-                    {item.label}
-                  </NavLink>
-                ))}
+                {navItems.map(item =>
+                  item.disabled ? (
+                    <span
+                      key={item.to}
+                      title="Coming soon"
+                      className="flex-sc gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-base-content/30 cursor-not-allowed"
+                    >
+                      <Icon name={item.icon} size={18} />
+                      {item.label}
+                    </span>
+                  ) : (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      className={({ isActive }) =>
+                        clsx(
+                          'flex-sc gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                          isActive
+                            ? 'bg-primary/8 text-primary'
+                            : 'text-base-content/60 hover:bg-base-200 hover:text-base-content',
+                        )
+                      }
+                    >
+                      <Icon name={item.icon} size={18} />
+                      {item.label}
+                    </NavLink>
+                  )
+                )}
               </nav>
             )}
 
