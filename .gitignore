@@ -40,3 +40,4 @@ dist-ssr
 .env.production.local
 frontend-testing/.env
 .mcp.json
+temp/

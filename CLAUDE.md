@@ -49,390 +49,48 @@ frontend-testing/      # Playwright test configuration
 
 ---
 
-## Kinetic Platform — Space Configuration
+## Kinetic Platform Configuration
 
-- **Space Name:** Waterboyz
-- **Space Slug:** `waterboyz`
-- **Default Locale:** `en`
-- **Default Timezone:** `America/Detroit`
-- **Display Type:** Custom (hosted portal)
-- **Trusted Frame Domains:** `localhost:3000`
+> **Full platform configuration** (forms, fields, security policies, workflows, integrations, teams) is documented in **[docs/platform-config.md](docs/platform-config.md)**. Read that file when working with platform APIs, workflows, or security.
 
-### Space Attribute Definitions
+**Quick reference:**
 
-| Attribute | Allows Multiple | Description |
-|-----------|:-:|---|
-| Service Portal Kapp Slug | No | Slug of the service portal kapp (defaults to "service-portal") |
-| System Kapp Slug | No | Slug of the system kapp (defaults to "system") |
-| Theme | No | Custom theming configuration (JSON) — do not edit manually |
-| Web Server Url | No | Platform URL (`https://waterboyz.kinops.io`) |
-
-### User Attribute Definitions
-
-| Attribute | Description |
-|-----------|---|
-| Manager | The user's manager |
-| Volunteer Id | Links user account to a volunteer record in the `volunteers` datastore |
-
-### User Profile Attribute Definitions
-
-| Attribute | Description |
-|-----------|---|
-| First Name | User's first name |
-| Last Name | User's last name |
-| Cell Phone Number | User's cell phone |
-| Theme | Selected portal theme name |
-| Address - Street | Street address |
-| Address - City | City |
-| Address - State | State |
-| Address - Zip | Zip code |
-| Profile Last Updated Date | Timestamp of last profile update |
+- **Space:** `waterboyz` at `https://waterboyz.kinops.io`
+- **Kapp:** `service-portal` (all forms live here)
+- **Connection ID:** `1415539c-bb98-48bb-ad33-11be25189ad0` (shared by all integrations)
 
 ---
 
-## Kinetic Platform — Kapp & Forms
-
-All forms live under the **`service-portal`** kapp.
-
-### Kapp Attribute Definitions
-
-| Attribute | Description |
-|-----------|---|
-| Theme | Kapp-level theme configuration |
-| Department Head | Department head reference |
-
-### Form Attribute Definitions
-
-| Attribute | Allows Multiple | Description |
-|-----------|:-:|---|
-| Approvers | No | Approver(s) for the form |
-| Departments | Yes | Associated departments |
-| Icon | No | Tabler Icons library icon name |
-
-### Category Attribute Definitions
-
-| Attribute | Description |
-|-----------|---|
-| Hidden | Whether category is hidden from UI ("true"/"false") |
-| Icon | Tabler Icons library icon name |
-| Parent | Slug of parent category (for nesting) |
-
----
-
-## Categories
-
-| Category | Slug | Icon | Forms |
-|----------|------|------|-------|
-| Christmas Alive | `christmas-alive` | `christmas-tree` | `christmas-alive-family-nomination` |
-| SWAT | `swat` | `tool` | `swat-project-nomination` |
-| Popular Services | `popular-services` | *(none)* | `volunteers` *(hidden category)* |
-
----
-
-## Forms — Detailed Field Reference
-
-### Nomination Forms (user-facing requests)
-
-#### Christmas Alive Family Nomination (`christmas-alive-family-nomination`)
-- **Type:** Nominations | **Status:** Active
-- **Category:** `christmas-alive` | **Icon:** `pointer-cancel`
-- **Description:** Nominate a family for Christmas Alive
-- **Fields:** First Name, Last Name, Email, Phone Number, Address, County, Native Language, Needs Interpreter, Family Members JSON, Support Received, Background on the Family, Total Adults, Total Children, Family Status, Requested By
-- **Workflows:** "Nomination Process" (on Submitted), "On Update" (on Updated)
-
-#### Nominate a SWAT Project (`swat-project-nomination`)
-- **Type:** Nominations | **Status:** Active
-- **Category:** `swat`
-- **Description:** Nominate a family in need for a SWAT project
-- **Fields:** Nominator Type, Nominator Full Name, Nominator Phone Number, Nominator Email, Associated Organization, First Name, Last Name, Phone Number, Email, Project Urgency, Project Photos, Address Line 1, Address Line 2, City, State, Zip, County, Project Notes, Status
-- **Workflows:** "SWAT Project Initiation" (on Submitted) — creates a Family record, then routes to SWAT Project Approval
-
-### Datastore Forms (backend data)
-
-#### SWAT Projects (`swat-projects`)
-- **Type:** Datastore | **Status:** Active
-- **Description:** Core project records
-- **Fields (24):** Additional Volunteers Needed, Project Name, Project Captain, Scheduled Date, Completion Date, Project Status, Skills Needed, Equipment Needed, Project Documents, Project Photos, Address Line 1, Address Line 2, City, State, Zip, County, Tasks JSON, Family ID, Project Notes, Original Request ID, Approval ID, Associated Event, Project Tasks Man Hours Total, Total Project Man Hours
-- **Key Relationships:**
-  - `Family ID` → links to `families` datastore
-  - `Original Request ID` → links to originating `swat-project-nomination` submission
-  - `Approval ID` → links to `swat-project-approval` submission
-  - `Project Captain` → username of assigned captain (member of SWAT Project Captains team)
-  - `Associated Event` → links to an `events` submission ID (set by Project Captain when scheduling a project for a serve day)
-
-#### Families (`families`)
-- **Type:** Datastore | **Status:** Active
-- **Description:** Families being served, have been served, or will be served
-- **Fields (12):** First Name, Last Name, Email, Phone Number, Address Line 1, Address Line 2, City, State, Zip, County, Native Language, Needs Interpreter
-
-#### Family Members (`family-members`)
-- **Type:** Datastore | **Status:** New
-- **Description:** Individual family member records
-- **Fields (6):** First Name, Last Name, Age, Gender, Type, Family ID
-- **Key Relationships:**
-  - `Family ID` → links to `families` datastore submission ID
-
-#### Volunteers (`volunteers`)
-- **Type:** Datastore | **Status:** Active
-- **Description:** Volunteer directory
-- **Fields (21):** First Name, Last Name, Email Address, Phone Number, Affiliated Organization, Address Line 1, Address Line 2, City, State, Zip, Bio, Languages You Know, Skill Areas, Other Skills, Tools, How often can you volunteer, Other Availability, Preferred Service Area, Dietary Restrictions, Photo Consent, Username
-- **Field notes:**
-  - `Skill Areas`, `Tools`, `Languages You Know`, `Preferred Service Area`, `Dietary Restrictions` — stored as JSON-serialized string arrays (e.g., `'["Plumbing","Painting"]'`)
-  - `Affiliated Organization` — freetext or selected from `affiliates` datastore
-- **Key Relationships:**
-  - `Username` → links to a user account (user attribute "Volunteer Id" links back)
-
-#### SWAT Project Volunteers (`swat-project-volunteers`)
-- **Type:** Datastore | **Status:** New
-- **Description:** Junction table linking volunteers to projects
-- **Fields (4):** Volunteer ID, Present, Project ID, Status
-- **Key Relationships:**
-  - `Project ID` → links to `swat-projects` submission ID
-  - `Volunteer ID` → links to `volunteers` submission ID
-
-#### Reimbursements (`reimbursements`)
-- **Type:** Datastore | **Status:** Active
-- **Description:** Expense/reimbursement tracking per project
-- **Fields (12):** Payee Name, Payee Address Line 1, Payee Address Line 2, Payee City, Payee State, Payee Zip, Project ID, Notes, Total Amount, Receipts, Status, Check Number
-- **Key Relationships:**
-  - `Project ID` → links to `swat-projects` submission ID
-
-#### Skills (`skills`)
-- **Type:** Datastore | **Status:** New
-- **Description:** Reference data for skill categories
-- **Fields (2):** Skill Category, Skill
-
-#### States (`states`)
-- **Type:** Datastore | **Status:** Active
-- **Fields (2):** Name, Abbreviation
-
-#### State Counties (`state-counties`)
-- **Type:** Datastore | **Status:** Active
-- **Fields (2):** State Abbr, County Name
-
-#### Tools (`tools`)
-- **Type:** Datastore | **Status:** Active
-- **Description:** Reference data for tool categories
-- **Fields (2):** Tool Category, Tool
-
-#### Affiliates (`affiliates`)
-- **Type:** Datastore | **Status:** Active
-- **Description:** Organizations affiliated with Waterboyz (churches, community orgs)
-- **Fields (2):** Name, Primary POC Email
-
-#### Portal Shortcuts (`portal-shortcuts`)
-- **Type:** Datastore | **Status:** Active
-- **Description:** Home page shortcuts configuration
-- **Fields (8):** Status, Title, Description, URL, New Tab, Image, Icon Name, Sort Order
-
-### Admin Forms
-
-#### Events (`events`)
-- **Type:** Admin | **Status:** Active
-- **Description:** Serve day events — records that group volunteers and projects for a given date
-- **Fields (6):** Event Name, Event Date, Event Description, Event Status, Sign-up Deadline, Sign Up Form Slug
-- **Field notes:**
-  - `Event Status` choices: `Planning`, `Open`, `Closed`, `Completed`
-  - `Sign Up Form Slug` — slug of the sign-up form to use for this event (defaults to `serve-day-sign-up` if blank)
-- **Portal access:** `/events` (authenticated volunteer list), `/events/:eventId/assign` (leadership assignment view), `/admin/events` (admin CRUD via AdminFormRecords), `/public/events` (public listing, no auth), `/public/events/:formSlug?eventId=<id>` (public sign-up — `eventId` query param sets the Event ID field on the form)
-
-#### Programs (`programs`)
-- **Type:** Admin | **Status:** Active
-- **Description:** Configurable programs displayed on the home page (SWAT, Christmas Alive, etc.)
-- **Fields (7):** Program Name, Description, Icon, Color, Status, Nomination Form Slug, Home Page Order
-- **Used by:** `HomeNominator.jsx` fetches active programs to render nomination cards; falls back to hardcoded SWAT/Christmas Alive if no programs are configured
-
-### Event Sign-Up Forms
-
-Event sign-up forms are Kinetic forms with **type `Event Sign Up`**. They are queried kapp-wide (no form slug filter) by type + `values[Event ID]`. Each event gets its own sign-up form cloned from the template, with a unique slug that serves as the public URL.
-
-Sign-up forms support **anonymous (public) submissions** — `anonymous: true` is set on the form, and the Display security policy is "Everyone". This allows anyone to sign up without an account via the public portal at `/public/events/:formSlug?eventId=<id>`. The `eventId` query parameter is passed from the public events listing and propagated through the signup → confirmation → re-signup (kiosk) flow so that the `Event ID` field is always pre-populated via CoreForm's `values` prop. Authenticated users visiting `/public/events/*` are redirected to `/events`.
-
-#### Serve Day Sign-Up (`serve-day-sign-up`)
-- **Type:** Event Sign Up | **Status:** Active | **Anonymous:** Yes
-- **Description:** Default sign-up form for serve day events
-- **Fields (12):** First Name, Last Name, Email, Phone Number, Who is Serving, Total Number of Volunteers, Who Else Is Serving, Notes, Project Preference, Event ID, Volunteer ID, Signup Status
-- **Field notes:**
-  - `First Name`, `Last Name`, `Email` — required contact fields (captured for anonymous signups)
-  - `Who is Serving` — radio: "Just Me" or "With Others" (conditionally shows group fields)
-  - `Event ID` — submission ID of the `events` record (pre-populated by the portal via `eventId` query param on public pages, or via `values` prop in `EventSignupModal` for authenticated users)
-  - `Volunteer ID` — optional; auto-populated from user profile attribute if logged in, empty for anonymous signups
-  - `Signup Status` choices: `Signed Up` (default), `Pending Assignment`, `Assigned`, `Waitlisted`, `Cancelled`
-- **Security:** Display = Everyone, Submission Access = Submitter or SWAT Leadership
-
-#### Event Signup Template (`event-signup-template`)
-- **Type:** Event Sign Up | **Status:** Inactive | **Anonymous:** Yes
-- **Description:** Template for creating event-specific sign-up forms. Clone this form and set a unique slug for each event.
-- **Fields:** Same as `serve-day-sign-up` (First Name, Last Name, Email, Phone Number, Who is Serving, etc.)
-- **Security:** Display = Everyone, Submission Access = Submitter or SWAT Leadership
-
-### Workflow/Approval Forms
-
-#### Approval (`approval`)
-- **Type:** Approval | **Status:** Active
-- **Icon:** `circle-dashed-check`
-- **Description:** Auto-created by workflow engine for generic approval tasks
-- **Fields (12):** Decision, Reason, Notes for Customer, Assigned Individual, Assigned Individual Display Name, Assigned Team, Assigned Team Display Name, Deferral Token, Status, Summary, Due Date, Details
-- **Workflows:** "Approval Submitted" (on Submitted)
-
-#### SWAT Project Approval (`swat-project-approval`)
-- **Type:** Approval | **Status:** Active
-- **Icon:** `circle-dashed-check`
-- **Description:** Leadership review of SWAT project nominations
-- **Fields (18):** Decision, Reason, Project Name, Initial Project Captain, Approved Budget, Assigned Individual, Assigned Individual Display Name, Assigned Team, Assigned Team Display Name, Deferral Token, Status, Summary, Due Date, Details, Originating Id, Family Last Name, Family ID, Project Notes
-- **Workflows:** "Complete Approval" (on Submitted) — creates a `swat-projects` record when approved
-- **Key Relationships:**
-  - `Originating Id` → links back to `swat-project-nomination` submission
-  - `Family ID` → links to `families` datastore
-
-#### Task (`task`)
-- **Type:** Task | **Status:** Active
-- **Fields (10):** Status, Notes, Assigned Individual, Assigned Individual Display Name, Assigned Team, Assigned Team Display Name, Deferral Token, Details, Due Date, Summary
-- **Workflows:** "Task Submitted" (on Submitted)
-
-### Utility Forms
-
-#### Account Password Reset (`account-password-reset`)
-- **Type:** Utility | **Status:** Active
-- **Fields (3):** Username, Display Name, Password Reset URL
-- **Workflows:** "Account Password Reset Submitted" (on Submitted)
-
-#### Account Registration (`account-registration`)
-- **Type:** Utility | **Status:** Active
-- **Fields (2):** Email Address, Display Name
-- **Workflows:** "Account Registration" (on Submitted)
-
----
-
-## Data Relationships Diagram
-
-```
-swat-project-nomination (Nominations)
-  │  [Submission Submitted → "SWAT Project Initiation" workflow]
-  │
-  ├──creates──→ families (Datastore)
-  │                │
-  │                └──referenced by──→ family-members.Family ID
-  │
-  └──creates──→ swat-project-approval (Approval)
-                   │  Originating Id → nomination submission ID
-                   │  Family ID → families submission ID
-                   │
-                   │  [Submission Submitted → "Complete Approval" workflow]
-                   │
-                   └──on approve, creates──→ swat-projects (Datastore)
-                                               │  Original Request ID → nomination ID
-                                               │  Approval ID → approval ID
-                                               │  Family ID → families ID
-                                               │  Project Captain → username
-                                               │  Associated Event → events submission ID (optional)
-                                               │
-                                               ├──referenced by──→ swat-project-volunteers
-                                               │                    Project ID → project ID
-                                               │                    Volunteer ID → volunteers ID
-                                               │
-                                               ├──referenced by──→ reimbursements.Project ID
-                                               │
-                                               └──volunteers linked via──→ volunteers (Datastore)
-                                                                            Username → user account
-
-events (Admin)
-  │  Sign Up Form Slug → slug of the sign-up form for this event
-  │
-  ├──referenced by──→ swat-projects.Associated Event
-  │
-  └──signups via──→ serve-day-sign-up (Event Sign Up) [or custom event form]
-                      │  Event ID → events submission ID
-                      │  Volunteer ID → volunteers submission ID
-                      │  Signup Status: Pending → Assigned / Waitlisted / Attended / Cancelled
-                      │
-                      └──assigned via──→ swat-project-volunteers
-                                          (created by leadership in EventsAssign)
-                                          Project ID → swat-projects submission ID
-                                          Volunteer ID → volunteers submission ID
-
-Note: sign-up forms are queried kapp-wide by type = "Event Sign Up" (not by form slug).
-The kapp must have a compound index on [type, values[Event ID]] for EventsAssign to work.
-```
-
----
-
-## Workflows Summary
-
-### Space-Level Workflows
-| Workflow | Event | Description |
-|----------|-------|-------------|
-| User Created | User Created | Triggered when a new user is created in the space |
-
-### Form-Level Workflows
-| Form | Workflow | Event | Description |
-|------|----------|-------|-------------|
-| `swat-project-nomination` | SWAT Project Initiation | Submission Submitted | Creates family record, routes to SWAT Project Approval |
-| `swat-project-approval` | Complete Approval | Submission Submitted | On approval, creates `swat-projects` record with linked data |
-| `christmas-alive-family-nomination` | Nomination Process | Submission Submitted | Processes Christmas Alive family nominations |
-| `christmas-alive-family-nomination` | On Update | Submission Updated | Handles updates to Christmas Alive nominations |
-| `approval` | Approval Submitted | Submission Submitted | Completes generic approval workflow |
-| `task` | Task Submitted | Submission Submitted | Completes generic task workflow |
-| `account-password-reset` | Account Password Reset Submitted | Submission Submitted | Sends password reset email |
-| `account-registration` | Account Registration | Submission Submitted | Creates user account and sends welcome email |
-
----
-
-## Server-Side Integrations (Kapp-Level)
-
-| Integration Name | Input Mappings | Purpose |
-|------------------|----------------|---------|
-| Families - Retrieve | *(none)* | Fetch all family records |
-| Family - Retrieve By ID | `Family ID` ← `values('Family ID')` | Fetch a single family by Family ID field |
-| Family Members - Retrieve | `Family ID` ← `values('Family ID')` | Fetch family members for a given Family ID |
-| Projects - Retrieve | `Family ID` ← `values('Family ID')` | Fetch projects associated with a family |
-| Project Volunteers - Retrieve | `Project ID` ← `values('Project ID')` | Fetch volunteers assigned to a project |
-| Upcoming SWAT Projects | *(none)* | Fetch upcoming/active SWAT projects |
-
-All integrations share the same connection (`1415539c-bb98-48bb-ad33-11be25189ad0`) to the Kinetic Platform bridge.
-
----
-
-## Teams & Roles
-
-| Team | Slug | Description | Members |
-|------|------|-------------|---------|
-| Bookkeepers | `79996d3f...` | Financial record keeping / reimbursement processing | james.davies@kineticdata.com |
-| Christmas Alive Nominators | `cd0f441a...` | People with nomination access for Christmas Alive | *(none currently)* |
-| SWAT Leadership | `4f93f090...` | Project approvals and oversight | james.davies@kineticdata.com, leadership |
-| SWAT Project Captains | `c9e76136...` | People who lead SWAT projects | captain, james.davies@kineticdata.com |
-
----
-
-## Security Policies
-
-### Space-Level
-| Policy | Rule | Description |
-|--------|------|-------------|
-| Admins | `false` | Only space admins (denies all others) |
-| Authenticated Users | `identity('authenticated')` | Must be logged in |
-| Everyone | `true` | Open access |
-
-### Kapp-Level
-| Policy | Type | Description |
-|--------|------|-------------|
-| Admins | Kapp | Only space admins |
-| Authenticated Users | Kapp | Must be authenticated |
-| Bookkeepers Project Captains and SWAT Leadership | Kapp | Must be member of Bookkeepers, SWAT Leadership, or SWAT Project Captains team |
-| Can Retrieve Family Member Details | Kapp | Must be a Christmas Alive Nominator |
-| Everyone | Kapp | Open access |
-| Is Volunteer | Kapp | User must have a non-empty "Volunteer Id" attribute |
-| Project Captains and SWAT Leadership | Kapp | Must be member of SWAT Leadership or SWAT Project Captains team |
-| Submitter | Submission | Must be the user who created the submission |
-| SWAT Leadership | Kapp | Must be member of SWAT Leadership team |
-
----
-
-## Bridge Models
-
-| Model | Active Mapping | Structure | Attributes | Qualifications |
-|-------|---------------|-----------|------------|----------------|
-| Users | Users | Users (kinetic-platform bridge, system agent) | username | All Users (Multiple) |
+## Forms — Quick Reference
+
+> **Full form details** (all fields, security policies, field notes) are in [docs/platform-config.md](docs/platform-config.md).
+
+| Form Slug | Type | Description |
+|-----------|------|-------------|
+| `swat-project-nomination` | Nominations | Nominate a family for a SWAT project |
+| `christmas-alive-family-nomination` | Nominations | Nominate a family for Christmas Alive |
+| `swat-projects` | Datastore | Core project records (26 fields) |
+| `families` | Datastore | Families being served |
+| `family-members` | Datastore | Individual family member records |
+| `volunteers` | Datastore | Volunteer directory (21 fields) |
+| `swat-project-volunteers` | Datastore | Junction: volunteers ↔ projects |
+| `project-notes` | Datastore | Version-controlled project notes |
+| `reimbursements` | Datastore | Expense/reimbursement tracking |
+| `events` | Datastore | Serve day events |
+| `programs` | Datastore | Configurable home page programs |
+| `skills` | Datastore | Reference: skill categories |
+| `tools` | Datastore | Reference: tool categories |
+| `affiliates` | Datastore | Affiliated organizations |
+| `states` | Datastore | US states reference |
+| `state-counties` | Datastore | Counties by state reference |
+| `scheduled-job-runs` | Datastore | Scheduled job execution log |
+| `serve-day-sign-up` | Event Sign Up | Default event sign-up (anonymous) |
+| `event-signup-template` | Event Sign Up | Template for cloning per-event forms (inactive) |
+| `swat-project-approval` | Approval | Leadership review of nominations |
+| `approval` | Approval | Generic approval (inactive) |
+| `account-password-reset` | Utility | Password reset requests |
+| `account-registration` | Utility | New account creation |
+| `request-to-join-swat-project` | Utility | Volunteer requests to join a project |
 
 ---
 

@@ -1,0 +1,37 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__kinetic-platform-waterboyz__list_form_submissions",
+      "mcp__kinetic-platform-waterboyz__retrieve_form",
+      "mcp__kinetic-platform-waterboyz__create_submission",
+      "mcp__kinetic-platform-waterboyz__list_forms",
+      "mcp__kinetic-platform-waterboyz__create_form",
+      "mcp__kinetic-platform-waterboyz__list_model_mappings",
+      "mcp__kinetic-platform-waterboyz__list_model_mapping_qualifications",
+      "WebFetch(domain:waterboyz.kinops.io)",
+      "Bash(npm run ops:generate-tools)",
+      "Bash(npm run build)",
+      "Bash(npm run check)",
+      "mcp__kinetic-platform-waterboyz__list_kapp_integrations",
+      "mcp__kinetic-platform-waterboyz__update_form",
+      "mcp__kinetic-platform-waterboyz__list_connections",
+      "mcp__kinetic-platform-waterboyz__retrieve_operation",
+      "mcp__kinetic-platform-waterboyz__patch_operation",
+      "mcp__kinetic-platform-waterboyz__execute_operation",
+      "Bash(git add portal/src/pages/upcoming-projects/ portal/src/pages/PrivateRoutes.jsx portal/src/components/header/Header.jsx portal/src/helpers/api.js portal/package.json portal/yarn.lock CLAUDE.md)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(git add portal/package.json portal/yarn.lock)",
+      "mcp__kinetic-platform-waterboyz__retrieve_space_workflows",
+      "mcp__kinetic-platform-waterboyz__retrieve_space_workflow",
+      "mcp__kinetic-platform-waterboyz__update_space_workflow",
+      "Bash(git add CLAUDE.md email-templates/build.js portal/public/logo.png)",
+      "Bash(node build.js --preview welcome)",
+      "Bash(node build.js welcome)"
+    ],
+    "additionalDirectories": [
+      "/Users/jamesdavies/dev/mcps/kinetic-platform-mgnt-mcp/scripts",
+      "/Users/jamesdavies/dev/mcps/kinetic-platform-mgnt-mcp/src"
+    ]
+  }
+}
