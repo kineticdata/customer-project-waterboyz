@@ -645,6 +645,7 @@ export const Volunteers = ({ project }) => {
             {pendingData.map(submission => {
               const values = getVolunteerValues(submission, volunteerDetails);
               const name = formatVolunteerName(values);
+              const requestNotes = submission?.values?.['Request Notes'];
               return (
                 <div
                   key={submission.id}
@@ -663,6 +664,11 @@ export const Volunteers = ({ project }) => {
                         <span>{formatPhone(values[FIELD_PHONE])}</span>
                       )}
                     </div>
+                    {requestNotes && (
+                      <div className="mt-1.5 text-xs text-base-content/50 italic line-clamp-2">
+                        &ldquo;{requestNotes}&rdquo;
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 flex-none">
                     <Tooltip content="Approve">
