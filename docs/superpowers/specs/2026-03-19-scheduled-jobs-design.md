@@ -54,8 +54,8 @@ The generic pattern is documented in `ai-skills/skills/platform/architectural-pa
 | Routine Inputs | Text (multi-line) | No | JSON object of static input parameters |
 | Max Runs | Number | No | Null = unlimited |
 | Expires At | Date/Time | No | Null = never |
-| Run Count | Number | No | Managed by workflow |
 | Current Deferral Token | Text | No | Managed by workflow |
+| Last Run ID | Text | No | Managed by workflow — submission ID of most recent run (for quick error lookup) |
 
 **Index definitions:**
 - `values[Status]`
@@ -89,7 +89,9 @@ The generic pattern is documented in `ai-skills/skills/platform/architectural-pa
 
 ### 2. Workflow: "Scheduler Start" (on Submission Submitted)
 
-Bound to `scheduled-jobs` form.
+Bound to `scheduled-jobs` form, event: Submission Submitted.
+
+**Trigger note:** The admin UI must use `CoreForm` (which handles the Draft → Submitted transition naturally) to fire this event. A direct `createSubmission()` with `coreState: 'Submitted'` fires "Submission Created" instead — see the workflow engine coreState rules.
 
 **Steps:**
 
@@ -110,7 +112,7 @@ Inputs: `Job ID`, `Run Number`, `Previous Output`
 
 2. **Pre-Execution Guards:**
    - Status != 'Active' → STOP
-   - Max Runs != null AND Run Count >= Max Runs → update job Status = 'Inactive', STOP
+   - Max Runs != null AND last run's Run Number >= Max Runs → update job Status = 'Inactive', STOP
    - Expires At != null AND now > Expires At → update job Status = 'Inactive', STOP
    - Query `scheduled-job-runs` where Job ID matches AND Status = 'Running' → if found, STOP (concurrent lock)
 
@@ -130,27 +132,29 @@ Inputs: `Job ID`, `Run Number`, `Previous Output`
 
 7. **Calculate Wait Duration:**
    - Interval → Interval Minutes × 60 seconds
-   - Time of Day → seconds until next Schedule Time on a valid Schedule Day in Timezone
+   - Time of Day → seconds until next Schedule Time on a valid Schedule Day in Timezone (see DST note below)
    - Enforce minimum floor: max(calculated, 60)
 
 8. **Write Next Run At** on the run record.
 
-9. **Store Deferral Token** on job submission (Current Deferral Token).
+9. **Wait** (system Wait handler with calculated duration).
+   - On the **Create connector** from the Wait node (fires immediately when Wait enters deferral): update job submission with `Current Deferral Token = @task['Deferral Token']` and `Last Run ID` = current run's submission ID. The token does not exist until the Wait node starts — it must be captured via the Create connector.
 
-10. **Wait** (system Wait handler with calculated duration).
-
-11. **After Wake — Re-Read Job:**
+10. **After Wake** (Complete connector from Wait) — **Re-Read Job:**
     - Status != 'Active' → STOP
-    - Increment Run Count on job submission
     - **Recurse:** call self with Job ID, Run Number + 1, previous Routine Output
+
+**DST note:** When clocks spring forward, a target time may not exist (e.g., 2:30 AM). Use the next valid time. When clocks fall back, a target time may be ambiguous (e.g., 1:30 AM occurs twice). Use the first occurrence.
 
 ### 4. WebAPI: "Restart Scheduled Job"
 
 | Property | Value |
 |----------|-------|
+| Scope | Kapp-level (`service-portal`) |
 | Method | POST |
 | Security | Admins |
 | Slug | `restart-scheduled-job` |
+| URL | `/app/api/v1/kapps/service-portal/webApis/restart-scheduled-job` |
 
 **Input:** `jobId` (query parameter or request body)
 
@@ -165,6 +169,7 @@ Inputs: `Job ID`, `Run Number`, `Previous Output`
 5. Set job Status = 'Active', clear Current Deferral Token.
 6. Derive next Run Number from most recent run's Run Number + 1 (or 1 if no runs).
 7. Call "Execute Schedule Tick" routine.
+8. Return success response via `system_tree_return_v1` on a **Create connector** from the routine call — do not wait for the routine to complete (WebAPIs have a 30-second synchronous timeout; the routine runs indefinitely).
 
 ### 5. Portal: Admin UI
 
@@ -191,7 +196,7 @@ Added to the admin hamburger menu as "Scheduled Jobs".
 | Routine | Routine Name |
 | Last Run | Most recent run: timestamp + status badge |
 | Next Run | Most recent run's Next Run At |
-| Runs | Most recent run's Run Number |
+| Runs | Derived from most recent run's Run Number |
 
 **Actions per row:**
 - **Activate** (shown when Inactive/Paused) — calls Restart WebAPI
@@ -200,13 +205,13 @@ Added to the admin hamburger menu as "Scheduled Jobs".
 - **Restart** (shown when Error or chain appears stalled) — calls Restart WebAPI with confirmation dialog
 - **History** — navigates to `/admin/scheduled-jobs/:jobId/history`
 
-**Create button** — opens a modal or inline form with job config fields. On save, creates a `scheduled-jobs` submission with `coreState: 'Submitted'` (triggers the Scheduler Start workflow).
+**Create button** — opens a modal with `CoreForm` rendering the `scheduled-jobs` form. CoreForm handles the Draft → Submitted transition naturally, which fires the "Scheduler Start" workflow. Do NOT use `createSubmission()` with `coreState: 'Submitted'` — that fires a different event.
 
-**Edit** — click job name to edit config fields. Editing an Active job updates the submission; the chain will pick up new config on the next re-read.
+**Edit** — click job name to edit config fields. Editing an Active job updates the submission; the chain will pick up new config on the next re-read. **Note:** there may be a delay of up to the old interval duration before changes take effect (the current Wait must complete first). The UI should inform admins of this.
 
 #### Run History (`ScheduledJobHistory.jsx`)
 
-**Data:** `useData` fetching `scheduled-job-runs` where Job ID matches, ordered by Run Number desc. Paginated.
+**Data:** `useData` fetching `scheduled-job-runs` where Job ID matches, ordered by Run Number desc. Server-side `pageToken` pagination (run history grows unbounded — client-side pagination will not scale).
 
 **Table columns:**
 
@@ -251,9 +256,9 @@ Workflows run as system agent — always have read/write access.
 ## Data Flow
 
 ```
-Admin creates a scheduled job via UI
-  → Portal creates scheduled-jobs submission (coreState: Submitted)
-  → "Scheduler Start" workflow fires:
+Admin creates a scheduled job via CoreForm in the UI
+  → CoreForm submits (Draft → Submitted transition)
+  → "Scheduler Start" workflow fires (Submission Submitted event):
       1. Validate config
       2. Call "Execute Schedule Tick" routine (Job ID, Run 1, no previous output)
 
@@ -266,9 +271,9 @@ Admin creates a scheduled job via UI
   → If error → mark job as Error, STOP
   → Calculate wait duration (interval or time-of-day)
   → Write Next Run At on run record
-  → Store deferral token on job submission
   → Wait (system Wait handler)
-  → After wake: re-read job, check guards
+    → [Create connector]: store deferral token + last run ID on job submission
+  → [Complete connector]: After wake: re-read job, check guards
   → Recurse (Job ID, Run N+1, previous Routine Output)
 
 Admin restarts a stalled job:
