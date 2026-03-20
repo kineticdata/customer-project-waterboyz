@@ -28,7 +28,7 @@ Volunteers can browse upcoming SWAT projects at `/upcoming-projects` and see pro
 | Type | Utility |
 | Status | Active |
 | Anonymous | No |
-| Display Policy | "Project Captains and SWAT Leadership" OR "Is Volunteer" (two policies, OR'd — ensures submitter is either leadership, a captain, or has a volunteer profile) |
+| Display Policy | "SWAT Leadership Project Captains and All Volunteers" (single existing policy — checks SWAT Leadership OR SWAT Project Captains team OR has Volunteer Id attribute) |
 | Submission Access | Submitter |
 
 **Fields:**
