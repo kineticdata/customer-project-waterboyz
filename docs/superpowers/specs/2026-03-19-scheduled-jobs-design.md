@@ -50,8 +50,8 @@ The generic pattern is documented in `ai-skills/skills/platform/architectural-pa
 | Schedule Time | Text | No | Required when Schedule Type = Time of Day. HH:MM 24h format. |
 | Schedule Days | Text | No | JSON array of day names. Empty = every day. |
 | Timezone | Text | No | IANA timezone. Defaults to America/Detroit. |
-| Routine Name | Text | Yes | Name of the workflow routine to execute |
-| Routine Inputs | Text (multi-line) | No | JSON object of static input parameters |
+| WebAPI Slug | Text | Yes | Slug of the kapp-level WebAPI to call on each tick. Admins create WebAPIs in the Console, each backed by a workflow tree that performs the job's work. The UI populates this via the "List Schedulable WebAPIs" Operation. |
+| WebAPI Parameters | Text (multi-line) | No | JSON object of parameters passed as query params to the WebAPI on each call |
 | Max Runs | Number | No | Null = unlimited |
 | Expires At | Date/Time | No | Null = never |
 | Current Deferral Token | Text | No | Managed by workflow |
