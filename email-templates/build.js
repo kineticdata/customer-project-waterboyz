@@ -374,7 +374,7 @@ const templates = {
           "You've been assigned to serve on the following project:",
         ),
         paragraph(
-          '<strong>Project:</strong> <%= @results["Get Project"]["Project Name"] %><br><strong>Date:</strong> <%= Date.parse(@results["Get Project"]["Scheduled Date"]).strftime("%B %-d, %Y") %><br><strong>Address:</strong> <%= @results["Get Project"]["Address Line 1"] %><% if @results["Get Project"]["Address Line 2"] && !@results["Get Project"]["Address Line 2"].empty? %><br><%= @results["Get Project"]["Address Line 2"] %><% end %><br><%= @results["Get Project"]["City"] %>, <%= @results["Get Project"]["State"] %> <%= @results["Get Project"]["Zip"] %>',
+          '<strong>Project:</strong> <%= @results["Get Project"]["Project Name"] %><br><strong>Date:</strong> <% if @results["Get Project"]["Scheduled Date"] && !@results["Get Project"]["Scheduled Date"].empty? %><%= Date.parse(@results["Get Project"]["Scheduled Date"]).strftime("%B %-d, %Y") %><% else %>TBD<% end %><br><strong>Address:</strong> <%= @results["Get Project"]["Address Line 1"] %><% if @results["Get Project"]["Address Line 2"] && !@results["Get Project"]["Address Line 2"].empty? %><br><%= @results["Get Project"]["Address Line 2"] %><% end %><br><%= @results["Get Project"]["City"] %>, <%= @results["Get Project"]["State"] %> <%= @results["Get Project"]["Zip"] %>',
         ),
         paragraph(
           'Your team captain is <strong><%= @results["Get Captain"]["Display Name"] %></strong>. They will be reaching out to you soon to coordinate details.',
@@ -614,6 +614,57 @@ const templates = {
     },
   },
 
+  'nomination-approval-request': {
+    subject: 'New SWAT Project Nomination Requires Approval — Waterboyz',
+    preheader: 'A new SWAT project has been nominated and needs your review.',
+    build: () => {
+      const body = [
+        heading('New Project Nomination'),
+        paragraph(
+          'Hi SWAT Leadership,',
+        ),
+        paragraph(
+          'A new SWAT project nomination has been submitted and requires your approval:',
+        ),
+        paragraph(
+          '<strong>Family:</strong> <%= @values["First Name"] %> <%= @values["Last Name"] %><br><strong>Location:</strong> <%= @values["City"] %>, <%= @values["State"] %> <%= @values["Zip"] %><br><strong>County:</strong> <%= @values["County"] %><br><strong>Urgency:</strong> <%= @values["Project Urgency"] %>',
+        ),
+        paragraph(
+          '<strong>Nominated by:</strong> <%= @values["Nominator Full Name"] %><br>' +
+          '<strong>Email:</strong> <%= @values["Nominator Email"] %><br>' +
+          '<strong>Phone:</strong> <%= @values["Nominator Phone Number"] %>' +
+          '<% if @values["Associated Organization"] && @values["Associated Organization"] != "" %>' +
+          '<br><strong>Organization:</strong> <%= @values["Associated Organization"] %>' +
+          '<% end %>',
+        ),
+        paragraph(
+          'Please review the nomination and approve or deny it in the portal:',
+        ),
+        action(
+          'Review Nomination',
+          `${brand.siteUrl}/#/actions/<%= @results["Create Approval Record"]["Submission Id"] %>`,
+        ),
+        note(
+          'This nomination was submitted on <%= Date.parse(@submission["Submitted At"]).strftime("%B %-d, %Y") %>. Please review it at your earliest convenience.',
+        ),
+        divider(),
+        paragraph(
+          'Thank you for your leadership in serving our community.',
+        ),
+        paragraph(
+          'The Waterboyz Team',
+        ),
+        spacer(),
+      ].join('');
+
+      return layout({
+        subject: 'New SWAT Project Nomination Requires Approval — Waterboyz',
+        preheader: 'A new SWAT project has been nominated and needs your review.',
+        body,
+      });
+    },
+  },
+
   'volunteer-confirmation': {
     subject: "You're Signed Up — Waterboyz",
     preheader: "Thanks for volunteering! Here are the details for your upcoming project.",
@@ -646,6 +697,48 @@ const templates = {
       return layout({
         subject: "You're Signed Up — Waterboyz",
         preheader: 'Thanks for volunteering!',
+        body,
+      });
+    },
+  },
+
+  'project-join-request': {
+    subject: 'New Volunteer Request — Waterboyz',
+    preheader: 'A volunteer has requested to join one of your SWAT projects.',
+    build: () => {
+      const body = [
+        heading('New Volunteer Request'),
+        paragraph(
+          'Hi <%= @results["Get Captain"]["Display Name"] %>,',
+        ),
+        paragraph(
+          '<strong><%= @results["Get Volunteer"]["First Name"] %> <%= @results["Get Volunteer"]["Last Name"] %></strong> has requested to join your project <strong><%= @results["Retrieve Project"]["Project Name"] %></strong>.',
+        ),
+        '<% if @values["Notes"] && @values["Notes"] != "" %>',
+        note(
+          '<strong>Message from the volunteer:</strong><br><%= @values["Notes"] %>',
+        ),
+        '<% end %>',
+        paragraph(
+          'You can review their volunteer profile and approve or remove this request from the project\'s Volunteers tab:',
+        ),
+        action(
+          'Review Request',
+          `${brand.siteUrl}/#/project-captains/<%= @results["Retrieve Project"]["Submission Id"] %>/volunteers`,
+        ),
+        divider(),
+        paragraph(
+          'Thank you for leading this project!',
+        ),
+        paragraph(
+          'The Waterboyz Team',
+        ),
+        spacer(),
+      ].join('');
+
+      return layout({
+        subject: 'New Volunteer Request — Waterboyz',
+        preheader: 'A volunteer has requested to join one of your SWAT projects.',
         body,
       });
     },
