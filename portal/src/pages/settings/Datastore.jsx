@@ -8,7 +8,7 @@ export const Datastore = ({ datastores }) => {
 
   return (
     <div className="max-w-screen-lg pt-6 pb-6">
-      <PageHeading title="Settings / Datastore" />
+      <PageHeading title="Settings / Datastore" backTo="/admin" />
 
       <div className="flex flex-col gap-4 mb-4 md:mb-6 md:grid md:grid-cols-[auto_auto_1fr]">
         {!datastores ? (
