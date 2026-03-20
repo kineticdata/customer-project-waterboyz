@@ -787,19 +787,46 @@ const templates = {
     subject: 'Volunteers Needed — Waterboyz',
     preheader: 'Upcoming SWAT projects need your help. Check out where you can serve!',
     build: () => {
-      const body = [
-        heading('Volunteers Needed!'),
-        '<% if @results["Get Submission"]["Custom Message"] && !@results["Get Submission"]["Custom Message"].empty? %>',
-        paragraph('<%= @results["Get Submission"]["Custom Message"] %>'),
-        '<% end %>',
-        divider(),
-        `
+      // ERB preamble: parse volunteer and projects data, custom message
+      const erbSetup = `<%
+volunteer = JSON.parse(@results['Loop Volunteers']['Value'])
+firstName = volunteer["First Name"] || "Volunteer"
+projects = JSON.parse(@results['Fetch Projects']['Projects']) rescue []
+customMessage = @values['Custom Message'].to_s
+%>`;
+
+      // Project cards built with ERB loop
+      const projectCards = `
     <tr>
       <td style="padding:16px 40px 0;" class="padding-mobile">
-        <%= @results["Build Email Body"]["Project HTML"] %>
+        <% projects.each do |p| %>
+        <div style="margin-bottom:16px; padding:16px; border:1px solid ${brand.border}; border-radius:8px;">
+          <p style="margin:0 0 8px; font-size:17px; font-weight:700; color:${brand.dark};"><%= p['Project Name'] || 'Unnamed Project' %></p>
+          <p style="margin:0 0 4px; font-size:14px; line-height:22px; color:${brand.text};"><strong>Date:</strong> <% if p['Scheduled Date'] && !p['Scheduled Date'].empty? %><%= Date.parse(p['Scheduled Date']).strftime('%B %-d, %Y') %><% else %>TBD<% end %></p>
+          <% if p['Skills Needed'] && !p['Skills Needed'].empty? %>
+          <p style="margin:0 0 4px; font-size:14px; line-height:22px; color:${brand.text};"><strong>Skills Needed:</strong> <%= p['Skills Needed'].gsub("\\n", ", ") %></p>
+          <% end %>
+          <% if p['Equipment Needed'] && !p['Equipment Needed'].empty? %>
+          <p style="margin:0 0 4px; font-size:14px; line-height:22px; color:${brand.text};"><strong>Equipment:</strong> <%= p['Equipment Needed'].gsub("\\n", ", ") %></p>
+          <% end %>
+          <p style="margin:0; font-size:14px; line-height:22px; color:${brand.text};"><strong>Location:</strong> <%= [p['City'], p['State']].compact.reject(&:empty?).join(', ') %></p>
+        </div>
+        <% end %>
       </td>
-    </tr>`,
-        spacer(12),
+    </tr>`;
+
+      const body = [
+        erbSetup,
+        heading('Volunteers Needed!'),
+        paragraph('Hi <%= firstName %>,'),
+        paragraph(
+          "We have upcoming SWAT projects that need volunteers. Check out the details below and let us know if you're available to serve!",
+        ),
+        '<% unless customMessage.empty? %>',
+        paragraph('<%= customMessage %>'),
+        '<% end %>',
+        divider(),
+        projectCards,
         action('View Projects', `${brand.siteUrl}/#/upcoming-projects`),
         divider(),
         paragraph(

@@ -145,7 +145,7 @@ const NotificationDetail = ({ values }) => {
             <ul className="text-sm space-y-1">
               {projects.map((p, i) => (
                 <li key={i} className="text-base-content/70">
-                  {p.projectName || p.projectId}
+                  {p['Project Name'] || p['Project Id'] || 'Unknown'}
                 </li>
               ))}
             </ul>
@@ -162,7 +162,7 @@ const NotificationDetail = ({ values }) => {
             <ul className="text-sm space-y-1 max-h-40 overflow-y-auto">
               {recipients.map((r, i) => (
                 <li key={i} className="text-base-content/70">
-                  {r.name} ({r.email})
+                  {[r['First Name'], r['Last Name']].filter(Boolean).join(' ')} ({r['Email Address']})
                 </li>
               ))}
             </ul>
