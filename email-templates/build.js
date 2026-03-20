@@ -712,7 +712,7 @@ const templates = {
           'Hi <%= @results["Get Captain"]["Display Name"] %>,',
         ),
         paragraph(
-          '<strong><%= @results["Get Volunteer"]["First Name"] %> <%= @results["Get Volunteer"]["Last Name"] %></strong> has requested to join your project <strong><%= @results["Retrieve Project"]["Project Name"] %></strong>.',
+          '<strong><%= @results["Get Volunteer"]["First Name"] %> <%= @results["Get Volunteer"]["Last Name"] %></strong> has requested to join your project <strong><%= @results["Retrieve Project"]["Name"] %></strong>.',
         ),
         '<% if @values["Notes"] && @values["Notes"] != "" %>',
         note(
@@ -724,7 +724,7 @@ const templates = {
         ),
         action(
           'Review Request',
-          `${brand.siteUrl}/#/project-captains/<%= @results["Retrieve Project"]["Submission Id"] %>/volunteers`,
+          `${brand.siteUrl}/#/project-captains/<%= @values["Project ID"] %>/volunteers`,
         ),
         divider(),
         paragraph(
