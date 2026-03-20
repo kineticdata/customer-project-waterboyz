@@ -37,7 +37,7 @@ export default defineConfig(({ command, mode }) => {
         // things which are expressly served from the dev server. So we will
         // bypass proxying only for the following:
         // /@*, /src*, /node_modules*, /index.html, and /
-        '^(?!(/@|/src|/node_modules|/index.html|/$|.*\\.(ico|png|webmanifest)$)).*$': {
+        '^(?!(/@|/src|/node_modules|/index.html|/$|/[^/]*\\.(ico|png|webmanifest)$)).*$': {
           target: env.REACT_APP_PROXY_HOST,
           changeOrigin: true,
           secure: false,
