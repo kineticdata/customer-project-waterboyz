@@ -9,6 +9,7 @@ import {
   getCsrfToken,
 } from '@kineticdata/react';
 import { useData } from '../../helpers/hooks/useData.js';
+import { executeIntegration } from '../../helpers/api.js';
 import { Loading } from '../../components/states/Loading.jsx';
 import { PageHeading } from '../../components/PageHeading.jsx';
 import { Icon } from '../../atoms/Icon.jsx';
@@ -18,27 +19,6 @@ import clsx from 'clsx';
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-const INTEGRATOR_API = '/app/integrator/api';
-
-/** Fetch connections from the integrator API */
-const fetchConnections = async () => {
-  const res = await fetch(`${INTEGRATOR_API}/connections`, {
-    headers: { 'X-XSRF-TOKEN': getCsrfToken() },
-  });
-  if (!res.ok) throw new Error('Failed to fetch connections');
-  return res.json();
-};
-
-/** Fetch operations for a given connection */
-const fetchOperations = async connectionId => {
-  const res = await fetch(
-    `${INTEGRATOR_API}/connections/${connectionId}/operations`,
-    { headers: { 'X-XSRF-TOKEN': getCsrfToken() } },
-  );
-  if (!res.ok) throw new Error('Failed to fetch operations');
-  return res.json();
-};
 
 /** Format schedule config into a human-readable string */
 const formatSchedule = job => {
@@ -95,14 +75,12 @@ const DAYS_OF_WEEK = [
 ];
 
 // ---------------------------------------------------------------------------
-// Create / Edit Job Form (custom, not CoreForm)
+// Create Job Form
 // ---------------------------------------------------------------------------
 
 const CreateJobForm = ({ onSave, onCancel, kappSlug }) => {
-  const [connections, setConnections] = useState([]);
-  const [operations, setOperations] = useState([]);
-  const [loadingConns, setLoadingConns] = useState(true);
-  const [loadingOps, setLoadingOps] = useState(false);
+  const [webApis, setWebApis] = useState([]);
+  const [loadingApis, setLoadingApis] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const [form, setForm] = useState({
@@ -114,43 +92,33 @@ const CreateJobForm = ({ onSave, onCancel, kappSlug }) => {
     'Schedule Time': '',
     'Schedule Days': '[]',
     Timezone: 'America/Detroit',
-    'Connection ID': '',
-    'Operation ID': '',
-    'Operation Name': '',
-    'Operation Parameters': '',
+    'WebAPI Slug': '',
+    'WebAPI Parameters': '',
     'Max Runs': '',
     'Expires At': '',
   });
 
   const set = (field, value) => setForm(f => ({ ...f, [field]: value }));
 
-  // Load connections on mount
+  // Fetch available WebAPIs via the "List Schedulable WebAPIs" operation
   useEffect(() => {
-    fetchConnections()
-      .then(data => setConnections(Array.isArray(data) ? data : []))
-      .catch(() => toastError('Could not load connections.'))
-      .finally(() => setLoadingConns(false));
-  }, []);
-
-  // Load operations when connection changes
-  useEffect(() => {
-    if (!form['Connection ID']) {
-      setOperations([]);
-      return;
-    }
-    setLoadingOps(true);
-    fetchOperations(form['Connection ID'])
-      .then(data => setOperations(Array.isArray(data) ? data : []))
-      .catch(() => toastError('Could not load operations.'))
-      .finally(() => setLoadingOps(false));
-  }, [form['Connection ID']]);
-
-  const selectedOp = operations.find(o => o.id === form['Operation ID']);
+    executeIntegration({
+      kappSlug,
+      integrationName: 'List Schedulable WebAPIs',
+    })
+      .then(data => {
+        const apis = data?.WebAPIs ?? data?.webApis ?? [];
+        // Filter out the restart-scheduled-job WebAPI (infrastructure, not a job target)
+        setWebApis(apis.filter(a => a.Slug !== 'restart-scheduled-job'));
+      })
+      .catch(() => toastError('Could not load WebAPIs.'))
+      .finally(() => setLoadingApis(false));
+  }, [kappSlug]);
 
   const handleSubmit = async e => {
     e.preventDefault();
-    if (!form['Job Name'] || !form['Connection ID'] || !form['Operation ID']) {
-      toastError('Job Name, Connection, and Operation are required.');
+    if (!form['Job Name'] || !form['WebAPI Slug']) {
+      toastError('Job Name and WebAPI are required.');
       return;
     }
     if (
@@ -162,13 +130,10 @@ const CreateJobForm = ({ onSave, onCancel, kappSlug }) => {
     }
     setSaving(true);
     try {
-      const values = { ...form };
-      // Store the operation name for display purposes
-      if (selectedOp) values['Operation Name'] = selectedOp.name;
       const { error } = await createSubmission({
         kappSlug,
         formSlug: 'scheduled-jobs',
-        values,
+        values: form,
         coreState: 'Submitted',
       });
       if (error) throw new Error(error.message || 'Failed to create job');
@@ -204,94 +169,71 @@ const CreateJobForm = ({ onSave, onCancel, kappSlug }) => {
         />
       </div>
 
-      {/* Connection + Operation (cascading dropdowns) */}
+      {/* WebAPI to Execute */}
       <fieldset className="border border-base-300 rounded-box p-4 space-y-3">
         <legend className="text-sm font-semibold px-2">
-          Operation to Execute
+          Workflow to Execute
         </legend>
 
         <div className="kform-control">
-          <label className="klabel">Connection *</label>
-          {loadingConns ? (
+          <label className="klabel">WebAPI *</label>
+          {loadingApis ? (
             <span className="text-sm ktext-base-content/60">Loading...</span>
+          ) : webApis.length === 0 ? (
+            <div className="text-sm ktext-base-content/60">
+              No schedulable WebAPIs found.{' '}
+              <a
+                href="/app/console/#/settings/webhooks-webapis"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="klink"
+              >
+                Create one in the Console
+              </a>
+            </div>
           ) : (
             <select
               className="kselect kselect-bordered w-full"
-              value={form['Connection ID']}
-              onChange={e => {
-                set('Connection ID', e.target.value);
-                set('Operation ID', '');
-                set('Operation Name', '');
-              }}
+              value={form['WebAPI Slug']}
+              onChange={e => set('WebAPI Slug', e.target.value)}
               required
             >
-              <option value="">Select a connection...</option>
-              {connections.map(c => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
+              <option value="">Select a WebAPI...</option>
+              {webApis.map(api => (
+                <option key={api.Slug} value={api.Slug}>
+                  {api.Slug} ({api.Method})
                 </option>
               ))}
             </select>
           )}
+          <div className="mt-1">
+            <a
+              href="/app/console/#/settings/webhooks-webapis"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="klink text-xs flex-sc gap-1"
+            >
+              <Icon name="external-link" size={12} />
+              Create a new WebAPI in the Console
+            </a>
+          </div>
         </div>
 
         <div className="kform-control">
-          <label className="klabel">Operation *</label>
-          {loadingOps ? (
-            <span className="text-sm ktext-base-content/60">Loading...</span>
-          ) : (
-            <select
-              className="kselect kselect-bordered w-full"
-              value={form['Operation ID']}
-              onChange={e => {
-                const op = operations.find(o => o.id === e.target.value);
-                set('Operation ID', e.target.value);
-                set('Operation Name', op?.name || '');
-              }}
-              required
-              disabled={!form['Connection ID']}
-            >
-              <option value="">Select an operation...</option>
-              {operations.map(o => (
-                <option key={o.id} value={o.id}>
-                  {o.name}
-                </option>
-              ))}
-            </select>
-          )}
-          {form['Connection ID'] && (
-            <div className="mt-1">
-              <a
-                href="/app/console/#/settings/integrator"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="klink text-xs flex-sc gap-1"
-              >
-                <Icon name="external-link" size={12} />
-                Manage operations in the Integrator
-              </a>
-            </div>
-          )}
+          <label className="klabel">
+            Parameters (JSON)
+            <span className="klabel-text-alt">
+              Passed as query params on each call
+            </span>
+          </label>
+          <textarea
+            className="ktextarea ktextarea-bordered w-full font-mono text-xs"
+            rows={3}
+            value={form['WebAPI Parameters']}
+            onChange={e => set('WebAPI Parameters', e.target.value)}
+            placeholder='{"key": "value"}'
+          />
         </div>
-
-        {/* Show operation parameters template if the operation has inputs */}
-        {selectedOp?.config?.body?.raw && (
-          <div className="kform-control">
-            <label className="klabel">
-              Operation Parameters (JSON)
-              <span className="klabel-text-alt">
-                Override template values
-              </span>
-            </label>
-            <textarea
-              className="ktextarea ktextarea-bordered w-full font-mono text-xs"
-              rows={4}
-              value={form['Operation Parameters']}
-              onChange={e => set('Operation Parameters', e.target.value)}
-              placeholder='{"param": "value"}'
-            />
-          </div>
-        )}
       </fieldset>
 
       {/* Schedule */}
@@ -442,11 +384,7 @@ const CreateJobForm = ({ onSave, onCancel, kappSlug }) => {
         >
           Cancel
         </button>
-        <button
-          type="submit"
-          className="kbtn kbtn-primary"
-          disabled={saving}
-        >
+        <button type="submit" className="kbtn kbtn-primary" disabled={saving}>
           {saving ? 'Creating...' : 'Create Job'}
         </button>
       </div>
@@ -589,7 +527,7 @@ export const ScheduledJobs = () => {
               <th>Job Name</th>
               <th>Status</th>
               <th>Schedule</th>
-              <th>Operation</th>
+              <th>WebAPI</th>
               <th>Last Run</th>
               <th>Next Run</th>
               <th>Runs</th>
@@ -627,8 +565,8 @@ export const ScheduledJobs = () => {
                     </span>
                   </td>
                   <td className="text-sm">{formatSchedule(job)}</td>
-                  <td className="text-sm">
-                    {v['Operation Name'] || v['Operation ID'] || '—'}
+                  <td className="text-sm font-mono">
+                    {v['WebAPI Slug'] || '—'}
                   </td>
                   <td className="text-sm">
                     {rv ? (
