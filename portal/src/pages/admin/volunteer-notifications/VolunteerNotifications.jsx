@@ -51,7 +51,7 @@ const NotificationHistory = () => {
   const notifications = response?.submissions ?? [];
 
   return (
-    <div>
+    <div className="pt-6">
       <PageHeading title="Volunteer Notifications">
         <Link
           to="/admin/notify-volunteers/new"

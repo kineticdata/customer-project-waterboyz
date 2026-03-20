@@ -76,7 +76,7 @@ export const SendNotification = () => {
   const canSend = projects.length > 0 && volunteers.length > 0 && !sending;
 
   return (
-    <div>
+    <div className="pt-6">
       <PageHeading
         title="Send Notification"
         backTo="/admin/notify-volunteers"
