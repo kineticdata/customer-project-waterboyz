@@ -216,6 +216,7 @@ const getMenuItems = (profile, roles = {}, { hasNominations } = {}) => {
     },
     (isAdmin || isLeadership) && {
       title: 'Admin',
+      defaultOpen: true,
       items: [
         { label: 'Events', to: '/events', icon: 'calendar-heart' },
         { label: 'SWAT Reports', to: '/admin/reports', icon: 'report-analytics' },
@@ -307,12 +308,13 @@ const HeaderMenuItem = ({
   title,
   items,
   close,
+  defaultOpen,
 }) => {
   if (items) {
     if (title) {
       return (
         <li>
-          <details>
+          <details open={defaultOpen}>
             <summary className="content-center h-8 text-xs uppercase tracking-wider text-base-content/50 font-semibold">
               {title}
             </summary>
