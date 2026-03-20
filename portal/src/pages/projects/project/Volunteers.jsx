@@ -50,14 +50,14 @@ const buildLastNameSearch = term => ({
 });
 
 // Build the KQL search to list volunteers already associated to a project.
-const buildVolunteersSearch = projectId => {
-  const search = defineKqlQuery();
-  search.equals(`values[${FIELD_PROJECT_ID}]`, 'projectId');
-  search.equals(`values[${FIELD_STATUS}]`, 'status');
-  search.end();
+const buildVolunteersSearch = (projectId, status = 'Active') => {
+  const q = defineKqlQuery()
+    .equals(`values[${FIELD_PROJECT_ID}]`, 'projectId')
+    .equals(`values[${FIELD_STATUS}]`, 'status')
+    .end();
 
   return {
-    q: search.end()({ projectId, status: 'Active' }),
+    q: q({ projectId, status }),
     include: ['details', 'values'],
     limit: 200,
   };
@@ -186,10 +186,40 @@ export const Volunteers = ({ project }) => {
   const data = useMemo(() => response?.submissions || [], [response]);
   const error = response?.error;
 
-  // IDs of volunteers already associated with this project.
+  // Query pending-approval relationship submissions for the current project.
+  const pendingParams = useMemo(
+    () =>
+      projectId
+        ? {
+            kapp: kappSlug,
+            form: RELATIONSHIP_FORM,
+            search: buildVolunteersSearch(projectId, 'Pending Approval'),
+          }
+        : null,
+    [kappSlug, projectId],
+  );
+
+  const {
+    initialized: pendingInit,
+    loading: pendingLoading,
+    response: pendingResponse,
+    actions: { reloadData: reloadPending },
+  } = useData(searchSubmissions, pendingParams);
+
+  const pendingData = useMemo(() => pendingResponse?.submissions || [], [pendingResponse]);
+
+  const reloadAll = useCallback(() => {
+    reloadData();
+    reloadPending();
+  }, [reloadData, reloadPending]);
+
+  // IDs of volunteers already associated with this project (active + pending).
   const volunteerIds = useMemo(
-    () => data.map(item => item?.values?.[FIELD_VOLUNTEER_ID]).filter(Boolean),
-    [data],
+    () => [...new Set([
+      ...data.map(item => item?.values?.[FIELD_VOLUNTEER_ID]).filter(Boolean),
+      ...pendingData.map(item => item?.values?.[FIELD_VOLUNTEER_ID]).filter(Boolean),
+    ])],
+    [data, pendingData],
   );
 
   // Fetch the volunteer details for all associated volunteer IDs.
@@ -299,12 +329,12 @@ export const Volunteers = ({ project }) => {
         });
       } else {
         toastSuccess({ title: 'Volunteer updated' });
-        reloadData();
+        reloadAll();
       }
 
       setSaving(s => ({ ...s, [submission.id]: false }));
     },
-    [reloadData],
+    [reloadAll],
   );
 
   // Remove a volunteer from this project by setting Status to "Removed".
@@ -324,12 +354,37 @@ export const Volunteers = ({ project }) => {
         });
       } else {
         toastSuccess({ title: 'Volunteer removed' });
-        reloadData();
+        reloadAll();
       }
 
       setSaving(s => ({ ...s, [submission.id]: false }));
     },
-    [reloadData],
+    [reloadAll],
+  );
+
+  // Approve a pending volunteer request by setting Status to "Active".
+  const handleApproveVolunteer = useCallback(
+    async submission => {
+      if (!submission?.id) return;
+      setSaving(s => ({ ...s, [submission.id]: true }));
+      const result = await updateSubmission({
+        id: submission.id,
+        values: { [FIELD_STATUS]: 'Active' },
+      });
+
+      if (result?.error) {
+        toastError({
+          title: 'Unable to approve volunteer',
+          description: result.error.message,
+        });
+      } else {
+        toastSuccess({ title: 'Volunteer approved' });
+        reloadAll();
+      }
+
+      setSaving(s => ({ ...s, [submission.id]: false }));
+    },
+    [reloadAll],
   );
 
   // Add a volunteer to this project. If a "Removed" record already exists
@@ -384,11 +439,11 @@ export const Volunteers = ({ project }) => {
       } else {
         toastSuccess({ title: 'Volunteer added' });
         setSearchTerm('');
-        reloadData();
+        reloadAll();
       }
       setAdding(false);
     },
-    [kappSlug, projectId, reloadData],
+    [kappSlug, projectId, reloadAll],
   );
 
   // Open the detail modal for a volunteer row.
@@ -481,9 +536,9 @@ export const Volunteers = ({ project }) => {
       phone: '',
     });
     setNewVolunteerOpen(false);
-    reloadData();
+    reloadAll();
     setCreatingVolunteer(false);
-  }, [kappSlug, newVolunteerValues, projectId, reloadData]);
+  }, [kappSlug, newVolunteerValues, projectId, reloadAll]);
 
   const handleAdditionalNeeded = useCallback(
     async value => {
@@ -576,6 +631,71 @@ export const Volunteers = ({ project }) => {
           </div>
         </div>
       </div>
+
+      {canRemove && pendingData.length > 0 && (
+        <div className="rounded-box border border-warning/30 bg-warning/5 p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Icon name="clock" size={20} className="text-warning" />
+            <span className="text-base font-semibold">Pending Requests</span>
+            <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-warning text-warning-content">
+              {pendingData.length}
+            </span>
+          </div>
+          <div className="flex flex-col gap-3">
+            {pendingData.map(submission => {
+              const values = getVolunteerValues(submission, volunteerDetails);
+              const name = formatVolunteerName(values);
+              return (
+                <div
+                  key={submission.id}
+                  className="flex items-center justify-between gap-3 rounded-lg bg-base-100 border border-base-200 px-4 py-3"
+                >
+                  <div
+                    className="flex-1 min-w-0 cursor-pointer"
+                    onClick={() => openVolunteerDetail(submission)}
+                  >
+                    <div className="font-medium text-sm truncate">
+                      {name || 'Volunteer'}
+                    </div>
+                    <div className="flex gap-3 text-xs text-base-content/60 mt-0.5">
+                      {values[FIELD_EMAIL] && <span>{values[FIELD_EMAIL]}</span>}
+                      {values[FIELD_PHONE] && (
+                        <span>{formatPhone(values[FIELD_PHONE])}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-none">
+                    <Tooltip content="Approve">
+                      <button
+                        slot="trigger"
+                        type="button"
+                        className="kbtn kbtn-sm kbtn-success kbtn-circle"
+                        onClick={() => handleApproveVolunteer(submission)}
+                        disabled={!!saving[submission.id]}
+                        aria-label="Approve volunteer"
+                      >
+                        <Icon name="check" size={16} />
+                      </button>
+                    </Tooltip>
+                    <Tooltip content="Remove">
+                      <button
+                        slot="trigger"
+                        type="button"
+                        className="kbtn kbtn-sm kbtn-ghost text-error kbtn-circle"
+                        onClick={() => handleRemoveVolunteer(submission)}
+                        disabled={!!saving[submission.id]}
+                        aria-label="Remove request"
+                      >
+                        <Icon name="x" size={16} />
+                      </button>
+                    </Tooltip>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="rounded-box border bg-base-100 p-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
