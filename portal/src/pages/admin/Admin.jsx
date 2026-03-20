@@ -61,6 +61,13 @@ export const Admin = ({ adminForms }) => {
         'Search and filter all volunteers by skills, location, language, and more.',
       to: '/admin/volunteer-management',
     },
+    {
+      icon: 'mail',
+      label: 'Volunteer Notifications',
+      description:
+        'Send mass email notifications to volunteers about upcoming projects.',
+      to: '/admin/notify-volunteers',
+    },
     isAdmin && {
       icon: 'database',
       label: 'Datastore',
