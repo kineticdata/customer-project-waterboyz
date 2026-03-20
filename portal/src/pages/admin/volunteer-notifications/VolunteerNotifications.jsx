@@ -40,7 +40,7 @@ const NotificationHistory = () => {
       kapp: kappSlug,
       form: 'swat-volunteer-notifications',
       search: {
-        include: ['values'],
+        include: ['details', 'values'],
         limit: 100,
         direction: 'DESC',
       },
