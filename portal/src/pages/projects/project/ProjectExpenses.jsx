@@ -177,7 +177,7 @@ export const ProjectExpenses = ({ project }) => {
   return (
     <div className="krounded-box border kbg-base-100 p-6">
       <div className="text-lg font-semibold">Project Expenses</div>
-      <p className="mt-2 ktext-base-content/70">
+      <p className="mt-2 text-base-content/70">
         Add reimbursements for project-related expenses.
       </p>
 
@@ -192,7 +192,7 @@ export const ProjectExpenses = ({ project }) => {
             <Error error={error} />
           </div>
         ) : data.length === 0 ? (
-          <div className="mt-3 text-sm ktext-base-content/60">
+          <div className="mt-3 text-sm text-base-content/60">
             No reimbursements have been added yet.
           </div>
         ) : (
@@ -209,15 +209,15 @@ export const ProjectExpenses = ({ project }) => {
                     <div className="font-semibold">
                       ${values[FIELD_TOTAL_AMOUNT] || '0.00'}
                     </div>
-                    <div className="text-xs ktext-base-content/60">
+                    <div className="text-xs text-base-content/60">
                       {values[FIELD_STATUS] || 'Submitted'}
                     </div>
                   </div>
-                  <div className="mt-1 text-sm ktext-base-content/70">
+                  <div className="mt-1 text-sm text-base-content/70">
                     {values[FIELD_PAYEE_NAME] || 'Unknown Payee'}
                   </div>
                   {values[FIELD_NOTES] && (
-                    <div className="mt-2 text-sm ktext-base-content/70 whitespace-pre-wrap">
+                    <div className="mt-2 text-sm text-base-content/70 whitespace-pre-wrap">
                       {values[FIELD_NOTES]}
                     </div>
                   )}
@@ -286,12 +286,12 @@ export const ProjectExpenses = ({ project }) => {
         size="lg"
       >
         <div slot="body">
-          <p className="mt-1 text-xs ktext-base-content/60">
+          <p className="mt-1 text-xs text-base-content/60">
             One reimbursement per person (one reimbursement = one check).
           </p>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <label className="klabel flex flex-col items-start gap-2">
-              <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+              <span className="klabel-text text-xs uppercase tracking-wide text-base-content/60">
                 Total Amount
               </span>
               <input
@@ -305,7 +305,7 @@ export const ProjectExpenses = ({ project }) => {
             </label>
 
             <label className="klabel flex flex-col items-start gap-2">
-              <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+              <span className="klabel-text text-xs uppercase tracking-wide text-base-content/60">
                 Receipts
               </span>
               <input
@@ -317,12 +317,12 @@ export const ProjectExpenses = ({ project }) => {
             </label>
           </div>
           <fieldset className="mt-4 kfieldset">
-            <legend className="kfieldset-legend text-xs uppercase tracking-wide ktext-base-content/60">
+            <legend className="kfieldset-legend text-xs uppercase tracking-wide text-base-content/60">
               Payee Information
             </legend>
             <div className="grid gap-4 md:grid-cols-2">
               <label className="klabel flex flex-col items-start gap-2">
-                <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+                <span className="klabel-text text-xs uppercase tracking-wide text-base-content/60">
                   Payee Name
                 </span>
                 <input
@@ -333,7 +333,7 @@ export const ProjectExpenses = ({ project }) => {
                 />
               </label>
               <label className="klabel flex flex-col items-start gap-2">
-                <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+                <span className="klabel-text text-xs uppercase tracking-wide text-base-content/60">
                   Payee Address Line 1
                 </span>
                 <input
@@ -344,7 +344,7 @@ export const ProjectExpenses = ({ project }) => {
                 />
               </label>
               <label className="klabel flex flex-col items-start gap-2">
-                <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+                <span className="klabel-text text-xs uppercase tracking-wide text-base-content/60">
                   Payee Address Line 2
                 </span>
                 <input
@@ -355,7 +355,7 @@ export const ProjectExpenses = ({ project }) => {
                 />
               </label>
               <label className="klabel flex flex-col items-start gap-2">
-                <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+                <span className="klabel-text text-xs uppercase tracking-wide text-base-content/60">
                   Payee City
                 </span>
                 <input
@@ -366,7 +366,7 @@ export const ProjectExpenses = ({ project }) => {
                 />
               </label>
               <label className="klabel flex flex-col items-start gap-2">
-                <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+                <span className="klabel-text text-xs uppercase tracking-wide text-base-content/60">
                   Payee State
                 </span>
                 <input
@@ -377,7 +377,7 @@ export const ProjectExpenses = ({ project }) => {
                 />
               </label>
               <label className="klabel flex flex-col items-start gap-2">
-                <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+                <span className="klabel-text text-xs uppercase tracking-wide text-base-content/60">
                   Payee Zip
                 </span>
                 <input
@@ -390,7 +390,7 @@ export const ProjectExpenses = ({ project }) => {
             </div>
           </fieldset>
           <label className="klabel mt-4 flex flex-col items-start gap-2">
-            <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+            <span className="klabel-text text-xs uppercase tracking-wide text-base-content/60">
               Memo
             </span>
             <div className="mt-2 krounded-box border kbg-base-100 p-2">

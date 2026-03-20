@@ -232,7 +232,7 @@ export const ProjectPhotos = ({ project, reloadProject }) => {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="text-lg font-semibold">Project Photos</div>
-          <p className="mt-2 ktext-base-content/70">
+          <p className="mt-2 text-base-content/70">
             Before/after photos and uploads.
           </p>
         </div>
@@ -249,7 +249,7 @@ export const ProjectPhotos = ({ project, reloadProject }) => {
       {showUploadForm && (
         <div className="mt-6 krounded-box border kbg-base-100/60 p-4">
           <div className="text-sm font-semibold">Upload Photos</div>
-          <p className="mt-1 text-xs ktext-base-content/60">
+          <p className="mt-1 text-xs text-base-content/60">
             Use the Project Photos field to add new images.
           </p>
           <div className="mt-3">
@@ -262,7 +262,7 @@ export const ProjectPhotos = ({ project, reloadProject }) => {
             />
             {selectedFiles.length > 0 && (
               <>
-                <div className="mt-2 text-xs ktext-base-content/60">
+                <div className="mt-2 text-xs text-base-content/60">
                   {selectedFiles.length} file
                   {selectedFiles.length === 1 ? '' : 's'} selected
                 </div>
@@ -330,7 +330,7 @@ export const ProjectPhotos = ({ project, reloadProject }) => {
       )}
 
       {attachments.length === 0 ? (
-        <div className="mt-4 text-sm ktext-base-content/60">
+        <div className="mt-4 text-sm text-base-content/60">
           No photos have been uploaded yet.
         </div>
       ) : (
@@ -391,7 +391,7 @@ export const ProjectPhotos = ({ project, reloadProject }) => {
                     </div>
                   )}
                 </a>
-                <div className="mt-2 flex items-center justify-between text-xs ktext-base-content/60 gap-2">
+                <div className="mt-2 flex items-center justify-between text-xs text-base-content/60 gap-2">
                   <span className="truncate">{label}</span>
                   <button
                     type="button"

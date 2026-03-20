@@ -36,7 +36,7 @@ export const ProjectInstructions = () => {
         </div>
         <div>
           <div className="text-lg font-semibold">Captain Instructions</div>
-          <p className="text-sm ktext-base-content/60">
+          <p className="text-sm text-base-content/60">
             Follow these steps for every project you lead.
           </p>
         </div>
@@ -58,7 +58,7 @@ export const ProjectInstructions = () => {
                 <Icon name={step.icon} size={18} className="text-primary" />
                 {step.title}
               </div>
-              <p className="mt-1 text-sm ktext-base-content/70 leading-relaxed">
+              <p className="mt-1 text-sm text-base-content/70 leading-relaxed">
                 {step.description}
               </p>
             </div>
@@ -75,10 +75,11 @@ export const ProjectInstructions = () => {
           />
           <div className="text-sm">
             <p className="font-semibold text-warning-content">Important</p>
-            <p className="mt-1 ktext-base-content/70 leading-relaxed">
+            <p className="mt-1 text-base-content/70 leading-relaxed">
               Family communication should be completed at least 4 weeks before
-              the scheduled project date. SWAT Leadership monitors the "Family
-              Communication Complete" status across all projects and will follow
+              the scheduled project date. SWAT Leadership monitors the
+              &ldquo;Family Communication Complete&rdquo; status across all
+              projects and will follow
               up if it hasn&apos;t been marked.
             </p>
           </div>

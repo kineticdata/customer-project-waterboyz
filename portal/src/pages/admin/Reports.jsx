@@ -69,9 +69,9 @@ const StatCard = ({ icon, label, value, sublabel }) => (
     </div>
     <div>
       <div className="text-2xl font-bold leading-tight">{value}</div>
-      <div className="text-xs ktext-base-content/60">{label}</div>
+      <div className="text-xs text-base-content/60">{label}</div>
       {sublabel && (
-        <div className="text-xs ktext-base-content/40 mt-0.5">{sublabel}</div>
+        <div className="text-xs text-base-content/40 mt-0.5">{sublabel}</div>
       )}
     </div>
   </div>
@@ -86,7 +86,7 @@ const BreakdownTable = ({ title, icon, data, sortByValue = true }) => {
   return (
     <div className="rounded-box border bg-base-100 p-4">
       <div className="flex-sc gap-2 mb-3">
-        <Icon name={icon} size={18} className="ktext-base-content/60" />
+        <Icon name={icon} size={18} className="text-base-content/60" />
         <span className="font-semibold text-sm">{title}</span>
       </div>
       <div className="flex flex-col gap-1">
@@ -95,7 +95,7 @@ const BreakdownTable = ({ title, icon, data, sortByValue = true }) => {
           return (
             <div key={key} className="flex items-center gap-2 text-sm">
               <span className="flex-1 truncate">{key}</span>
-              <span className="font-mono text-xs ktext-base-content/60 w-8 text-right">
+              <span className="font-mono text-xs text-base-content/60 w-8 text-right">
                 {count}
               </span>
               <div className="w-24 h-2 bg-base-200 rounded-full overflow-hidden flex-none">
@@ -164,7 +164,7 @@ const InlineFamilyType = ({ projectId, currentTypes, onSaved }) => {
             </span>
           ))
         ) : (
-          <span className="ktext-base-content/40 text-xs">—</span>
+          <span className="text-base-content/40 text-xs">—</span>
         )}
         <Icon
           name="pencil"
@@ -338,7 +338,7 @@ const InlineStatus = ({ projectId, currentValue, onSaved }) => {
             currentValue === 'Active' && 'bg-info/15 text-info',
             currentValue === 'Canceled' && 'bg-error/15 text-error',
             !['Completed', 'Active', 'Canceled'].includes(currentValue) &&
-              'bg-base-200 ktext-base-content/70',
+              'bg-base-200 text-base-content/70',
           )}
         >
           {currentValue || '—'}
@@ -401,17 +401,17 @@ export const Reports = () => {
     [kappSlug],
   );
   const { loading, response } = useData(searchSubmissions, params);
-  const rawProjects = response?.submissions ?? [];
-
   // Merge optimistic overrides into project data
   const allProjects = useMemo(
-    () =>
-      rawProjects.map(p => {
+    () => {
+      const rawProjects = response?.submissions ?? [];
+      return rawProjects.map(p => {
         const o = overrides[p.id];
         if (!o) return p;
         return { ...p, values: { ...p.values, ...o } };
-      }),
-    [rawProjects, overrides],
+      });
+    },
+    [response, overrides],
   );
 
   // Callback for inline edit saves — applies optimistic update
@@ -555,7 +555,7 @@ export const Reports = () => {
       {/* Filters */}
       <div className="rounded-box border bg-base-100 p-4 mb-4">
         <div className="flex-sc gap-2 mb-3">
-          <Icon name="filter" size={16} className="ktext-base-content/60" />
+          <Icon name="filter" size={16} className="text-base-content/60" />
           <span className="text-sm font-semibold">Filter Projects</span>
           {hasFilters && (
             <button
@@ -664,7 +664,7 @@ export const Reports = () => {
               <tr>
                 <td
                   colSpan={7}
-                  className="text-center py-8 ktext-base-content/50"
+                  className="text-center py-8 text-base-content/50"
                 >
                   {hasFilters
                     ? 'No projects match the current filters.'
@@ -709,7 +709,7 @@ export const Reports = () => {
                               'bg-error/15 text-error',
                             !['Completed', 'Active', 'Canceled'].includes(
                               v['Project Status'],
-                            ) && 'bg-base-200 ktext-base-content/70',
+                            ) && 'bg-base-200 text-base-content/70',
                           )}
                         >
                           {v['Project Status'] || '—'}
@@ -748,7 +748,7 @@ export const Reports = () => {
                           ))}
                         </div>
                       ) : (
-                        <span className="ktext-base-content/40 text-xs">—</span>
+                        <span className="text-base-content/40 text-xs">—</span>
                       )}
                     </td>
                     <td className="whitespace-nowrap">{date || '—'}</td>
@@ -763,7 +763,7 @@ export const Reports = () => {
 
       {/* Export hint */}
       {filteredProjects.length > 0 && (
-        <div className="mt-3 text-xs ktext-base-content/50 flex-sc gap-1">
+        <div className="mt-3 text-xs text-base-content/50 flex-sc gap-1">
           <Icon name="info-circle" size={14} />
           Showing {filteredProjects.length} project
           {filteredProjects.length !== 1 ? 's' : ''}.

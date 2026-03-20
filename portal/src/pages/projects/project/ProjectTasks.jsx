@@ -105,7 +105,7 @@ export const ProjectTasks = ({ project, reloadProject }) => {
   return (
     <div className="krounded-box border kbg-base-100 p-6">
       <div className="text-lg font-semibold">Tasks</div>
-      <p className="mt-2 ktext-base-content/70">
+      <p className="mt-2 text-base-content/70">
         Create a checklist for the team.
       </p>
 
@@ -134,7 +134,7 @@ export const ProjectTasks = ({ project, reloadProject }) => {
       </div>
 
       {tasks.length === 0 ? (
-        <div className="mt-3 text-sm ktext-base-content/60">
+        <div className="mt-3 text-sm text-base-content/60">
           No tasks yet.
         </div>
       ) : (
@@ -152,7 +152,7 @@ export const ProjectTasks = ({ project, reloadProject }) => {
               />
               <div
                 className={`flex-1 text-sm ${
-                  task.done ? 'line-through ktext-base-content/50' : ''
+                  task.done ? 'line-through text-base-content/50' : ''
                 }`}
               >
                 {task.text}
@@ -182,7 +182,7 @@ export const ProjectTasks = ({ project, reloadProject }) => {
       )}
 
       {tasks.length > 0 && (
-        <div className="mt-3 flex justify-end text-sm ktext-base-content/70">
+        <div className="mt-3 flex justify-end text-sm text-base-content/70">
           Estimated Total:{' '}
           <span className="ml-1 font-semibold text-base-content">
             {totalEstimatedHours} hrs

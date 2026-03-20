@@ -338,7 +338,7 @@ export const Profile = () => {
                     values={{
                       Username: profile.username,
                       'First Name': profile.displayName.split(' ')[0],
-                      'Last Name': profile.displayName.split(' ')[1],
+                      'Last Name': profile.displayName.split(' ').slice(1).join(' ') || '',
                       'Email Address': profile.email,
                     }}
                   />

@@ -55,7 +55,7 @@ export const UpcomingProjectDetail = ({ projects, loading, error }) => {
             },
           }
         : null,
-    [kappSlug, volunteerId, project],
+    [kappSlug, volunteerId, project, associationQuery],
   );
 
   const { initialized: assocInit, loading: assocLoading, response: assocResponse } =

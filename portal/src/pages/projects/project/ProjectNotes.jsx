@@ -99,7 +99,7 @@ const HistoryEntry = ({ version, previousContent, isFirst }) => {
           />
           <span className="font-semibold">{createdBy || 'Unknown'}</span>
         </button>
-        <span className="text-xs ktext-base-content/50">{timeAgo}</span>
+        <span className="text-xs text-base-content/50">{timeAgo}</span>
         {isFirst && (
           <span className="text-xs kbadge kbadge-sm kbadge-primary">
             Current
@@ -273,7 +273,7 @@ export const ProjectNotes = ({ project }) => {
   if (migrating) {
     return (
       <div className="krounded-box border kbg-base-100 p-6">
-        <div className="text-sm ktext-base-content/60">
+        <div className="text-sm text-base-content/60">
           Migrating existing notes...
         </div>
       </div>
@@ -284,10 +284,10 @@ export const ProjectNotes = ({ project }) => {
     <div className="krounded-box border kbg-base-100 p-6">
       {/* Last edited metadata */}
       {lastEditedBy && (
-        <div className="mb-3 text-xs ktext-base-content/50 flex-sc gap-1">
+        <div className="mb-3 text-xs text-base-content/50 flex-sc gap-1">
           <Icon name="clock" size={14} />
           Last edited by{' '}
-          <span className="font-medium ktext-base-content/70">
+          <span className="font-medium text-base-content/70">
             {lastEditedBy}
           </span>{' '}
           {lastEditedLabel}
@@ -318,7 +318,7 @@ export const ProjectNotes = ({ project }) => {
             {saving ? 'Saving...' : 'Save Notes'}
           </button>
           {dirty && (
-            <span className="text-xs ktext-base-content/50">
+            <span className="text-xs text-base-content/50">
               Unsaved changes
             </span>
           )}

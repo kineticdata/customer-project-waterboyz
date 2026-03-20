@@ -194,14 +194,14 @@ export const ProjectDetails = ({
     <FamilyInformation familyRecord={familyRecord} familyLoading={familyLoading} />
     <div className="krounded-box border kbg-base-100 p-6">
       <div className="text-lg font-semibold">Project Details</div>
-      <p className="mt-2 ktext-base-content/70">
+      <p className="mt-2 text-base-content/70">
         Update project status and scheduled date.
       </p>
 
       {isLeadership && (
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <label className="klabel flex flex-col items-start gap-2">
-            <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+            <span className="klabel-text text-xs uppercase tracking-wide text-base-content/60">
               Project Captain
             </span>
             <select
@@ -218,7 +218,7 @@ export const ProjectDetails = ({
             </select>
           </label>
           <label className="klabel flex flex-col items-start gap-2">
-            <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+            <span className="klabel-text text-xs uppercase tracking-wide text-base-content/60">
               Associated Event
             </span>
             <select
@@ -235,7 +235,7 @@ export const ProjectDetails = ({
               ))}
             </select>
             {associatedEventId && (
-              <span className="text-xs ktext-base-content/60">
+              <span className="text-xs text-base-content/60">
                 Scheduled Date will be set to the event date when saved.
               </span>
             )}
@@ -245,7 +245,7 @@ export const ProjectDetails = ({
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <label className="klabel flex flex-col items-start gap-2">
-          <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+          <span className="klabel-text text-xs uppercase tracking-wide text-base-content/60">
             Project Status
           </span>
           <select
@@ -262,7 +262,7 @@ export const ProjectDetails = ({
           </select>
         </label>
         <label className="klabel flex flex-col items-start gap-2">
-          <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+          <span className="klabel-text text-xs uppercase tracking-wide text-base-content/60">
             Scheduled Date
           </span>
           <input
@@ -275,7 +275,7 @@ export const ProjectDetails = ({
         {isCompleted && (
           <>
             <label className="klabel flex flex-col items-start gap-2">
-              <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+              <span className="klabel-text text-xs uppercase tracking-wide text-base-content/60">
                 Completion Date <span className="text-error">*</span>
               </span>
               <input
@@ -292,7 +292,7 @@ export const ProjectDetails = ({
               )}
             </label>
             <label className="klabel flex flex-col items-start gap-2">
-              <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+              <span className="klabel-text text-xs uppercase tracking-wide text-base-content/60">
                 Total Project Man Hours <span className="text-error">*</span>
               </span>
               <input
@@ -305,7 +305,7 @@ export const ProjectDetails = ({
                 onChange={event => setTotalManHours(event.target.value)}
               />
               {taskHoursTotal > 0 && (
-                <span className="text-xs ktext-base-content/60">
+                <span className="text-xs text-base-content/60">
                   Task estimates total:{' '}
                   <span className="font-semibold">{taskHoursTotal} hrs</span>
                 </span>
@@ -329,7 +329,7 @@ export const ProjectDetails = ({
               <span className="text-warning ml-1 text-xs">(recommended for grant reporting)</span>
             )}
           </div>
-          <p className="mt-1 text-xs ktext-base-content/60">
+          <p className="mt-1 text-xs text-base-content/60">
             Select all that apply. Used for grant reporting.
           </p>
           <div className="mt-2 flex flex-wrap gap-3">
@@ -369,7 +369,7 @@ export const ProjectDetails = ({
                 <span className="text-error ml-1">*</span>
               )}
             </span>
-            <p className="text-xs ktext-base-content/60 mt-0.5">
+            <p className="text-xs text-base-content/60 mt-0.5">
               Check this after you have contacted the family, reviewed the
               project, and clearly communicated the scope of work.
             </p>
@@ -385,7 +385,7 @@ export const ProjectDetails = ({
 
       <div className="mt-6">
         <div className="text-sm font-medium">Volunteer Requirements</div>
-        <p className="mt-1 text-xs ktext-base-content/60">
+        <p className="mt-1 text-xs text-base-content/60">
           This information will be included in email notifications sent to
           prospective volunteers.
         </p>
@@ -393,7 +393,7 @@ export const ProjectDetails = ({
 
       <div className="mt-3 grid gap-4 md:grid-cols-2">
         <label className="klabel flex flex-col items-start gap-2">
-          <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+          <span className="klabel-text text-xs uppercase tracking-wide text-base-content/60">
             Skills Needed {requiresVolunteerInfo && <span className="text-error">*</span>}
           </span>
           <textarea
@@ -411,7 +411,7 @@ export const ProjectDetails = ({
           )}
         </label>
         <label className="klabel flex flex-col items-start gap-2">
-          <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+          <span className="klabel-text text-xs uppercase tracking-wide text-base-content/60">
             Equipment Needed {requiresVolunteerInfo && <span className="text-error">*</span>}
           </span>
           <textarea

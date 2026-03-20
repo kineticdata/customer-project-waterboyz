@@ -242,44 +242,83 @@
         }
       }
 
-      /* Attachments */
+      /* Attachments — upload button */
       .fileinput-button {
-        @apply kbtn kbtn-outline kbtn-lg border-dashed bg-no-repeat focus-within:outline-2 !pl-11 py-2.25;
+        @apply kbtn kbtn-outline kbtn-lg border-dashed bg-no-repeat focus-within:outline-2 !pl-11 py-2.25
+          w-full justify-center border-base-300 text-base-content/50
+          hover:border-primary hover:text-primary hover:bg-primary/5
+          transition-colors;
         &:before {
           content: 'x';
-          @apply block absolute left-4 size-6 bg-base-content;
+          @apply block absolute left-4 size-6 bg-current;
           mask: url(./icons/file-plus.svg);
         }
       }
+
+      /* Attachments — file list */
       .file-table {
-        @apply table;
+        @apply w-full mt-3;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+
         .file-header {
-          @apply table-header-group;
-          .file-row {
-            @apply table-row;
-            span {
-              @apply pr-5 py-1 table-cell text-base-content/70 font-semibold text-xs md:text-sm;
-            }
-          }
+          @apply hidden;
         }
+
         .file-container {
-          @apply table-row-group;
+          @apply contents;
+
           .file-row {
-            @apply table-row;
-            span {
-              @apply pr-5 py-1 table-cell max-md:text-sm;
-              &:first-child {
-                overflow-wrap: anywhere;
-              }
+            @apply flex flex-wrap items-center gap-x-3 gap-y-1
+              rounded-lg border border-base-200 bg-base-100 px-4 py-3;
+
+            /* File name */
+            span:first-child {
+              @apply flex-1 min-w-0 text-sm font-medium truncate;
+              overflow-wrap: anywhere;
+            }
+            /* File size */
+            .file-filesize {
+              @apply text-xs text-base-content/50 tabular-nums;
+            }
+            /* Progress / status */
+            .file-status {
+              @apply text-xs text-base-content/50 tabular-nums;
+            }
+            /* Actions (delete link on success, or error state) */
+            .file-actions {
               a {
-                @apply text-base-content/70 font-medium italic hover:underline hover:text-base-content focus-visible:underline focus-visible:text-base-content;
+                @apply text-xs text-base-content/50 font-medium
+                  hover:text-base-content transition-colors no-underline
+                  hover:underline;
               }
+            }
+
+            /* Uploading state — pulse animation */
+            &.file-uploading {
+              @apply border-primary/30 bg-primary/5;
+              animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            }
+
+            /* Error state */
+            &.file-uploading .file-actions:has(a) {
+              @apply text-error text-xs font-semibold;
+              a {
+                @apply inline-flex items-center px-2 py-0.5 ml-1
+                  rounded bg-error/10 text-error text-xs font-semibold
+                  no-underline hover:bg-error/20 transition-colors;
+              }
+            }
+            &.file-uploading:has(.file-actions a) {
+              @apply border-error/30 bg-error/5;
+              animation: none;
             }
           }
         }
 
         + .empty-message {
-          @apply text-base-content/70 italic font-medium text-xs md:text-sm;
+          @apply text-base-content/40 text-sm mt-1;
         }
       }
       &.empty .file-table {

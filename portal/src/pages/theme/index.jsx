@@ -300,7 +300,7 @@ export const Theme = () => {
     setSaveState('pending');
     updateThemeAttribute(kapp.slug, currentTheme).then(({ error }) => {
       if (error) {
-        console.log('Error saving theme:', error);
+        console.error('Error saving theme:', error);
         setSaveState('error');
         return;
       }
@@ -317,7 +317,7 @@ export const Theme = () => {
     setResetState('pending');
     updateThemeAttribute(kapp.slug, {}).then(({ error }) => {
       if (error) {
-        console.log('Error resetting theme:', error);
+        console.error('Error resetting theme:', error);
         setResetState('error');
         return;
       }

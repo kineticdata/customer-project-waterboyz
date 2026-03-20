@@ -200,8 +200,6 @@ export const Volunteers = ({ project }) => {
   );
 
   const {
-    initialized: pendingInit,
-    loading: pendingLoading,
     response: pendingResponse,
     actions: { reloadData: reloadPending },
   } = useData(searchSubmissions, pendingParams);
@@ -1050,7 +1048,7 @@ export const Volunteers = ({ project }) => {
           <div className="grid gap-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="klabel flex flex-col items-start gap-2">
-                <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+                <span className="klabel-text text-xs uppercase tracking-wide text-base-content/60">
                   First Name
                 </span>
                 <input
@@ -1066,7 +1064,7 @@ export const Volunteers = ({ project }) => {
                 />
               </label>
               <label className="klabel flex flex-col items-start gap-2">
-                <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+                <span className="klabel-text text-xs uppercase tracking-wide text-base-content/60">
                   Last Name <span className="text-error">*</span>
                 </span>
                 <input
@@ -1084,7 +1082,7 @@ export const Volunteers = ({ project }) => {
               </label>
             </div>
             <label className="klabel flex flex-col items-start gap-2">
-              <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+              <span className="klabel-text text-xs uppercase tracking-wide text-base-content/60">
                 Email
               </span>
               <input
@@ -1101,7 +1099,7 @@ export const Volunteers = ({ project }) => {
               />
             </label>
             <label className="klabel flex flex-col items-start gap-2">
-              <span className="klabel-text text-xs uppercase tracking-wide ktext-base-content/60">
+              <span className="klabel-text text-xs uppercase tracking-wide text-base-content/60">
                 Phone
               </span>
               <input

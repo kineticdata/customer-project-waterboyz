@@ -7,6 +7,7 @@ import { Icon } from '../../atoms/Icon.jsx';
 import { Loading } from '../../components/states/Loading.jsx';
 import { PageHeading } from '../../components/PageHeading.jsx';
 import { useData } from '../../helpers/hooks/useData.js';
+import { executeIntegration } from '../../helpers/api.js';
 import { getAttributeValue } from '../../helpers/records.js';
 import { SignupStatusBadge } from '../../components/SignupStatusBadge.jsx';
 
@@ -52,17 +53,17 @@ const fetchMyAssignments = ({ kappSlug, volunteerId }) =>
     },
   });
 
-const byIdListQuery = defineKqlQuery().in('id', 'ids').end();
-
 const fetchProjects = ({ kappSlug, projectIds }) =>
-  searchSubmissions({
-    kapp: kappSlug,
-    form: 'swat-projects',
-    search: {
-      q: byIdListQuery({ ids: projectIds }),
-      include: ['details', 'values'],
-      limit: 100,
-    },
+  executeIntegration({
+    kappSlug,
+    integrationName: 'Projects - Retrieve',
+    parameters: { 'CSV of Project IDs': projectIds.join(',') },
+  });
+
+const fetchCaptains = ({ kappSlug }) =>
+  executeIntegration({
+    kappSlug,
+    integrationName: 'Project Captains Retrieve',
   });
 
 // ---------------------------------------------------------------------------
@@ -155,6 +156,22 @@ export const MyVolunteeringPage = () => {
   const { initialized: assignmentsInit, response: assignmentsResponse } =
     useData(fetchMyAssignments, assignmentsParams);
 
+  // ── Project captains (for display name + contact info) ─────────────────
+  const captainsParams = useMemo(
+    () => (kappSlug ? { kappSlug } : null),
+    [kappSlug],
+  );
+  const { initialized: captainsInit, response: captainsResponse } =
+    useData(fetchCaptains, captainsParams);
+
+  const captainsByUsername = useMemo(() => {
+    const map = {};
+    for (const c of captainsResponse?.['Team Captains'] ?? []) {
+      map[c['User Name']] = c;
+    }
+    return map;
+  }, [captainsResponse]);
+
   // ── Fetch actual project records from assignment IDs ────────────────────
   const projectIds = useMemo(() => {
     const ids = (assignmentsResponse?.submissions ?? [])
@@ -203,10 +220,11 @@ export const MyVolunteeringPage = () => {
   }, [signupsResponse, eventsById]);
 
   // ── Derived: projects with details ──────────────────────────────────────
+  // Integration returns { Projects: [{ "Submission Id", "Project Name", ... }] }
   const projectsById = useMemo(() => {
     const map = {};
-    for (const p of projectsResponse?.submissions ?? []) {
-      map[p.id] = p;
+    for (const p of projectsResponse?.Projects ?? []) {
+      map[p['Submission Id']] = p;
     }
     return map;
   }, [projectsResponse]);
@@ -229,9 +247,9 @@ export const MyVolunteeringPage = () => {
       const project = projectsById[projectId];
       if (!project) continue;
 
-      const scheduledDate = parseDate(project.values?.['Scheduled Date']);
-      const status = project.values?.['Project Status'];
-      const isClosed = project.coreState === 'Closed' || status === 'Completed';
+      const scheduledDate = parseDate(project['Scheduled Date']);
+      const status = project['Project Status'];
+      const isClosed = status === 'Completed' || status === 'Closed';
 
       if (isClosed || (scheduledDate && scheduledDate < now)) {
         past.push({ assignment, project });
@@ -242,8 +260,8 @@ export const MyVolunteeringPage = () => {
 
     // Upcoming: soonest first; past: most recent first
     const sortByDate = (a, b, desc) => {
-      const da = parseDate(a.project.values?.['Scheduled Date']);
-      const db = parseDate(b.project.values?.['Scheduled Date']);
+      const da = parseDate(a.project['Scheduled Date']);
+      const db = parseDate(b.project['Scheduled Date']);
       if (!da && !db) return 0;
       if (!da) return 1;
       if (!db) return -1;
@@ -258,7 +276,7 @@ export const MyVolunteeringPage = () => {
   const displayedProjects = projectFilter === 'upcoming' ? upcomingProjects : pastProjects;
 
   // ── Loading state ───────────────────────────────────────────────────────
-  const initialized = signupsInit && eventsInit
+  const initialized = signupsInit && eventsInit && captainsInit
     && (assignmentsInit || !volunteerId)
     && (projectsInit || projectIds.length === 0 || !volunteerId);
 
@@ -302,7 +320,7 @@ export const MyVolunteeringPage = () => {
           <div className="flex-c-st gap-8">
             {/* ── Upcoming Commitments ────────────────────────────────── */}
             <section>
-              <SectionHeading>Upcoming Commitments</SectionHeading>
+              <SectionHeading>My Events</SectionHeading>
               <div className="rounded-box border border-base-200 bg-base-100 shadow overflow-hidden">
                 {upcomingSignups.length === 0 ? (
                   <div className="p-8 text-center">
@@ -312,13 +330,13 @@ export const MyVolunteeringPage = () => {
                       className="mx-auto text-base-content/20 mb-3"
                     />
                     <p className="text-base-content/50 font-medium">
-                      No upcoming commitments
+                      No events yet
                     </p>
                     <p className="text-base-content/40 text-sm mt-1 mb-4">
-                      Browse open serve days to sign up.
+                      Browse open events to sign up.
                     </p>
                     <Link to="/events" className="kbtn kbtn-sm kbtn-primary">
-                      Browse Serve Days
+                      Browse Events
                     </Link>
                   </div>
                 ) : (
@@ -399,47 +417,93 @@ export const MyVolunteeringPage = () => {
                   <ul className="divide-y divide-base-200">
                     {displayedProjects.map(({ assignment, project }) => {
                       const status =
-                        project.values?.['Project Status'] || 'Active';
+                        project['Project Status'] || 'Active';
                       const statusColor =
                         PROJECT_STATUS_COLORS[status] ||
                         'bg-base-200 text-base-content/70';
-                      const scheduledDate =
-                        project.values?.['Scheduled Date'];
+                      const scheduledDate = project['Scheduled Date'];
+                      const captain =
+                        captainsByUsername[project['Project Captain']];
+                      const captainName =
+                        captain?.['User Display Name'] ||
+                        project['Project Captain'];
+                      const captainEmail = captain?.['User Email'];
+                      const addressLine = [
+                        project['Address Line 1'],
+                        project['Address Line 2'],
+                      ]
+                        .filter(Boolean)
+                        .join(', ');
+                      const cityStateZip = [
+                        [project['City'], project['State']]
+                          .filter(Boolean)
+                          .join(', '),
+                        project['Zip'],
+                      ]
+                        .filter(Boolean)
+                        .join(' ');
+                      const fullAddress = [addressLine, cityStateZip]
+                        .filter(Boolean)
+                        .join(', ');
 
                       return (
                         <li
                           key={assignment.id}
-                          className="flex items-center justify-between gap-3 px-5 py-4 flex-wrap"
+                          className="flex-c-st gap-2 px-5 py-4"
                         >
-                          <div className="flex-c-st gap-0.5">
-                            <span className="font-medium text-sm">
-                              {project.label ||
-                                project.values?.['Project Name'] ||
+                          {/* Header row: name + status */}
+                          <div className="flex-bc gap-3 w-full">
+                            <span className="font-semibold text-sm">
+                              {project['Project Name'] ||
                                 'Untitled Project'}
                             </span>
-                            <div className="flex items-center gap-3 text-xs text-base-content/50">
-                              {scheduledDate && (
-                                <span className="flex items-center gap-1">
-                                  <Icon name="calendar" size={13} />
-                                  {formatDate(scheduledDate)}
-                                </span>
+                            <span
+                              className={clsx(
+                                'px-2.5 py-0.5 rounded-full text-xs font-semibold flex-none',
+                                statusColor,
                               )}
-                              {project.values?.['Project Captain'] && (
-                                <span className="flex items-center gap-1">
-                                  <Icon name="user" size={13} />
-                                  {project.values['Project Captain']}
-                                </span>
+                            >
+                              {status}
+                            </span>
+                          </div>
+
+                          {/* Detail rows */}
+                          <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-base-content/60">
+                            {scheduledDate && (
+                              <span className="flex items-center gap-1">
+                                <Icon name="calendar" size={13} />
+                                {formatDate(scheduledDate)}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Project address */}
+                          {fullAddress && (
+                            <div className="text-xs text-base-content/60">
+                              <span className="font-medium text-base-content/70">Project Address: </span>
+                              {fullAddress}
+                            </div>
+                          )}
+
+                          {/* Project Captain */}
+                          {captainName && (
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-base-content/50">
+                              <span className="font-medium text-base-content/70">Project Captain: </span>
+                              <span className="flex items-center gap-1 text-base-content/60">
+                                <Icon name="user-star" size={13} />
+                                {captainName}
+                              </span>
+                              {captainEmail && (
+                                <a
+                                  href={`mailto:${captainEmail}`}
+                                  className="flex items-center gap-1 hover:text-primary transition-colors"
+                                >
+                                  <Icon name="mail" size={13} />
+                                  {captainEmail}
+                                </a>
                               )}
                             </div>
-                          </div>
-                          <span
-                            className={clsx(
-                              'px-2.5 py-0.5 rounded-full text-xs font-semibold',
-                              statusColor,
-                            )}
-                          >
-                            {status}
-                          </span>
+                          )}
                         </li>
                       );
                     })}
@@ -459,7 +523,7 @@ export const MyVolunteeringPage = () => {
                   />
                   <div>
                     <p className="font-semibold text-base-content">
-                      Find Your Next Serve Day
+                      Find Your Next Event
                     </p>
                     <p className="text-sm text-base-content/60">
                       Browse upcoming events and sign up to make a difference.
@@ -470,7 +534,7 @@ export const MyVolunteeringPage = () => {
                   to="/events"
                   className="kbtn kbtn-primary kbtn-sm flex-none"
                 >
-                  Browse Serve Days
+                  Browse Events
                   <Icon name="arrow-right" size={15} />
                 </Link>
               </div>

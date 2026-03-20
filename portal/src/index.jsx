@@ -8,6 +8,7 @@ import { App } from './App.jsx';
 import { HashRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { store } from './redux.js';
+import { ErrorBoundary } from './components/states/ErrorBoundary.jsx';
 
 // Asynchronously import the global dependencies that are used in the embedded
 // forms. Note that we deliberately do this as a const so that it should start
@@ -18,12 +19,14 @@ const globals = import('./components/kinetic-form/globals.jsx');
 ReactDOM.createRoot(document.getElementById('root')).render(
   // Kinetic connection layer
   <Provider store={store}>
-    <KineticLib globals={globals} locale="en">
-      {kineticProps => (
-        <HashRouter>
-          <App {...kineticProps} />
-        </HashRouter>
-      )}
-    </KineticLib>
+    <ErrorBoundary>
+      <KineticLib globals={globals} locale="en">
+        {kineticProps => (
+          <HashRouter>
+            <App {...kineticProps} />
+          </HashRouter>
+        )}
+      </KineticLib>
+    </ErrorBoundary>
   </Provider>,
 );
