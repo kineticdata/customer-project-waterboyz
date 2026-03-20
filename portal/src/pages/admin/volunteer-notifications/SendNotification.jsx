@@ -144,26 +144,26 @@ export const SendNotification = () => {
                 <div className="flex flex-col gap-3">
                   {projects.map(p => (
                     <div
-                      key={p.id}
+                      key={p['Project Id']}
                       className="border rounded-lg p-3 text-sm"
                     >
                       <div className="font-semibold">
-                        {p.values['Project Name'] || 'Unnamed Project'}
+                        {p['Project Name'] || 'Unnamed Project'}
                       </div>
                       <div className="text-base-content/60 mt-1">
                         <span>
                           Date:{' '}
-                          {p.values['Scheduled Date'] || 'TBD'}
+                          {p['Scheduled Date'] || 'TBD'}
                         </span>
-                        {p.values['Skills Needed'] && (
+                        {p['Skills Needed'] && (
                           <span className="ml-3">
-                            Skills: {p.values['Skills Needed']}
+                            Skills: {p['Skills Needed']}
                           </span>
                         )}
                       </div>
-                      {p.values['Project Captain'] && (
+                      {p['Project Captain'] && (
                         <div className="text-base-content/60">
-                          Captain: {p.values['Project Captain']}
+                          Captain: {p['Project Captain']}
                         </div>
                       )}
                     </div>

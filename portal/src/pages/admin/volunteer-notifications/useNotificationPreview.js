@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { searchSubmissions } from '@kineticdata/react';
 import { useData } from '../../../helpers/hooks/useData.js';
+import { executeIntegration } from '../../../helpers/api.js';
 
 const parseJsonArray = value => {
   if (!value) return [];
@@ -13,27 +14,24 @@ const parseJsonArray = value => {
   }
 };
 
+const fetchUpcomingProjects = ({ kappSlug }) =>
+  executeIntegration({
+    kappSlug,
+    integrationName: 'Upcoming SWAT Projects',
+  });
+
 export const useNotificationPreview = (notificationType, selectedSkills) => {
   const kappSlug = useSelector(state => state.app.kappSlug);
 
-  const projectParams = useMemo(
-    () => ({
-      kapp: kappSlug,
-      form: 'swat-projects',
-      search: {
-        include: ['values'],
-        limit: 1000,
-        q: 'values[Project Status]="Ready to Work" AND values[Additional Volunteers Needed]="Yes"',
-      },
-    }),
-    [kappSlug],
-  );
+  // --- Fetch projects via integration (already filtered server-side) ---
+  const projectParams = useMemo(() => ({ kappSlug }), [kappSlug]);
   const {
     loading: projectsLoading,
     response: projectsResponse,
     actions: { reloadData: reloadProjects },
-  } = useData(searchSubmissions, projectParams);
+  } = useData(fetchUpcomingProjects, projectParams);
 
+  // --- Fetch all volunteers ---
   const volunteerParams = useMemo(
     () => ({
       kapp: kappSlug,
@@ -51,19 +49,18 @@ export const useNotificationPreview = (notificationType, selectedSkills) => {
     actions: { reloadData: reloadVolunteers },
   } = useData(searchSubmissions, volunteerParams);
 
+  // --- Client-side filtering ---
+  // Integration returns flat objects with keys like 'Project Name', 'Skills Needed'
   const projects = useMemo(() => {
-    if (!projectsResponse?.submissions) return [];
-    let filtered = projectsResponse.submissions.filter(
-      s => !s.values['Associated Event'],
-    );
+    const raw = projectsResponse?.Projects ?? [];
     if (notificationType === 'Skills-Based' && selectedSkills.length > 0) {
       const skillSet = new Set(selectedSkills);
-      filtered = filtered.filter(s => {
-        const projectSkills = parseJsonArray(s.values['Skills Needed']);
+      return raw.filter(p => {
+        const projectSkills = parseJsonArray(p['Skills Needed']);
         return projectSkills.some(skill => skillSet.has(skill));
       });
     }
-    return filtered;
+    return raw;
   }, [projectsResponse, notificationType, selectedSkills]);
 
   const volunteers = useMemo(() => {
