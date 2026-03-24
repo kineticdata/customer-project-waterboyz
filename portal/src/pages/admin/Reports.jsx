@@ -15,6 +15,7 @@ const FAMILY_TYPES = [
   'Foster Family',
   'Special Needs Family',
   'Single Parent Family',
+  'Senior Citizen',
   'Other',
 ];
 

@@ -23,6 +23,7 @@ const FAMILY_TYPE_OPTIONS = [
   'Foster Family',
   'Special Needs Family',
   'Single Parent Family',
+  'Senior Citizen',
   'Other',
 ];
 
