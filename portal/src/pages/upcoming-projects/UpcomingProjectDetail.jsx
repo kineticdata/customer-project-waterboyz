@@ -37,25 +37,24 @@ export const UpcomingProjectDetail = ({ projects, loading, error }) => {
 
   // Check for existing association with this project
   // Note: project['Project Id'] from the integration IS the swat-projects submission ID
-  const associationQuery = defineKqlQuery()
-    .equals('values[Volunteer ID]', 'volunteerId')
-    .equals('values[Project ID]', 'projectId')
-    .end();
-
   const associationParams = useMemo(
-    () =>
-      volunteerId && project
-        ? {
-            kapp: kappSlug,
-            form: 'swat-project-volunteers',
-            search: {
-              q: associationQuery({ volunteerId, projectId: project['Project Id'] }),
-              include: ['details', 'values'],
-              limit: 5,
-            },
-          }
-        : null,
-    [kappSlug, volunteerId, project, associationQuery],
+    () => {
+      if (!volunteerId || !project) return null;
+      const q = defineKqlQuery()
+        .equals('values[Volunteer ID]', 'volunteerId')
+        .equals('values[Project ID]', 'projectId')
+        .end();
+      return {
+        kapp: kappSlug,
+        form: 'swat-project-volunteers',
+        search: {
+          q: q({ volunteerId, projectId: project['Project Id'] }),
+          include: ['details', 'values'],
+          limit: 5,
+        },
+      };
+    },
+    [kappSlug, volunteerId, project],
   );
 
   const { initialized: assocInit, loading: assocLoading, response: assocResponse } =
