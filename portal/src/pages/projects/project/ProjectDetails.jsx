@@ -296,6 +296,24 @@ export const ProjectDetails = ({
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <label className="klabel flex flex-col items-start gap-2">
           <span className="klabel-text text-xs uppercase tracking-wide text-base-content/60">
+            Approved Budget
+          </span>
+          <input
+            type="text"
+            className="kinput kinput-bordered w-full"
+            value={(() => {
+              const raw = project?.values?.['Approved Budget'];
+              if (!raw) return '—';
+              const num = Number(String(raw).replace(/[^0-9.-]/g, ''));
+              if (isNaN(num)) return raw;
+              return num.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+            })()}
+            readOnly
+            tabIndex={-1}
+          />
+        </label>
+        <label className="klabel flex flex-col items-start gap-2">
+          <span className="klabel-text text-xs uppercase tracking-wide text-base-content/60">
             Scheduled Date
           </span>
           <input
