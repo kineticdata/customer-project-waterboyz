@@ -26,7 +26,7 @@ const createTask = text => ({
   estimatedHours: '',
 });
 
-export const ProjectTasks = ({ project, reloadProject }) => {
+export const ProjectTasks = ({ project, reloadProject, isClosed }) => {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState('');
   const [saving, setSaving] = useState(false);
@@ -109,29 +109,31 @@ export const ProjectTasks = ({ project, reloadProject }) => {
         Create a checklist for the team.
       </p>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        <input
-          type="text"
-          className="kinput kinput-bordered flex-1 min-w-[240px]"
-          placeholder="Add a task..."
-          value={newTask}
-          onChange={event => setNewTask(event.target.value)}
-          onKeyDown={event => {
-            if (event.key === 'Enter') {
-              event.preventDefault();
-              handleAddTask();
-            }
-          }}
-        />
-        <button
-          type="button"
-          className="kbtn kbtn-primary"
-          onClick={handleAddTask}
-          disabled={!newTask.trim()}
-        >
-          Add Task
-        </button>
-      </div>
+      {!isClosed && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          <input
+            type="text"
+            className="kinput kinput-bordered flex-1 min-w-[240px]"
+            placeholder="Add a task..."
+            value={newTask}
+            onChange={event => setNewTask(event.target.value)}
+            onKeyDown={event => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                handleAddTask();
+              }
+            }}
+          />
+          <button
+            type="button"
+            className="kbtn kbtn-primary"
+            onClick={handleAddTask}
+            disabled={!newTask.trim()}
+          >
+            Add Task
+          </button>
+        </div>
+      )}
 
       {tasks.length === 0 ? (
         <div className="mt-3 text-sm text-base-content/60">
@@ -149,6 +151,7 @@ export const ProjectTasks = ({ project, reloadProject }) => {
                 className="kcheckbox"
                 checked={!!task.done}
                 onChange={() => handleToggleTask(task.id)}
+                disabled={isClosed}
               />
               <div
                 className={`flex-1 text-sm ${
@@ -167,15 +170,18 @@ export const ProjectTasks = ({ project, reloadProject }) => {
                 onChange={event =>
                   handleUpdateHours(task.id, event.target.value)
                 }
+                disabled={isClosed}
               />
-              <button
-                type="button"
-                className="kbtn kbtn-ghost kbtn-xs kbtn-circle"
-                onClick={() => handleRemoveTask(task.id)}
-                aria-label="Remove task"
-              >
-                ×
-              </button>
+              {!isClosed && (
+                <button
+                  type="button"
+                  className="kbtn kbtn-ghost kbtn-xs kbtn-circle"
+                  onClick={() => handleRemoveTask(task.id)}
+                  aria-label="Remove task"
+                >
+                  ×
+                </button>
+              )}
             </div>
           ))}
         </div>
@@ -190,16 +196,18 @@ export const ProjectTasks = ({ project, reloadProject }) => {
         </div>
       )}
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        <button
-          type="button"
-          className="kbtn kbtn-primary"
-          onClick={handleSave}
-          disabled={!hasChanges || saving}
-        >
-          {saving ? 'Saving...' : 'Save Tasks'}
-        </button>
-      </div>
+      {!isClosed && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            type="button"
+            className="kbtn kbtn-primary"
+            onClick={handleSave}
+            disabled={!hasChanges || saving}
+          >
+            {saving ? 'Saving...' : 'Save Tasks'}
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -207,4 +215,5 @@ export const ProjectTasks = ({ project, reloadProject }) => {
 ProjectTasks.propTypes = {
   project: t.object,
   reloadProject: t.func,
+  isClosed: t.bool,
 };

@@ -124,7 +124,7 @@ HistoryEntry.propTypes = {
 // ---------------------------------------------------------------------------
 // Main component
 // ---------------------------------------------------------------------------
-export const ProjectNotes = ({ project }) => {
+export const ProjectNotes = ({ project, isClosed }) => {
   const { kappSlug } = useSelector(state => state.app);
   const editorRef = useRef(null);
   const baselineRef = useRef('');
@@ -295,34 +295,45 @@ export const ProjectNotes = ({ project }) => {
       )}
 
       {/* Editor */}
-      <div className="krounded-box border kbg-base-100">
-        <Editor
-          ref={editorRef}
-          height="auto"
-          initialEditType="wysiwyg"
-          initialValue={currentContent || ''}
-          onChange={handleChange}
-          hideModeSwitch={true}
-        />
-      </div>
+      {!isClosed && (
+        <div className="krounded-box border kbg-base-100">
+          <Editor
+            ref={editorRef}
+            height="auto"
+            initialEditType="wysiwyg"
+            initialValue={currentContent || ''}
+            onChange={handleChange}
+            hideModeSwitch={true}
+          />
+        </div>
+      )}
+
+      {/* Read-only content when closed */}
+      {isClosed && currentContent && (
+        <div className="krounded-box border kbg-base-100 p-4">
+          <pre className="text-sm whitespace-pre-wrap">{currentContent}</pre>
+        </div>
+      )}
 
       {/* Save button */}
       <div className="mt-4 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            className="kbtn kbtn-primary"
-            onClick={handleSave}
-            disabled={!dirty || saving}
-          >
-            {saving ? 'Saving...' : 'Save Notes'}
-          </button>
-          {dirty && (
-            <span className="text-xs text-base-content/50">
-              Unsaved changes
-            </span>
-          )}
-        </div>
+        {!isClosed && (
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              className="kbtn kbtn-primary"
+              onClick={handleSave}
+              disabled={!dirty || saving}
+            >
+              {saving ? 'Saving...' : 'Save Notes'}
+            </button>
+            {dirty && (
+              <span className="text-xs text-base-content/50">
+                Unsaved changes
+              </span>
+            )}
+          </div>
+        )}
 
         {/* History toggle */}
         {versions.length > 0 && (
@@ -370,4 +381,5 @@ export const ProjectNotes = ({ project }) => {
 
 ProjectNotes.propTypes = {
   project: t.object,
+  isClosed: t.bool,
 };

@@ -216,6 +216,7 @@ export const Project = () => {
   }
 
   const projectStatus = data?.values?.['Project Status'] || 'Active';
+  const isClosed = data?.coreState === 'Closed';
   const banner = STATUS_BANNER[projectStatus];
 
   return (
@@ -265,7 +266,21 @@ export const Project = () => {
         </div>
       </div>
 
-      {banner && (
+      {isClosed && (
+        <div className="gutter">
+          <div className="max-w-screen-xl mx-auto">
+            <div className="flex items-start gap-3 px-4 py-3 mt-3 rounded-lg border-l-4 border-base-300 bg-base-200/50">
+              <Icon name="lock" size={20} className="mt-0.5 flex-none text-base-content/40" />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold text-base-content/70">Project Closed</div>
+                <div className="text-xs text-base-content/50">This project has been closed out and can no longer be edited.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {!isClosed && banner && (
         <div className="gutter">
           <div className="max-w-screen-xl mx-auto">
             {banner.linkTo ? (
@@ -430,12 +445,13 @@ export const Project = () => {
                       family={family}
                       familyRecord={familyRecord}
                       familyLoading={familyLoading}
+                      isClosed={isClosed}
                     />
                   }
                 />
                 <Route
                   path="notes"
-                  element={<ProjectNotes project={data} />}
+                  element={<ProjectNotes project={data} isClosed={isClosed} />}
                 />
                 <Route
                   path="tasks"
@@ -443,6 +459,7 @@ export const Project = () => {
                     <ProjectTasks
                       project={data}
                       reloadProject={reloadProject}
+                      isClosed={isClosed}
                     />
                   }
                 />
@@ -454,6 +471,7 @@ export const Project = () => {
                       family={family}
                       familyRecord={familyRecord}
                       familyLoading={familyLoading}
+                      isClosed={isClosed}
                     />
                   }
                 />
@@ -466,6 +484,7 @@ export const Project = () => {
                       familyLoading={familyLoading}
                       reloadProject={reloadProject}
                       captains={captainsResponse?.['Team Captains'] ?? []}
+                      isClosed={isClosed}
                     />
                   }
                 />
@@ -478,6 +497,7 @@ export const Project = () => {
                       familyRecord={familyRecord}
                       familyLoading={familyLoading}
                       reloadProject={reloadProject}
+                      isClosed={isClosed}
                     />
                   }
                 />

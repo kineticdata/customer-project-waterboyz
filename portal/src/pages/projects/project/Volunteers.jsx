@@ -130,7 +130,7 @@ const isGlutenFree = values => {
 const noPhotoConsent = values => values?.[FIELD_PHOTO_CONSENT] === 'No';
 
 
-export const Volunteers = ({ project }) => {
+export const Volunteers = ({ project, isClosed }) => {
   const { kappSlug } = useSelector(state => state.app);
   const mobile = useSelector(state => state.view.mobile);
   const { isLeadership, isProjectCaptain } = useRoles();
@@ -605,28 +605,30 @@ export const Volunteers = ({ project }) => {
               the weekly upcoming projects digest.
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className={`kbtn kbtn-sm ${
-                additionalNeeded === 'Yes' ? 'kbtn-primary' : 'kbtn-outline'
-              }`}
-              onClick={() => handleAdditionalNeeded('Yes')}
-              disabled={savingAdditional}
-            >
-              Yes
-            </button>
-            <button
-              type="button"
-              className={`kbtn kbtn-sm ${
-                additionalNeeded === 'No' ? 'kbtn-primary' : 'kbtn-outline'
-              }`}
-              onClick={() => handleAdditionalNeeded('No')}
-              disabled={savingAdditional}
-            >
-              No
-            </button>
-          </div>
+          {!isClosed && (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className={`kbtn kbtn-sm ${
+                  additionalNeeded === 'Yes' ? 'kbtn-primary' : 'kbtn-outline'
+                }`}
+                onClick={() => handleAdditionalNeeded('Yes')}
+                disabled={savingAdditional}
+              >
+                Yes
+              </button>
+              <button
+                type="button"
+                className={`kbtn kbtn-sm ${
+                  additionalNeeded === 'No' ? 'kbtn-primary' : 'kbtn-outline'
+                }`}
+                onClick={() => handleAdditionalNeeded('No')}
+                disabled={savingAdditional}
+              >
+                No
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -668,32 +670,34 @@ export const Volunteers = ({ project }) => {
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 flex-none">
-                    <Tooltip content="Approve">
-                      <button
-                        slot="trigger"
-                        type="button"
-                        className="kbtn kbtn-sm kbtn-success kbtn-circle"
-                        onClick={() => handleApproveVolunteer(submission)}
-                        disabled={!!saving[submission.id]}
-                        aria-label="Approve volunteer"
-                      >
-                        <Icon name="check" size={16} />
-                      </button>
-                    </Tooltip>
-                    <Tooltip content="Remove">
-                      <button
-                        slot="trigger"
-                        type="button"
-                        className="kbtn kbtn-sm kbtn-ghost text-error kbtn-circle"
-                        onClick={() => handleRemoveVolunteer(submission)}
-                        disabled={!!saving[submission.id]}
-                        aria-label="Remove request"
-                      >
-                        <Icon name="x" size={16} />
-                      </button>
-                    </Tooltip>
-                  </div>
+                  {!isClosed && (
+                    <div className="flex items-center gap-2 flex-none">
+                      <Tooltip content="Approve">
+                        <button
+                          slot="trigger"
+                          type="button"
+                          className="kbtn kbtn-sm kbtn-success kbtn-circle"
+                          onClick={() => handleApproveVolunteer(submission)}
+                          disabled={!!saving[submission.id]}
+                          aria-label="Approve volunteer"
+                        >
+                          <Icon name="check" size={16} />
+                        </button>
+                      </Tooltip>
+                      <Tooltip content="Remove">
+                        <button
+                          slot="trigger"
+                          type="button"
+                          className="kbtn kbtn-sm kbtn-ghost text-error kbtn-circle"
+                          onClick={() => handleRemoveVolunteer(submission)}
+                          disabled={!!saving[submission.id]}
+                          aria-label="Remove request"
+                        >
+                          <Icon name="x" size={16} />
+                        </button>
+                      </Tooltip>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -798,44 +802,46 @@ export const Volunteers = ({ project }) => {
                         {formatPhone(values[FIELD_PHONE]) || '—'}
                       </div>
                     </div>
-                    <div className="mt-3 flex gap-2">
-                      <button
-                        type="button"
-                        className={`kbtn kbtn-sm gap-1.5 ${present ? 'kbtn-success' : 'kbtn-outline'}`}
-                        onClick={event => {
-                          event.stopPropagation();
-                          handleTogglePresent(submission);
-                        }}
-                        disabled={!!saving[submission.id]}
-                      >
-                        {saving[submission.id] ? (
-                          'Saving...'
-                        ) : present ? (
-                          <>
-                            <Icon name="circle-check" size={16} />
-                            Present
-                          </>
-                        ) : (
-                          <>
-                            <Icon name="circle-dashed" size={16} />
-                            Mark Present
-                          </>
-                        )}
-                      </button>
-                      {canRemove && (
+                    {!isClosed && (
+                      <div className="mt-3 flex gap-2">
                         <button
                           type="button"
-                          className="kbtn kbtn-sm kbtn-ghost text-error"
+                          className={`kbtn kbtn-sm gap-1.5 ${present ? 'kbtn-success' : 'kbtn-outline'}`}
                           onClick={event => {
                             event.stopPropagation();
-                            handleRemoveVolunteer(submission);
+                            handleTogglePresent(submission);
                           }}
                           disabled={!!saving[submission.id]}
                         >
-                          <Icon name="trash" size={16} />
+                          {saving[submission.id] ? (
+                            'Saving...'
+                          ) : present ? (
+                            <>
+                              <Icon name="circle-check" size={16} />
+                              Present
+                            </>
+                          ) : (
+                            <>
+                              <Icon name="circle-dashed" size={16} />
+                              Mark Present
+                            </>
+                          )}
                         </button>
-                      )}
-                    </div>
+                        {canRemove && (
+                          <button
+                            type="button"
+                            className="kbtn kbtn-sm kbtn-ghost text-error"
+                            onClick={event => {
+                              event.stopPropagation();
+                              handleRemoveVolunteer(submission);
+                            }}
+                            disabled={!!saving[submission.id]}
+                          >
+                            <Icon name="trash" size={16} />
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -853,8 +859,8 @@ export const Volunteers = ({ project }) => {
                     <th className="px-4 py-2">Volunteer</th>
                     <th className="px-4 py-2">Email</th>
                     <th className="px-4 py-2">Phone</th>
-                    <th className="px-4 py-2">Attendance</th>
-                    {canRemove && <th className="px-4 py-2 w-12"></th>}
+                    {!isClosed && <th className="px-4 py-2">Attendance</th>}
+                    {!isClosed && canRemove && <th className="px-4 py-2 w-12"></th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -895,32 +901,34 @@ export const Volunteers = ({ project }) => {
                         <td className="px-4 py-2">
                           {formatPhone(values[FIELD_PHONE]) || '—'}
                         </td>
-                        <td className="px-4 py-2">
-                          <button
-                            type="button"
-                            className={`kbtn kbtn-sm gap-1.5 ${present ? 'kbtn-success' : 'kbtn-outline'}`}
-                            onClick={event => {
-                              event.stopPropagation();
-                              handleTogglePresent(submission);
-                            }}
-                            disabled={!!saving[submission.id]}
-                          >
-                            {saving[submission.id] ? (
-                              'Saving...'
-                            ) : present ? (
-                              <>
-                                <Icon name="circle-check" size={16} />
-                                Present
-                              </>
-                            ) : (
-                              <>
-                                <Icon name="circle-dashed" size={16} />
-                                Mark Present
-                              </>
-                            )}
-                          </button>
-                        </td>
-                        {canRemove && (
+                        {!isClosed && (
+                          <td className="px-4 py-2">
+                            <button
+                              type="button"
+                              className={`kbtn kbtn-sm gap-1.5 ${present ? 'kbtn-success' : 'kbtn-outline'}`}
+                              onClick={event => {
+                                event.stopPropagation();
+                                handleTogglePresent(submission);
+                              }}
+                              disabled={!!saving[submission.id]}
+                            >
+                              {saving[submission.id] ? (
+                                'Saving...'
+                              ) : present ? (
+                                <>
+                                  <Icon name="circle-check" size={16} />
+                                  Present
+                                </>
+                              ) : (
+                                <>
+                                  <Icon name="circle-dashed" size={16} />
+                                  Mark Present
+                                </>
+                              )}
+                            </button>
+                          </td>
+                        )}
+                        {!isClosed && canRemove && (
                           <td className="px-4 py-2">
                             <button
                               type="button"
@@ -951,92 +959,94 @@ export const Volunteers = ({ project }) => {
         </>
       )}
 
-      <div className="mt-6 rounded-box border bg-base-100/60 p-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="text-xs uppercase tracking-wide text-base-content/60">
-            Add A Volunteer
+      {!isClosed && (
+        <div className="mt-6 rounded-box border bg-base-100/60 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="text-xs uppercase tracking-wide text-base-content/60">
+              Add A Volunteer
+            </div>
           </div>
-        </div>
-        <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_auto] lg:items-start">
-          <div className="relative">
-            <label className="kinput w-full">
-              <input
-                type="text"
-                className="input input-bordered w-full"
-                placeholder="Search volunteers by name"
-                value={searchTerm}
-                onChange={event => setSearchTerm(event.target.value)}
-              />
-            </label>
+          <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_auto] lg:items-start">
+            <div className="relative">
+              <label className="kinput w-full">
+                <input
+                  type="text"
+                  className="input input-bordered w-full"
+                  placeholder="Search volunteers by name"
+                  value={searchTerm}
+                  onChange={event => setSearchTerm(event.target.value)}
+                />
+              </label>
 
-            {isSearchReady && (
-              <div className="absolute left-0 right-0 z-20 mt-1 rounded-box border bg-base-100 shadow">
-                <div className="max-h-56 overflow-auto p-2">
-                  {searchLoading && (
-                    <div className="text-xs text-base-content/60">
-                      Searching...
-                    </div>
-                  )}
-                  {!searchLoading &&
-                    searchInitialized &&
-                    searchResults.length === 0 && (
-                      <div className="flex flex-col gap-2 text-xs text-base-content/60">
-                        <div>No volunteers found.</div>
-                        <button
-                          type="button"
-                          className="kbtn kbtn-ghost kbtn-sm w-fit"
-                          onClick={() => {
-                            setNewVolunteerValues(v => ({ ...v, lastName: searchTermTrimmed }));
-                            setNewVolunteerOpen(true);
-                          }}
-                        >
-                          Add New Volunteer
-                        </button>
+              {isSearchReady && (
+                <div className="absolute left-0 right-0 z-20 mt-1 rounded-box border bg-base-100 shadow">
+                  <div className="max-h-56 overflow-auto p-2">
+                    {searchLoading && (
+                      <div className="text-xs text-base-content/60">
+                        Searching...
                       </div>
                     )}
-                  {!searchLoading && searchResults.length > 0 && (
-                    <div className="flex flex-col gap-1">
-                      {searchResults.map(result => {
-                        const values = result.values || {};
-                        const id = getVolunteerIdFromSubmission(result);
-                        const name = formatVolunteerName(values);
-                        const email = values[FIELD_EMAIL];
-                        const phone = values[FIELD_PHONE];
-                        return (
+                    {!searchLoading &&
+                      searchInitialized &&
+                      searchResults.length === 0 && (
+                        <div className="flex flex-col gap-2 text-xs text-base-content/60">
+                          <div>No volunteers found.</div>
                           <button
-                            key={result.id}
                             type="button"
-                            className="kbtn kbtn-ghost justify-start"
-                            onClick={() => handleAddVolunteer(id)}
-                            disabled={adding}
+                            className="kbtn kbtn-ghost kbtn-sm w-fit"
+                            onClick={() => {
+                              setNewVolunteerValues(v => ({ ...v, lastName: searchTermTrimmed }));
+                              setNewVolunteerOpen(true);
+                            }}
                           >
-                            <span className="font-medium">
-                              {name || 'Volunteer'}
-                            </span>
-                            {email && (
-                              <span className="ml-2 text-xs text-base-content/60">
-                                {email}
-                              </span>
-                            )}
-                            {phone && (
-                              <span className="ml-2 text-xs text-base-content/60">
-                                {formatPhone(phone)}
-                              </span>
-                            )}
-                            <span className="ml-auto text-xs font-semibold">
-                              Add
-                            </span>
+                            Add New Volunteer
                           </button>
-                        );
-                      })}
-                    </div>
-                  )}
+                        </div>
+                      )}
+                    {!searchLoading && searchResults.length > 0 && (
+                      <div className="flex flex-col gap-1">
+                        {searchResults.map(result => {
+                          const values = result.values || {};
+                          const id = getVolunteerIdFromSubmission(result);
+                          const name = formatVolunteerName(values);
+                          const email = values[FIELD_EMAIL];
+                          const phone = values[FIELD_PHONE];
+                          return (
+                            <button
+                              key={result.id}
+                              type="button"
+                              className="kbtn kbtn-ghost justify-start"
+                              onClick={() => handleAddVolunteer(id)}
+                              disabled={adding}
+                            >
+                              <span className="font-medium">
+                                {name || 'Volunteer'}
+                              </span>
+                              {email && (
+                                <span className="ml-2 text-xs text-base-content/60">
+                                  {email}
+                                </span>
+                              )}
+                              {phone && (
+                                <span className="ml-2 text-xs text-base-content/60">
+                                  {formatPhone(phone)}
+                                </span>
+                              )}
+                              <span className="ml-auto text-xs font-semibold">
+                                Add
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <Modal
         open={newVolunteerOpen}
@@ -1149,4 +1159,5 @@ export const Volunteers = ({ project }) => {
 
 Volunteers.propTypes = {
   project: t.object,
+  isClosed: t.bool,
 };

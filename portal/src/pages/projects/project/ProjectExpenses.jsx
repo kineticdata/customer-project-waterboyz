@@ -62,7 +62,7 @@ const getAttachmentUrl = attachment =>
   attachment?.previewUrl ||
   '';
 
-export const ProjectExpenses = ({ project }) => {
+export const ProjectExpenses = ({ project, isClosed }) => {
   const { kappSlug } = useSelector(state => state.app);
   const projectId = project?.id;
   const editorRef = useRef(null);
@@ -268,15 +268,17 @@ export const ProjectExpenses = ({ project }) => {
             })}
           </div>
         )}
-        <div className="mt-4">
-          <button
-            type="button"
-            className="kbtn kbtn-primary"
-            onClick={() => setShowNewExpense(true)}
-          >
-            Add New Expense
-          </button>
-        </div>
+        {!isClosed && (
+          <div className="mt-4">
+            <button
+              type="button"
+              className="kbtn kbtn-primary"
+              onClick={() => setShowNewExpense(true)}
+            >
+              Add New Expense
+            </button>
+          </div>
+        )}
       </div>
 
       <Modal
@@ -432,4 +434,5 @@ ProjectExpenses.propTypes = {
   project: t.object,
   family: t.any,
   familyLoading: t.bool,
+  isClosed: t.bool,
 };

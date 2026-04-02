@@ -90,7 +90,7 @@ const attachDocumentIds = (attachments, valuesRaw, fieldName) => {
   }));
 };
 
-export const ProjectPhotos = ({ project, reloadProject }) => {
+export const ProjectPhotos = ({ project, reloadProject, isClosed }) => {
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [fileNames, setFileNames] = useState({});
@@ -236,17 +236,19 @@ export const ProjectPhotos = ({ project, reloadProject }) => {
             Before/after photos and uploads.
           </p>
         </div>
-        <button
-          type="button"
-          className="kbtn kbtn-primary"
-          onClick={() => setShowUploadForm(prev => !prev)}
-        >
-          <Icon name="upload" />
-          {showUploadForm ? 'Hide Upload Form' : 'Upload Photos'}
-        </button>
+        {!isClosed && (
+          <button
+            type="button"
+            className="kbtn kbtn-primary"
+            onClick={() => setShowUploadForm(prev => !prev)}
+          >
+            <Icon name="upload" />
+            {showUploadForm ? 'Hide Upload Form' : 'Upload Photos'}
+          </button>
+        )}
       </div>
 
-      {showUploadForm && (
+      {!isClosed && showUploadForm && (
         <div className="mt-6 krounded-box border kbg-base-100/60 p-4">
           <div className="text-sm font-semibold">Upload Photos</div>
           <p className="mt-1 text-xs text-base-content/60">
@@ -393,15 +395,17 @@ export const ProjectPhotos = ({ project, reloadProject }) => {
                 </a>
                 <div className="mt-2 flex items-center justify-between text-xs text-base-content/60 gap-2">
                   <span className="truncate">{label}</span>
-                  <button
-                    type="button"
-                    className="kbtn kbtn-xs kbtn-circle kbg-base-100/90 shadow-md border kborder-base-200 hover:kbg-base-100"
-                    onClick={() => handleRemove(entry)}
-                    disabled={removingIndex === entry.objectIndex || uploading}
-                    aria-label="Remove photo"
-                  >
-                    <Icon name="trash" size={16} />
-                  </button>
+                  {!isClosed && (
+                    <button
+                      type="button"
+                      className="kbtn kbtn-xs kbtn-circle kbg-base-100/90 shadow-md border kborder-base-200 hover:kbg-base-100"
+                      onClick={() => handleRemove(entry)}
+                      disabled={removingIndex === entry.objectIndex || uploading}
+                      aria-label="Remove photo"
+                    >
+                      <Icon name="trash" size={16} />
+                    </button>
+                  )}
                 </div>
               </div>
             ) : (
@@ -411,15 +415,17 @@ export const ProjectPhotos = ({ project, reloadProject }) => {
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="truncate">{label}</span>
-                  <button
-                    type="button"
-                    className="kbtn kbtn-xs kbtn-circle kbg-base-100/90 shadow-md border kborder-base-200 hover:kbg-base-100"
-                    onClick={() => handleRemove(entry)}
-                    disabled={removingIndex === entry.objectIndex || uploading}
-                    aria-label="Remove photo"
-                  >
-                    <Icon name="trash" size={16} />
-                  </button>
+                  {!isClosed && (
+                    <button
+                      type="button"
+                      className="kbtn kbtn-xs kbtn-circle kbg-base-100/90 shadow-md border kborder-base-200 hover:kbg-base-100"
+                      onClick={() => handleRemove(entry)}
+                      disabled={removingIndex === entry.objectIndex || uploading}
+                      aria-label="Remove photo"
+                    >
+                      <Icon name="trash" size={16} />
+                    </button>
+                  )}
                 </div>
               </div>
             );
@@ -435,4 +441,5 @@ ProjectPhotos.propTypes = {
   family: t.any,
   familyLoading: t.bool,
   reloadProject: t.func,
+  isClosed: t.bool,
 };
