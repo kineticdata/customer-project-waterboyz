@@ -12,7 +12,7 @@ import { toArray, buildSmsHref, formatPhone } from '../helpers/format.js';
  * @param {object}  [props.volunteer]  - Volunteer datastore submission (values)
  * @param {object}  [props.signup]     - Event signup submission (optional, for event context)
  */
-export const VolunteerDetailModal = ({ open, onClose, volunteer, signup }) => {
+export const VolunteerDetailModal = ({ open, onClose, volunteer, signup, onCancelSignup, cancelling }) => {
   const vol = volunteer?.values ?? volunteer ?? {};
   const hasProfile = !!volunteer;
 
@@ -176,6 +176,19 @@ export const VolunteerDetailModal = ({ open, onClose, volunteer, signup }) => {
                 </DetailRow>
               )}
             </>
+          )}
+          {onCancelSignup && signup && (
+            <div className="pt-3 mt-3 border-t border-base-200">
+              <button
+                type="button"
+                className="kbtn kbtn-error kbtn-sm kbtn-outline"
+                onClick={() => onCancelSignup(signup)}
+                disabled={cancelling}
+              >
+                <Icon name="x" size={15} />
+                {cancelling ? 'Cancelling...' : 'Cancel Signup'}
+              </button>
+            </div>
           )}
         </div>
       </div>

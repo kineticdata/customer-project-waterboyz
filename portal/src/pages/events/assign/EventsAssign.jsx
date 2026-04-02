@@ -1,7 +1,9 @@
 import { useCallback, useState } from 'react';
+import { updateSubmission } from '@kineticdata/react';
 import { Loading } from '../../../components/states/Loading.jsx';
 import { PageHeading } from '../../../components/PageHeading.jsx';
 import { VolunteerDetailModal } from '../../../components/VolunteerDetailModal.jsx';
+import { toastError, toastSuccess } from '../../../helpers/toasts.js';
 import { toArray } from '../../../helpers/format.js';
 import { useAssignData } from './useAssignData.js';
 import { useStagedAssignments } from './useStagedAssignments.js';
@@ -53,6 +55,23 @@ export const EventsAssign = () => {
   // Detail modals
   const [volunteerModal, setVolunteerModal] = useState(null);
   const [projectModal, setProjectModal] = useState(null);
+  const [cancelling, setCancelling] = useState(false);
+
+  const handleCancelSignup = useCallback(async (signup) => {
+    setCancelling(true);
+    const result = await updateSubmission({
+      id: signup.id,
+      values: { 'Signup Status': 'Cancelled' },
+    });
+    if (result?.error) {
+      toastError({ title: 'Unable to cancel signup', description: result.error.message });
+    } else {
+      toastSuccess({ title: 'Signup cancelled.' });
+      setVolunteerModal(null);
+      reload();
+    }
+    setCancelling(false);
+  }, [reload]);
 
   const toggleSkill = useCallback(skill => {
     setSkillFilter(prev =>
@@ -197,6 +216,8 @@ export const EventsAssign = () => {
         onClose={() => setVolunteerModal(null)}
         volunteer={volunteerModal?.vol}
         signup={volunteerModal?.signup}
+        onCancelSignup={handleCancelSignup}
+        cancelling={cancelling}
       />
       <ProjectDetailModal
         project={projectModal}
