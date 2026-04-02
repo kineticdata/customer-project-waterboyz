@@ -238,7 +238,6 @@ export const MyVolunteeringPage = () => {
   const [projectFilter, setProjectFilter] = useState('upcoming');
 
   const { upcomingProjects, pastProjects } = useMemo(() => {
-    const now = today();
     const upcoming = [];
     const past = [];
 
@@ -247,11 +246,10 @@ export const MyVolunteeringPage = () => {
       const project = projectsById[projectId];
       if (!project) continue;
 
-      const scheduledDate = parseDate(project['Scheduled Date']);
       const status = project['Project Status'];
       const isClosed = status === 'Completed' || status === 'Closed';
 
-      if (isClosed || (scheduledDate && scheduledDate < now)) {
+      if (isClosed) {
         past.push({ assignment, project });
       } else {
         upcoming.push({ assignment, project });
