@@ -41,6 +41,47 @@ const navItems = [
   { label: 'Photos', to: 'photos', icon: 'camera' },
 ];
 
+const STATUS_BANNER = {
+  Planning: {
+    icon: 'alert-triangle',
+    title: 'Not visible to volunteers',
+    message:
+      'Set status to "Ready to Work" when you\'re ready to recruit volunteers.',
+    style: 'bg-warning/10 border-warning text-warning-content',
+    linkTo: 'details',
+  },
+  Active: {
+    icon: 'info-circle',
+    title: 'Work in progress',
+    message: 'This project is no longer listed for new volunteers.',
+    style: 'bg-info/10 border-info text-info-content',
+    linkTo: 'details',
+  },
+  Ongoing: {
+    icon: 'info-circle',
+    title: 'Ongoing project',
+    message: 'This project is ongoing and not listed for new volunteers.',
+    style: 'bg-info/10 border-info text-info-content',
+    linkTo: 'details',
+  },
+  Completed: {
+    icon: 'circle-check',
+    title: 'Project completed',
+    message:
+      'This project is finished and no longer visible to volunteers.',
+    style: 'bg-primary/5 border-primary text-primary',
+    linkTo: null,
+  },
+  Canceled: {
+    icon: 'circle-x',
+    title: 'Project canceled',
+    message:
+      'This project has been canceled and is not visible to volunteers.',
+    style: 'bg-error/10 border-error text-error',
+    linkTo: null,
+  },
+};
+
 export const Project = () => {
   const { submissionId } = useParams();
   const location = useLocation();
@@ -175,49 +216,7 @@ export const Project = () => {
   }
 
   const projectStatus = data?.values?.['Project Status'] || 'Active';
-
-  const STATUS_BANNER = {
-    Planning: {
-      icon: 'alert-triangle',
-      title: 'Not visible to volunteers',
-      message:
-        'Set status to "Ready to Work" when you\'re ready to recruit volunteers.',
-      style: 'bg-warning/10 border-warning text-warning-content',
-      linkTo: 'details',
-    },
-    Active: {
-      icon: 'info-circle',
-      title: 'Work in progress',
-      message: 'This project is no longer listed for new volunteers.',
-      style: 'bg-info/10 border-info text-info-content',
-      linkTo: 'details',
-    },
-    Ongoing: {
-      icon: 'info-circle',
-      title: 'Ongoing project',
-      message: 'This project is ongoing and not listed for new volunteers.',
-      style: 'bg-info/10 border-info text-info-content',
-      linkTo: 'details',
-    },
-    Completed: {
-      icon: 'circle-check',
-      title: 'Project completed',
-      message:
-        'This project is finished and no longer visible to volunteers.',
-      style: 'bg-primary/5 border-primary text-primary',
-      linkTo: null,
-    },
-    Canceled: {
-      icon: 'circle-x',
-      title: 'Project canceled',
-      message:
-        'This project has been canceled and is not visible to volunteers.',
-      style: 'bg-error/10 border-error text-error',
-      linkTo: null,
-    },
-  };
-
-  const banner = STATUS_BANNER[projectStatus] || null;
+  const banner = STATUS_BANNER[projectStatus];
 
   return (
     <div className="pb-24 md:pb-8">
