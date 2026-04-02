@@ -17,6 +17,7 @@ export const CaptainManagement = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [adding, setAdding] = useState(false);
+  const closeModal = useCallback(() => { setModalOpen(false); setSearch(''); }, []);
 
   // Fetch team with memberships
   const teamParams = useMemo(() => ({
@@ -60,8 +61,7 @@ export const CaptainManagement = () => {
       toastError({ title: 'Failed to add captain', description: result.error.message });
     } else {
       toastSuccess({ title: 'Captain added' });
-      setModalOpen(false);
-      setSearch('');
+      closeModal();
       teamActions.reloadData();
     }
   }, [teamActions]);
@@ -165,7 +165,7 @@ export const CaptainManagement = () => {
             <h3 className="text-lg font-semibold">Add Captain</h3>
             <button
               className="kbtn kbtn-ghost kbtn-sm kbtn-circle ml-auto"
-              onClick={() => { setModalOpen(false); setSearch(''); }}
+              onClick={closeModal}
               aria-label="Close"
             >
               <Icon name="x" size={18} />
@@ -204,7 +204,7 @@ export const CaptainManagement = () => {
           </div>
         </div>
         <form method="dialog" className="kmodal-backdrop">
-          <button onClick={() => { setModalOpen(false); setSearch(''); }}>close</button>
+          <button onClick={closeModal}>close</button>
         </form>
       </dialog>
     </div>
