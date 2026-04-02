@@ -1,7 +1,7 @@
 import t from 'prop-types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { searchSubmissions, updateSubmission } from '@kineticdata/react';
+import { getCsrfToken, searchSubmissions, updateSubmission } from '@kineticdata/react';
 import { useData } from '../../../helpers/hooks/useData.js';
 import { useRoles } from '../../../helpers/hooks/useRoles.js';
 import { toastError, toastSuccess } from '../../../helpers/toasts.js';
@@ -35,7 +35,7 @@ const STATUS_VISIBILITY_NOTE = {
     'This project is visible to volunteers on the Upcoming Projects page.',
   Active: 'This project is no longer listed for new volunteers.',
   Ongoing: 'This project is no longer listed for new volunteers.',
-  Completed: 'This project is closed.',
+  Completed: 'Project has been completed.',
   Canceled: 'This project is closed.',
 };
 
@@ -80,6 +80,7 @@ export const ProjectDetails = ({
   familyLoading,
   reloadProject,
   captains,
+  isClosed,
 }) => {
   const { kappSlug } = useSelector(state => state.app);
   const { isLeadership } = useRoles();
@@ -120,8 +121,12 @@ export const ProjectDetails = ({
     const pages = project?.form?.pages || [];
     const allElements = pages.flatMap(page => page?.elements || []);
     const choices = findFieldChoices(allElements, FIELD_PROJECT_STATUS);
-    return normalizeChoices(choices);
-  }, [project]);
+    const normalized = normalizeChoices(choices);
+    if (!isLeadership) {
+      return normalized.filter(o => o.value !== 'Closed');
+    }
+    return normalized;
+  }, [project, isLeadership]);
 
   useEffect(() => {
     setProjectCaptain(project?.values?.[FIELD_PROJECT_CAPTAIN] || '');
@@ -203,6 +208,39 @@ export const ProjectDetails = ({
     setSaving(false);
   }, [project, projectCaptain, scheduledDate, completionDate, status, requiresVolunteerInfo, isCompleted, skillsNeeded, equipmentNeeded, totalManHours, associatedEventId, familyCommComplete, familyType, reloadProject]);
 
+  const [closingOut, setClosingOut] = useState(false);
+  const canCloseOut =
+    isLeadership && (status === 'Completed' || status === 'Canceled');
+
+  const handleCloseOut = useCallback(async () => {
+    if (!project?.id) return;
+    setClosingOut(true);
+    try {
+      const response = await fetch(
+        `/app/kapps/${kappSlug}/webApis/project-close-out?timeout=10`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-XSRF-TOKEN': getCsrfToken(),
+          },
+          body: JSON.stringify({ 'Submission ID': project.id }),
+        },
+      );
+      if (response.status !== 200) {
+        throw new Error('Failed to close out project');
+      }
+      toastSuccess({ title: 'Project closed out successfully.' });
+      reloadProject?.();
+    } catch (err) {
+      toastError({
+        title: 'Unable to close out project',
+        description: err.message,
+      });
+    }
+    setClosingOut(false);
+  }, [project, kappSlug, reloadProject]);
+
   return (
     <>
     <FamilyInformation familyRecord={familyRecord} familyLoading={familyLoading} />
@@ -215,6 +253,7 @@ export const ProjectDetails = ({
           className="kselect kselect-bordered w-full"
           value={status}
           onChange={event => setStatus(event.target.value)}
+          disabled={isClosed}
         >
           <option value="">Select a status</option>
           {statusOptions.map(option => (
@@ -236,10 +275,35 @@ export const ProjectDetails = ({
       </label>
     </div>
 
-    <div className="krounded-box border kbg-base-100 p-6">
+    {/* Close Out Banner — leadership only, when Completed or Canceled and not already closed */}
+    {canCloseOut && !isClosed && (
+      <div className="krounded-box border border-warning/30 bg-warning/5 p-6">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-start gap-3">
+            <Icon name="lock" size={22} className="text-warning mt-0.5 flex-none" />
+            <div>
+              <p className="font-semibold text-base-content">Close Out Project</p>
+              <p className="text-sm text-base-content/60 mt-0.5">
+                Lock this project so no future changes can be made.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="kbtn kbtn-warning kbtn-sm flex-none"
+            onClick={handleCloseOut}
+            disabled={closingOut}
+          >
+            {closingOut ? 'Closing...' : 'Close Out Project'}
+          </button>
+        </div>
+      </div>
+    )}
+
+    <fieldset disabled={isClosed} className="krounded-box border kbg-base-100 p-6">
       <div className="text-lg font-semibold">Project Details</div>
       <p className="mt-2 text-base-content/70">
-        Update project details and scheduled date.
+        {isClosed ? 'This project is closed and read-only.' : 'Update project details and scheduled date.'}
       </p>
 
       {isLeadership && (
@@ -481,17 +545,19 @@ export const ProjectDetails = ({
         </label>
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        <button
-          type="button"
-          className="kbtn kbtn-primary"
-          onClick={handleSave}
-          disabled={saving}
-        >
-          {saving ? 'Saving...' : 'Save Changes'}
-        </button>
-      </div>
-    </div>
+      {!isClosed && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            type="button"
+            className="kbtn kbtn-primary"
+            onClick={handleSave}
+            disabled={saving}
+          >
+            {saving ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
+      )}
+    </fieldset>
     </>
   );
 };
@@ -502,4 +568,5 @@ ProjectDetails.propTypes = {
   familyLoading: t.bool,
   reloadProject: t.func,
   captains: t.array,
+  isClosed: t.bool,
 };
