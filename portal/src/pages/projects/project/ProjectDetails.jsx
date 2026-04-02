@@ -209,8 +209,8 @@ export const ProjectDetails = ({
 
     {/* Status Card — promoted for visibility */}
     <div className="krounded-box border kbg-base-100 p-6">
-      <div className="text-lg font-semibold">Project Status</div>
-      <div className="mt-4">
+      <label className="klabel flex flex-col items-start gap-2">
+        <span className="klabel-text text-lg font-semibold">Project Status</span>
         <select
           className="kselect kselect-bordered w-full"
           value={status}
@@ -233,7 +233,7 @@ export const ProjectDetails = ({
             <span>{STATUS_VISIBILITY_NOTE[status]}</span>
           </div>
         )}
-      </div>
+      </label>
     </div>
 
     <div className="krounded-box border kbg-base-100 p-6">
