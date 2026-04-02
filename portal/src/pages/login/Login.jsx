@@ -1,6 +1,7 @@
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import logo from '../../assets/images/logo.png';
+import logoWhite from '../../assets/images/logo-white.svg';
 
 export const LoginCardWrapper = ({ children }) => (
   <div className="flex min-h-screen">
@@ -18,25 +19,42 @@ export const LoginCardWrapper = ({ children }) => (
       />
       <div className="relative z-10 flex flex-col justify-center items-center w-full px-12 text-white">
         <img
-          src={logo}
+          src={logoWhite}
           alt="Waterboyz for Jesus"
-          className="w-72 mb-8 drop-shadow-lg"
+          className="w-72 mb-6 drop-shadow-lg"
         />
-        <p className="text-xl text-white/80 text-center max-w-md leading-relaxed italic">
-          Bringing Drinks of Living Water
+        <p className="text-lg font-semibold text-white/90 text-center tracking-wide">
+          Christmas Alive &amp; SWAT Portal
         </p>
-        <div className="mt-12 grid grid-cols-3 gap-6 text-center max-w-sm">
-          <div>
-            <div className="text-3xl font-bold">Est.</div>
-            <div className="text-sm text-white/70 mt-1">2005</div>
+        <p className="text-sm text-white/60 text-center mt-1 italic">
+          Bringing Drinks of Living Water &middot; Est. 2005
+        </p>
+
+        <div className="mt-10 w-full max-w-xs">
+          <div className="text-xs uppercase tracking-widest text-white/40 text-center mb-4">
+            2025 By The Numbers
           </div>
-          <div>
-            <div className="text-3xl font-bold">SWAT</div>
-            <div className="text-sm text-white/70 mt-1">Projects</div>
+          <div className="grid grid-cols-2 gap-4 text-center">
+            <div>
+              <div className="text-3xl font-bold">1.9K+</div>
+              <div className="text-xs text-white/60 mt-1">People Served</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold">1K+</div>
+              <div className="text-xs text-white/60 mt-1">Volunteers</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold">114</div>
+              <div className="text-xs text-white/60 mt-1">SWAT Projects</div>
+            </div>
+            <div>
+              <div className="text-3xl font-bold">240</div>
+              <div className="text-xs text-white/60 mt-1">Families Served</div>
+            </div>
           </div>
-          <div>
-            <div className="text-3xl font-bold">100+</div>
-            <div className="text-sm text-white/70 mt-1">Volunteers</div>
+          <div className="mt-4 text-center">
+            <div className="text-3xl font-bold">3.5K+</div>
+            <div className="text-xs text-white/60 mt-1">Volunteer Hours</div>
           </div>
         </div>
       </div>
