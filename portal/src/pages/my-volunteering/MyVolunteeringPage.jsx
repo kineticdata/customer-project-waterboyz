@@ -57,7 +57,7 @@ const fetchProjects = ({ kappSlug, projectIds }) =>
   executeIntegration({
     kappSlug,
     integrationName: 'Projects - Retrieve',
-    parameters: { 'CSV of Project IDs': projectIds.join(',') },
+    parameters: { 'CSV of Project IDs': projectIds.map(id => `"${id}"`).join(',') },
   });
 
 const fetchCaptains = ({ kappSlug }) =>
