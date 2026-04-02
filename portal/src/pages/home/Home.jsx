@@ -112,12 +112,14 @@ export const WorkList = ({ limit = 5 }) => {
       search: {
         q: defineKqlQuery()
           .in('type', 'types')
+          .equals('coreState', 'coreState')
           .or()
           .equals('values[Assigned Individual]', 'username')
           .in('values[Assigned Team]', 'teams')
           .end()
           .end()({
           types: ['Approval', 'Task'],
+          coreState: 'Draft',
           username,
           teams: memberships.map(({ team }) => team.name),
         }),

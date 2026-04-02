@@ -22,7 +22,7 @@ export const CaptainManagement = () => {
   // Fetch team with memberships
   const teamParams = useMemo(() => ({
     teamSlug: TEAM_SLUG,
-    include: 'memberships',
+    include: 'memberships,memberships.user.details',
   }), []);
   const { response: teamResponse, loading: teamLoading, actions: teamActions } = useData(fetchTeam, teamParams);
   const memberships = teamResponse?.team?.memberships ?? [];

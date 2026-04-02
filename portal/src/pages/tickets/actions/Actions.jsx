@@ -51,7 +51,7 @@ export const Actions = () => {
 
   // State for filters
   const [filters, setFilters] = useState({
-    status: { open: false, closed: false },
+    status: { open: true, closed: false },
     assignment: { mine: false, teams: false },
   });
 
