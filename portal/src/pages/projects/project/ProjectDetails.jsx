@@ -6,6 +6,7 @@ import { useData } from '../../../helpers/hooks/useData.js';
 import { useRoles } from '../../../helpers/hooks/useRoles.js';
 import { toastError, toastSuccess } from '../../../helpers/toasts.js';
 import { FamilyInformation } from './FamilyInformation.jsx';
+import { Icon } from '../../../atoms/Icon.jsx';
 
 const FIELD_PROJECT_CAPTAIN = 'Project Captain';
 const FIELD_PROJECT_STATUS = 'Project Status';
@@ -26,6 +27,17 @@ const FAMILY_TYPE_OPTIONS = [
   'Senior Citizen',
   'Other',
 ];
+
+const STATUS_VISIBILITY_NOTE = {
+  Planning:
+    'Volunteers can only see projects in "Ready to Work" status. Update the status when you\'re ready to recruit.',
+  'Ready to Work':
+    'This project is visible to volunteers on the Upcoming Projects page.',
+  Active: 'This project is no longer listed for new volunteers.',
+  Ongoing: 'This project is no longer listed for new volunteers.',
+  Completed: 'This project is closed.',
+  Canceled: 'This project is closed.',
+};
 
 const normalizeDateValue = value =>
   value ? String(value).trim().slice(0, 10) : '';
@@ -95,6 +107,7 @@ export const ProjectDetails = ({
       (captains ?? []).map(c => ({
         username: c['User Name'],
         displayName: c['User Display Name'],
+        hasVolunteerProfile: !!c['Volunteer Id'],
       })),
     [captains],
   );
@@ -193,10 +206,40 @@ export const ProjectDetails = ({
   return (
     <>
     <FamilyInformation familyRecord={familyRecord} familyLoading={familyLoading} />
+
+    {/* Status Card — promoted for visibility */}
+    <div className="krounded-box border kbg-base-100 p-6">
+      <div className="text-lg font-semibold">Project Status</div>
+      <div className="mt-4">
+        <select
+          className="kselect kselect-bordered w-full"
+          value={status}
+          onChange={event => setStatus(event.target.value)}
+        >
+          <option value="">Select a status</option>
+          {statusOptions.map(option => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        {status && STATUS_VISIBILITY_NOTE[status] && (
+          <div className="flex items-start gap-2 mt-3 text-sm text-base-content/60">
+            <Icon
+              name={status === 'Ready to Work' ? 'eye' : 'eye-off'}
+              size={16}
+              className="mt-0.5 flex-none"
+            />
+            <span>{STATUS_VISIBILITY_NOTE[status]}</span>
+          </div>
+        )}
+      </div>
+    </div>
+
     <div className="krounded-box border kbg-base-100 p-6">
       <div className="text-lg font-semibold">Project Details</div>
       <p className="mt-2 text-base-content/70">
-        Update project status and scheduled date.
+        Update project details and scheduled date.
       </p>
 
       {isLeadership && (
@@ -212,8 +255,14 @@ export const ProjectDetails = ({
             >
               <option value="">— Select a captain —</option>
               {captainOptions.map(c => (
-                <option key={c.username} value={c.username}>
-                  {c.displayName} ({c.username})
+                <option
+                  key={c.username}
+                  value={c.username}
+                  disabled={!c.hasVolunteerProfile}
+                >
+                  {c.hasVolunteerProfile
+                    ? `${c.displayName} (${c.username})`
+                    : `${c.displayName || c.username} (No Volunteer Profile Created)`}
                 </option>
               ))}
             </select>
@@ -245,23 +294,6 @@ export const ProjectDetails = ({
       )}
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
-        <label className="klabel flex flex-col items-start gap-2">
-          <span className="klabel-text text-xs uppercase tracking-wide text-base-content/60">
-            Project Status
-          </span>
-          <select
-            className="kselect kselect-bordered w-full"
-            value={status}
-            onChange={event => setStatus(event.target.value)}
-          >
-            <option value="">Select a status</option>
-            {statusOptions.map(option => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
         <label className="klabel flex flex-col items-start gap-2">
           <span className="klabel-text text-xs uppercase tracking-wide text-base-content/60">
             Scheduled Date
