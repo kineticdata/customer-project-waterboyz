@@ -12,11 +12,18 @@ const fetchUpcomingProjects = ({ kappSlug }) =>
     integrationName: 'Upcoming SWAT Projects',
   });
 
+const fetchCaptains = ({ kappSlug }) =>
+  executeIntegration({
+    kappSlug,
+    integrationName: 'Project Captains Retrieve',
+  });
+
 export const UpcomingProjects = () => {
   const { kappSlug } = useSelector(state => state.app);
 
   const params = useMemo(() => ({ kappSlug }), [kappSlug]);
   const { initialized, loading, response } = useData(fetchUpcomingProjects, params);
+  const { response: captainsResponse } = useData(fetchCaptains, params);
 
   // Integration returns { Projects: [...], Error: "..." }
   // Each project has flat keys: "Project Id", "Project Name", etc.
@@ -25,6 +32,14 @@ export const UpcomingProjects = () => {
     ? { message: response.Error }
     : response?.error;
 
+  const captainsByUsername = useMemo(() => {
+    const map = {};
+    for (const c of captainsResponse?.['Team Captains'] ?? []) {
+      map[c['User Name']] = c;
+    }
+    return map;
+  }, [captainsResponse]);
+
   return (
     <Routes>
       <Route
@@ -32,6 +47,7 @@ export const UpcomingProjects = () => {
         element={
           <UpcomingProjectDetail
             projects={projects}
+            captainsByUsername={captainsByUsername}
             loading={loading}
             error={error}
           />

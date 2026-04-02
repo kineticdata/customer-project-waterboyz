@@ -27,7 +27,7 @@ const parseList = value => {
     .filter(Boolean);
 };
 
-export const UpcomingProjectDetail = ({ projects, loading, error }) => {
+export const UpcomingProjectDetail = ({ projects, captainsByUsername, loading, error }) => {
   const { projectId } = useParams();
   const project = projects?.find(p => p['Project Id'] === projectId);
 
@@ -150,6 +150,9 @@ export const UpcomingProjectDetail = ({ projects, loading, error }) => {
   const skillsNeeded = parseList(project['Skills Needed']);
   const equipmentNeeded = parseList(project['Equipment Needed']);
   const location = [city, state].filter(Boolean).join(', ');
+  const captain = captainsByUsername?.[project['Project Captain']];
+  const captainName = captain?.['User Display Name'] || project['Project Captain'];
+  const captainEmail = captain?.['User Email'];
 
   return (
     <div className="gutter pb-24 md:pb-8">
@@ -183,6 +186,27 @@ export const UpcomingProjectDetail = ({ projects, loading, error }) => {
                       Location
                     </p>
                     <p className="font-semibold">{location}</p>
+                  </div>
+                </div>
+              )}
+              {captainName && (
+                <div className="flex-sc gap-2">
+                  <div className="flex-cc w-10 h-10 rounded-lg bg-secondary/10 text-secondary">
+                    <Icon name="user-star" size={20} />
+                  </div>
+                  <div>
+                    <p className="text-xs text-base-content/50 font-medium">
+                      Project Captain
+                    </p>
+                    <p className="font-semibold">{captainName}</p>
+                    {captainEmail && (
+                      <a
+                        href={`mailto:${captainEmail}`}
+                        className="text-xs text-primary hover:underline"
+                      >
+                        {captainEmail}
+                      </a>
+                    )}
                   </div>
                 </div>
               )}
