@@ -11,6 +11,7 @@ import { Loading } from '../../components/states/Loading.jsx';
 const VolunteerManagement = lazy(() => import('./volunteer-management/VolunteerManagement.jsx').then(m => ({ default: m.VolunteerManagement })));
 const Reports = lazy(() => import('./Reports.jsx').then(m => ({ default: m.Reports })));
 const VolunteerNotifications = lazy(() => import('./volunteer-notifications/VolunteerNotifications.jsx').then(m => ({ default: m.VolunteerNotifications })));
+const CaptainManagement = lazy(() => import('./CaptainManagement.jsx').then(m => ({ default: m.CaptainManagement })));
 
 export const AdminRouting = () => {
   const { isAdmin, isLeadership } = useRoles();
@@ -46,6 +47,7 @@ export const AdminRouting = () => {
               <Route path="/" element={<Admin adminForms={adminForms} />} />
               <Route path="/reports" element={<Suspense fallback={<Loading />}><Reports /></Suspense>} />
               <Route path="/notify-volunteers/*" element={<Suspense fallback={<Loading />}><VolunteerNotifications /></Suspense>} />
+              <Route path="/captain-management" element={<Suspense fallback={<Loading />}><CaptainManagement /></Suspense>} />
               <Route
                 path="/:formSlug"
                 element={<AdminFormRecords adminForms={adminForms} />}

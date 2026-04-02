@@ -68,6 +68,12 @@ export const Admin = ({ adminForms }) => {
         'Send mass email notifications to volunteers about upcoming projects.',
       to: '/admin/notify-volunteers',
     },
+    {
+      icon: 'users-group',
+      label: 'Captain Management',
+      description: 'Add or remove members of the Project Captains team.',
+      to: '/admin/captain-management',
+    },
     isAdmin && {
       icon: 'database',
       label: 'Datastore',

@@ -204,7 +204,7 @@ const getMenuItems = (profile, roles = {}, { hasNominations } = {}) => {
         { label: 'Home', to: '/', icon: 'home' },
         { label: 'My Volunteering', to: '/my-volunteering', icon: 'heart-handshake' },
         hasNominations && { label: 'My Nominations', to: '/nominations', icon: 'file-text' },
-        { label: 'Upcoming Projects', to: '/upcoming-projects', icon: 'calendar-event' },
+        !hasProjectAccess && { label: 'Upcoming Projects', to: '/upcoming-projects', icon: 'calendar-event' },
         !(isAdmin || isLeadership) && { label: 'Events', to: '/events', icon: 'calendar-heart' },
         hasProjectAccess && { label: 'My Tasks', to: '/actions', icon: 'clipboard-check' },
         hasProjectAccess && {
@@ -222,6 +222,7 @@ const getMenuItems = (profile, roles = {}, { hasNominations } = {}) => {
         { label: 'SWAT Reports', to: '/admin/reports', icon: 'report-analytics' },
         { label: 'Volunteer Management', to: '/admin/volunteer-management', icon: 'table' },
         { label: 'Volunteer Notifications', to: '/admin/notify-volunteers', icon: 'mail' },
+        { label: 'Captain Management', to: '/admin/captain-management', icon: 'users-group' },
         { label: 'Settings', to: '/settings/datastore', icon: 'settings' },
       ],
     },
