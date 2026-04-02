@@ -9,7 +9,7 @@ import { openConfirm } from '../../helpers/confirm.js';
 import { toastSuccess, toastError } from '../../helpers/toasts.js';
 import clsx from 'clsx';
 
-const TEAM_SLUG = 'swat-project-captains';
+const TEAM_SLUG = 'c9e76136f81758a8a6866a3929082c2d';
 const TEAM_NAME = 'SWAT Project Captains';
 
 export const CaptainManagement = () => {
