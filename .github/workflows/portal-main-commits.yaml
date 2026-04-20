@@ -36,7 +36,7 @@ jobs:
     steps:
       # Checkout the repository
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # Determine the Repository Name of where this Action is running
       # GHA does not conveniently set a context variable with *only* the Repository Name
@@ -48,7 +48,7 @@ jobs:
       # Verify we were able to parse out the repository name
       - name: Fail if Repository Name Not Set
         if: ${{ !steps.repo_name.outputs.REPO_NAME }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             core.setFailed('The REPO_NAME value was not set in the github actions outputs.')
@@ -56,7 +56,7 @@ jobs:
       # Verify we have an S3 bucket set in the Repository Variables
       - name: Fail if S3 Bucket Not Set
         if: ${{ !vars.S3_BUCKET }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             core.setFailed('The S3_BUCKET variable was not set in the Repository Settings.')
@@ -65,19 +65,19 @@ jobs:
       # This is variablized, as the portal build location could be different per repository
       - name: Fail if Source Directory Not Set
         if: ${{ !vars.SOURCE_DIRECTORY }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             core.setFailed('The SOURCE_DIRECTORY variable was not set in the Repository Settings.')
 
-      - uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::${{ vars.ACCOUNT_ID }}:role/${{ steps.repo_name.outputs.REPO_NAME }}-github-oidc
           aws-region: us-east-1
 
       # Setup Node
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 18
 
