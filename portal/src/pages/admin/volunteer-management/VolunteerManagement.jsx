@@ -14,6 +14,7 @@ import { Loading } from '../../../components/states/Loading.jsx';
 import { toArray, formatPhone } from '../../../helpers/format.js';
 import { useVolunteerManagementData } from './useVolunteerManagementData.js';
 import { VolunteerDetailDrawer } from './VolunteerDetailDrawer.jsx';
+import { CreateVolunteerModal } from './CreateVolunteerModal.jsx';
 
 // ---------------------------------------------------------------------------
 // Filter components
@@ -299,6 +300,7 @@ export const VolunteerManagement = () => {
     initialized,
     loading,
     volunteers,
+    affiliates,
     allProjects,
     allEvents,
     allAssignments,
@@ -309,6 +311,7 @@ export const VolunteerManagement = () => {
 
   const mobile = useSelector(state => state.view.mobile);
   const [selectedVolunteer, setSelectedVolunteer] = useState(null);
+  const [createOpen, setCreateOpen] = useState(false);
   const [globalFilter, setGlobalFilter] = useState('');
   const [showFilters, setShowFilters] = useState(true);
   const [columnVisibility, setColumnVisibility] = useState({
@@ -667,25 +670,35 @@ export const VolunteerManagement = () => {
     <div className="gutter pb-6">
       {/* ── Toolbar ── */}
       <div className="pt-5 pb-3">
-        <div className="flex-bc gap-3 mb-3">
-          <PageHeading title="Volunteer Management" backTo="/admin" className="!mb-0" />
-          <div className="flex-sc gap-2 text-xs text-base-content/50">
-            <span>
-              <span className="font-semibold text-base-content/70">{filteredCount}</span>
-              {filteredCount !== volunteers.length && <> of {volunteers.length}</>}
-              {' '}volunteers
-            </span>
-            {activeFilterCount > 0 && (
-              <button
-                type="button"
-                onClick={clearAllFilters}
-                className="flex-sc gap-1 text-xs text-primary hover:text-primary/80 font-medium"
-              >
-                <Icon name="x" size={12} />
-                Clear
-              </button>
-            )}
+        <PageHeading title="Volunteer Management" backTo="/admin">
+          <div className="ml-auto">
+            <button
+              type="button"
+              className="kbtn kbtn-primary kbtn-sm"
+              onClick={() => setCreateOpen(true)}
+            >
+              <Icon name="plus" size={16} />
+              Add Volunteer
+            </button>
           </div>
+        </PageHeading>
+
+        <div className="flex-sc gap-2 text-xs text-base-content/50 mb-3">
+          <span>
+            <span className="font-semibold text-base-content/70">{filteredCount}</span>
+            {filteredCount !== volunteers.length && <> of {volunteers.length}</>}
+            {' '}volunteers
+          </span>
+          {activeFilterCount > 0 && (
+            <button
+              type="button"
+              onClick={clearAllFilters}
+              className="flex-sc gap-1 text-xs text-primary hover:text-primary/80 font-medium"
+            >
+              <Icon name="x" size={12} />
+              Clear
+            </button>
+          )}
         </div>
 
         <div className="flex-sc flex-wrap gap-2">
@@ -953,6 +966,26 @@ export const VolunteerManagement = () => {
         allSignups={allSignups}
         eventsById={eventsById}
         onDataChanged={reload}
+      />
+
+      {/* ── Create Volunteer Modal ── */}
+      <CreateVolunteerModal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        affiliates={affiliates}
+        onCreated={submission => {
+          reload();
+          if (submission) {
+            setSelectedVolunteer({
+              id: submission.id,
+              values: submission.values ?? {},
+              projects: [],
+              events: [],
+              projectCount: 0,
+              eventCount: 0,
+            });
+          }
+        }}
       />
     </div>
   );
