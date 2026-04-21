@@ -226,6 +226,13 @@ const getMenuItems = (profile, roles = {}, { hasNominations } = {}) => {
         { label: 'Settings', to: '/settings/datastore', icon: 'settings' },
       ],
     },
+    {
+      title: 'Help',
+      items: [
+        (isAdmin || isLeadership) && { label: 'SWAT Leadership Guide', to: '/help/swat-leaders', icon: 'book' },
+        { label: 'Team Captain Guide', to: '/help/team-captains', icon: 'book' },
+      ].filter(Boolean),
+    },
     profile?.spaceAdmin && {
       title: 'System Admin',
       items: [
