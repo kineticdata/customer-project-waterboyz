@@ -72,51 +72,284 @@
       
     <section id="quick-start" class="guide-section">
       <h2>Quick Start</h2>
-      <p class="section-purpose">Placeholder — real content to be added after screenshots are captured.</p>
+      <p class="section-purpose">SWAT Leadership oversees the entire Waterboyz project lifecycle — reviewing new nominations, approving budgets, assigning Project Captains, coordinating volunteers, and reporting results back to the community. This guide walks through the admin pages you'll use most.</p>
+      
+      <div class="how-to-get-there">
+        <h3>How to get there</h3>
+        <p>Sign in at <strong>waterboyz.kinops.io</strong>. If your account is on the <strong>SWAT Leadership</strong> team, the hamburger menu will expose an <strong>Admin</strong> section with every management page listed below.</p>
+        
+      </div>
+      <div class="walkthrough">
+    <div class="step">
+      <h3>First: check your home page</h3>
+      <div class="step-body">When you log in, your home page shows <strong>My Nominations</strong>, the <strong>Nominate a Family</strong> programs, and a <strong>My Tasks</strong> sidebar with approvals assigned to you or the Leadership team. Clear any pending approvals here before moving on.</div>
+      
+    </div>
+  
+
+    <div class="step">
+      <h3>Second: review new nominations</h3>
+      <div class="step-body">Open the <strong>My Tasks</strong> sidebar or the <strong>Actions</strong> page to find <code>swat-project-approval</code> tasks. Review each nomination, set an approved budget, and assign an initial Project Captain so the project can move into the <code>swat-projects</code> datastore.</div>
+      
+    </div>
+  
+
+    <div class="step">
+      <h3>Third: manage volunteers and events</h3>
+      <div class="step-body">Use <strong>Admin → Volunteer Management</strong> to search the volunteer directory, and <strong>Events</strong> to create serve days and assign signed-up volunteers to projects. Both pages are where day-to-day coordination happens.</div>
+      
+    </div>
+  
+
+    <div class="step">
+      <h3>Fourth: report out</h3>
+      <div class="step-body">Open <strong>Admin → SWAT Reports</strong> for live totals (projects, man hours, counties served) with filters for grant applications. Use Ctrl+P to export a clean printable summary.</div>
+      
+    </div>
+  </div>
       
       
-      
-      
+      <aside class="callout callout-tip">
+        <strong>Tips</strong>
+        <ul><li>Leadership tasks go to the entire Leadership team by default — coordinate with the rest of the team so the same approval isn't worked twice.</li><li>Most admin pages have a &lt;strong&gt;Refresh&lt;/strong&gt; button in the toolbar. If you just changed something in another tab, click it instead of reloading the whole page.</li><li>If a page looks empty or you see a &quot;Not authorized&quot; redirect, double-check that your account still has the &lt;strong&gt;SWAT Leadership&lt;/strong&gt; team membership.</li></ul>
+      </aside>
     </section>
   
 
     <section id="home" class="guide-section">
       <h2>Home &amp; Admin Navigation</h2>
-      <p class="section-purpose">Placeholder — real content to be added after screenshots are captured.</p>
+      <p class="section-purpose">The SWAT Leadership home page is the daily starting point — it shows your open approvals, your own nominations, and quick links into every admin tool. The Admin landing page (reached through the menu) is the directory for everything else.</p>
+      
+      <div class="how-to-get-there">
+        <h3>How to get there</h3>
+        <p>Click the Waterboyz logo or <strong>Home</strong> to return to the dashboard. Open the hamburger menu (top-right) and choose <strong>Admin</strong> to see every management tool in one place.</p>
+        
+      </div>
+      <div class="walkthrough">
+    <div class="step">
+      <h3>The hero banner</h3>
+      <div class="step-body">The top of the home page shows your display name with the <em>SWAT Leadership</em> eyebrow label, confirming you're logged in with leadership permissions. If the eyebrow is missing or says something else, your role may not be set up correctly.</div>
+      
+    </div>
+  
+
+    <div class="step">
+      <h3>My Nominations panel</h3>
+      <div class="step-body">The left column lists your three most recent nominations across both <code>swat-project-nomination</code> and <code>christmas-alive-family-nomination</code>. Click any row to open the nomination, or <strong>View all</strong> to go to the full Nominations page.</div>
+      
+    </div>
+  
+
+    <div class="step">
+      <h3>Nominate a Family section</h3>
+      <div class="step-body">Below your nominations is a card for each active program (SWAT Projects, Christmas Alive, and any others configured in the <code>programs</code> datastore). Click a card to start a new nomination on behalf of a family or partner.</div>
+      
+    </div>
+  
+
+    <div class="step">
+      <h3>My Tasks sidebar</h3>
+      <div class="step-body">The right column shows open <strong>Approval</strong> and <strong>Task</strong> submissions assigned to you or to a team you belong to (including the SWAT Leadership team). New <code>swat-project-approval</code> items land here for review.</div>
+      
+    </div>
+  
+
+    <div class="step">
+      <h3>The Admin menu</h3>
+      <div class="step-body">Open the hamburger menu → <strong>Admin</strong>. This page lists every leadership tool as a card: <strong>SWAT Reports</strong>, <strong>Volunteer Management</strong>, <strong>Volunteer Notifications</strong>, <strong>Captain Management</strong>, plus any admin forms (such as <strong>Events</strong>) configured for the kapp. Space Admins also see a <strong>Datastore</strong> card.</div>
+      
+    </div>
+  </div>
       
       
-      
-      
+      <aside class="callout callout-tip">
+        <strong>Tips</strong>
+        <ul><li>The hamburger menu is always visible in the top nav bar on both desktop and mobile — you never lose access to the admin pages.</li><li>Mobile users also get a bottom nav bar for quick access to Home, My Volunteering, My Nominations, and Projects.</li><li>The &lt;strong&gt;Admin&lt;/strong&gt; card page is simpler than the menu because it also surfaces any dynamic admin forms (like &lt;strong&gt;Events&lt;/strong&gt;) that aren't pinned in the navigation.</li></ul>
+      </aside>
     </section>
   
 
     <section id="nominations" class="guide-section">
       <h2>Nominations &amp; Approvals</h2>
-      <p class="section-purpose">Placeholder — real content to be added after screenshots are captured.</p>
+      <p class="section-purpose">Every SWAT project starts life as a nomination submitted through a service request form. SWAT Leadership reviews each nomination, confirms the family details, sets an approved budget, and either approves or denies the work.</p>
       
+      <div class="how-to-get-there">
+        <h3>How to get there</h3>
+        <p>Open a nomination from your <strong>My Tasks</strong> sidebar, from <strong>My Nominations</strong>, or by going directly to <strong>/actions</strong> to see every approval task assigned to you or the Leadership team.</p>
+        
+      </div>
+      <div class="walkthrough">
+    <div class="step">
+      <h3>How nominations arrive</h3>
+      <div class="step-body">Churches, community partners, and individuals submit the public <code>swat-project-nomination</code> form (or the seasonal <code>christmas-alive-family-nomination</code>). Each submission creates a Nominations-type record that enters the approval queue automatically.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Opening an approval task</h3>
+      <div class="step-body">In the <strong>My Tasks</strong> list on the home page — or at <strong>/actions</strong> — click the <code>swat-project-approval</code> item. The form opens with the original nomination details on top and a Leadership review section below.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Reviewing the family details</h3>
+      <div class="step-body">Confirm the family name, address, county, family type, and the scope of work described by the nominator. Reach out to the nominator directly if anything is missing or unclear before making a decision.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Setting the budget and captain</h3>
+      <div class="step-body">Enter an <strong>Approved Budget</strong> and pick an <strong>Initial Project Captain</strong> from the dropdown (sourced from the <em>SWAT Project Captains</em> team). Approving the request creates a record in the <code>swat-projects</code> datastore and notifies the captain.</div>
+      
+    </div>
+  
+
+    <div class="step">
+      <h3>Tracking your own nominations</h3>
+      <div class="step-body">If you submitted a nomination yourself, it appears in <strong>My Nominations</strong> on the home page. Click through to see its current approval state — <em>Draft</em>, <em>Submitted</em>, <em>Approved</em>, or <em>Denied</em>.</div>
+      
+    </div>
+  </div>
+      
+      <div class="field-reference">
+        <h3>Field reference</h3>
+        <dl>
+          <dt>Approved Budget</dt><dd>Dollar amount authorized for the project. Used later for expense tracking and reimbursements.</dd><dt>Initial Project Captain</dt><dd>The captain who will receive the project and begin coordinating volunteers. Can be changed later from Project Details.</dd><dt>Family Type</dt><dd>One or more of Foster Family, Special Needs Family, Single Parent Family, Senior Citizen, or Other. Drives SWAT Reports breakdowns.</dd><dt>County</dt><dd>The county where the work will happen. Used in reporting and for matching volunteers by Preferred Service Area.</dd>
+        </dl>
+      </div>
+      
+      <aside class="callout callout-tip">
+        <strong>Tips</strong>
+        <ul><li>Leadership approvals are routed to the whole team — if someone else picks one up first, you'll see it drop off your task list. Communicate so the same nomination isn't reviewed twice.</li><li>Even if you deny a nomination, the record stays in the system so you can explain the decision later or refer the family to another program.</li></ul>
+      </aside>
     </section>
   
 
     <section id="volunteer-management" class="guide-section">
       <h2>Volunteer Management</h2>
-      <p class="section-purpose">Placeholder — real content to be added after screenshots are captured.</p>
+      <p class="section-purpose">The Volunteer Management admin page is a spreadsheet-style view of every record in the &lt;code&gt;volunteers&lt;/code&gt; datastore. Use it to search, filter, edit, and connect volunteers to projects and events.</p>
       
+      <div class="how-to-get-there">
+        <h3>How to get there</h3>
+        <p>Open the hamburger menu → <strong>Admin</strong> → <strong>Volunteer Management</strong> (or go directly to <strong>/admin/volunteer-management</strong>).</p>
+        
+      </div>
+      <div class="walkthrough">
+    <div class="step">
+      <h3>Searching and filtering</h3>
+      <div class="step-body">The global search box at the top matches across first name, last name, email, phone, skills, tools, languages, organization, and location. For narrower filters, open the <strong>Filters</strong> toggle and use the inline filter row at the top of each column — text columns take a search term, array/enum columns (Skills, Tools, Languages, Service Area, Org, City, State, Availability) get a multi-select dropdown.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Choosing which columns to show</h3>
+      <div class="step-body">Click the <strong>Columns</strong> button to toggle columns on and off. Address, Zip, Other Skills, Bio, Availability, Other Availability, Dietary Restrictions, Photo Consent, and Username are hidden by default; turn them on when you need them. The table scrolls horizontally when many columns are visible.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Opening a volunteer</h3>
+      <div class="step-body">Click any row (or any card on mobile) to open the <strong>volunteer detail drawer</strong> on the right. The drawer has three tabs: <strong>Profile</strong> (read-only overview grouped into Location & Languages, Skills & Tools, Availability, Preferences, and Bio), <strong>Events</strong>, and <strong>Projects</strong>.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Assigning to projects or events</h3>
+      <div class="step-body">On the <strong>Projects</strong> tab, use the <em>Assign to Project</em> picker to add the volunteer to an active project — this creates a record in <code>swat-project-volunteers</code>. On the <strong>Events</strong> tab, use <em>Sign Up for Event</em> to enroll them in any Open or Planning event. Remove assignments or cancel signups with the trash icon; the original record stays in place as history.</div>
+      
+    </div>
+  
+
+    <div class="step">
+      <h3>Editing or adding a volunteer</h3>
+      <div class="step-body">Click the pencil icon in the drawer header to open the full <code>volunteers</code> form — including the CategoryPicker widgets for Skill Areas and Tools — and edit any field. From the page toolbar, the <strong>Add Volunteer</strong> button launches the same form in create mode so you can register a volunteer from an email or phone call.</div>
+      
+    </div>
+  </div>
+      
+      <div class="field-reference">
+        <h3>Field reference</h3>
+        <dl>
+          <dt>First Name / Last Name</dt><dd>Primary identity. Shown in every view and used for name search.</dd><dt>Email Address / Phone Number</dt><dd>Contact fields. Email is clickable (opens a mailto link); phone is formatted for display.</dd><dt>Affiliated Organization</dt><dd>The church, employer, or community org the volunteer serves with. Sourced from the &lt;code&gt;affiliates&lt;/code&gt; datastore.</dd><dt>Skill Areas</dt><dd>Multi-select categorized skills from the &lt;code&gt;skills&lt;/code&gt; datastore. Drives Skills filter and notification targeting.</dd><dt>Tools</dt><dd>Multi-select categorized tools from the &lt;code&gt;tools&lt;/code&gt; datastore. Useful when staffing projects that need specific equipment.</dd><dt>Languages You Know</dt><dd>Languages the volunteer can communicate in. Important when matching to families with limited English.</dd><dt>Preferred Service Area</dt><dd>Counties the volunteer is willing to travel to. Filters projects and notifications geographically.</dd><dt>How often can you volunteer</dt><dd>Availability cadence (weekly, monthly, occasional, etc.).</dd><dt>Photo Consent</dt><dd>Yes or No — indicates whether the volunteer consents to being photographed at serve days.</dd><dt>Projects / Events counts</dt><dd>Live counts of linked records from &lt;code&gt;swat-project-volunteers&lt;/code&gt; and the Event Sign Up submissions.</dd>
+        </dl>
+      </div>
+      
+      <aside class="callout callout-tip">
+        <strong>Tips</strong>
+        <ul><li>Removing a project assignment is a soft delete — the &lt;code&gt;swat-project-volunteers&lt;/code&gt; record's Status is set to &lt;em&gt;Removed&lt;/em&gt;, so you can see the history and re-activate it later.</li><li>On mobile the table collapses to a card list. Tap a card to open the same detail drawer used on desktop.</li><li>The Add Volunteer form is the same Kinetic form volunteers fill out themselves, so all required fields and validation still apply.</li></ul>
+      </aside>
     </section>
   
 
     <section id="reports" class="guide-section">
       <h2>SWAT Reports</h2>
-      <p class="section-purpose">Placeholder — real content to be added after screenshots are captured.</p>
+      <p class="section-purpose">The SWAT Reports page is a live dashboard over every record in &lt;code&gt;swat-projects&lt;/code&gt;. Use it to answer grant-writing questions, track man hours, and make quick data corrections without opening each project.</p>
       
+      <div class="how-to-get-there">
+        <h3>How to get there</h3>
+        <p>Open the hamburger menu → <strong>Admin</strong> → <strong>SWAT Reports</strong> (or go directly to <strong>/admin/reports</strong>).</p>
+        
+      </div>
+      <div class="walkthrough">
+    <div class="step">
+      <h3>Summary cards</h3>
+      <div class="step-body">Four cards at the top show <strong>Total Projects</strong>, <strong>Total Man Hours</strong>, <strong>Completed</strong>, and <strong>Counties Served</strong>. The numbers update as you apply filters, so you can see stats for a single county or time window.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Breakdown charts</h3>
+      <div class="step-body">Three horizontal bar charts split the current project set by <strong>County</strong>, <strong>Family Type</strong>, and <strong>Status</strong>. Counts and percentages update live with your filters.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Filtering projects</h3>
+      <div class="step-body">The <strong>Filter Projects</strong> panel has six controls: <strong>Search</strong> (name, county, captain), <strong>County</strong>, <strong>Family Type</strong>, <strong>Status</strong>, <strong>Completed / Scheduled After</strong>, and <strong>Completed / Scheduled Before</strong>. Click <em>Clear all</em> to reset. Date filters use whichever of <code>Completion Date</code> or <code>Scheduled Date</code> is populated.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Inline editing</h3>
+      <div class="step-body">Click any <strong>Status</strong>, <strong>Hours</strong>, or <strong>Family Type</strong> cell to edit it directly in the table. Status is a dropdown (Planning, Ready to Work, Active, Ongoing, Completed, Canceled), Hours is a number input, and Family Type is a multi-select checkbox list. Changes save immediately with an optimistic UI update.</div>
+      
+    </div>
+  
+
+    <div class="step">
+      <h3>Opening a project</h3>
+      <div class="step-body">Click the project name to open the full project detail page. The back button returns you to <strong>SWAT Reports</strong> with your filters intact, so you don't lose your place.</div>
+      
+    </div>
+  
+
+    <div class="step">
+      <h3>Printing or exporting</h3>
+      <div class="step-body">Use <strong>Ctrl+P</strong> (or Cmd+P) to generate a clean printable copy of the filtered dashboard — useful for grant applications and quarterly board reports.</div>
+      
+    </div>
+  </div>
+      
+      <div class="field-reference">
+        <h3>Field reference</h3>
+        <dl>
+          <dt>Project Status</dt><dd>Planning, Ready to Work, Active, Ongoing, Completed, or Canceled. Drives the Status breakdown and the completed-count card.</dd><dt>Total Project Man Hours</dt><dd>Total volunteer hours logged on the project. Sums into the Man Hours card and is editable inline.</dd><dt>Family Type</dt><dd>Stored as a JSON array on each project. One or more of Foster Family, Special Needs Family, Single Parent Family, Senior Citizen, Other.</dd><dt>County</dt><dd>County where the project is located. Drives the County breakdown and County filter.</dd><dt>Scheduled Date / Completion Date</dt><dd>Date filters use whichever of these two fields is populated, preferring Completion Date for finished projects.</dd>
+        </dl>
+      </div>
+      
+      <aside class="callout callout-tip">
+        <strong>Tips</strong>
+        <ul><li>Inline edits only apply to the fields exposed on this page — for anything else open the project and edit it there.</li><li>Reports fetches up to 1,000 projects in a single call, so it stays fast. If you ever hit that cap, tighten the date range before filtering further.</li><li>Printing respects your current filters — set up the view you want, then print.</li></ul>
+      </aside>
     </section>
   
 
