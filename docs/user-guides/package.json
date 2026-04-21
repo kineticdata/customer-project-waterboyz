@@ -1,0 +1,18 @@
+{
+  "name": "@waterboyz/user-guides",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Branded user guides for SWAT Leadership and Team Captains.",
+  "scripts": {
+    "build": "node build.js",
+    "capture": "tsx capture.ts",
+    "preview:leaders": "node build.js --preview swat-leaders",
+    "preview:captains": "node build.js --preview team-captains",
+    "test": "node --test tests/"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "dotenv": "^16.4.5",
+    "tsx": "^4.19.1"
+  }
+}
