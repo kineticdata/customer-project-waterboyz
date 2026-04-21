@@ -72,51 +72,290 @@
       
     <section id="quick-start" class="guide-section">
       <h2>Quick Start</h2>
-      <p class="section-purpose">Placeholder — real content to be added after screenshots are captured.</p>
+      <p class="section-purpose">As a Team Captain, you lead one or more SWAT projects from assignment through completion — coordinating with the family, recruiting and scheduling volunteers, tracking tasks and notes, and documenting the work with photos. This guide walks through every tool you'll use.</p>
+      
+      <div class="how-to-get-there">
+        <h3>How to get there</h3>
+        <p>Sign in at <strong>waterboyz.kinops.io</strong>. Team Captains see a personalized home page with <strong>My Projects</strong>, <strong>My Tasks</strong>, and a <strong>Projects</strong> entry in the top navigation.</p>
+        
+      </div>
+      <div class="walkthrough">
+    <div class="step">
+      <h3>First: find your projects</h3>
+      <div class="step-body">Your home page shows up to five active projects under <strong>My Projects</strong>. Click <em>View all</em> or the <strong>Projects</strong> nav link to see every project assigned to you in the <code>swat-projects</code> datastore. Open a project to land on its <strong>Instructions</strong> tab.</div>
+      
+    </div>
+  
+
+    <div class="step">
+      <h3>Second: review the project banner and details</h3>
+      <div class="step-body">At the top of every project page you'll see a status banner. When a project is in <em>Planning</em>, it's not yet visible to volunteers — head to <strong>Details</strong> to fill in the scheduled date, skills/equipment needed, and set status to <strong>Ready to Work</strong> when you're ready to recruit.</div>
+      
+    </div>
+  
+
+    <div class="step">
+      <h3>Third: recruit and prepare your team</h3>
+      <div class="step-body">Use <strong>Volunteers</strong> to add and manage your project team, <strong>Tasks</strong> to build a checklist with estimated man hours, and <strong>Notes</strong> to capture family communication and planning notes with version history.</div>
+      
+    </div>
+  
+
+    <div class="step">
+      <h3>Fourth: document and close out</h3>
+      <div class="step-body">On the day of the project, mark volunteers <em>Present</em>, check off tasks as they complete, and upload photos via <strong>Photos</strong>. When everything is done, update the status to <strong>Completed</strong> and fill in the completion date on <strong>Details</strong>.</div>
+      
+    </div>
+  </div>
       
       
-      
-      
+      <aside class="callout callout-tip">
+        <strong>Tips</strong>
+        <ul><li>Each tab shows a &lt;strong&gt;Coming Soon&lt;/strong&gt; or lock indicator when something isn't available yet. &lt;strong&gt;Expenses&lt;/strong&gt; is not wired up in the current release — document reimbursements in &lt;strong&gt;Notes&lt;/strong&gt; for now.</li><li>Scrolling the mobile app? The project sections collapse into a single dropdown at the top of the project page. On desktop they appear as a sidebar.</li><li>If your project says &lt;em&gt;Closed&lt;/em&gt;, it's read-only. Ask SWAT Leadership if you need it reopened.</li></ul>
+      </aside>
     </section>
   
 
     <section id="my-projects" class="guide-section">
       <h2>Home &amp; My Projects</h2>
-      <p class="section-purpose">Placeholder — real content to be added after screenshots are captured.</p>
+      <p class="section-purpose">Your home page is the fastest way to find projects and tasks that need your attention. It pulls from the &lt;code&gt;swat-projects&lt;/code&gt; datastore, your nominations, and the Task API.</p>
       
+      <div class="how-to-get-there">
+        <h3>How to get there</h3>
+        <p>Navigate to the portal root (<strong>/</strong>) after signing in, or click the Waterboyz logo in the top nav.</p>
+        
+      </div>
+      <div class="walkthrough">
+    <div class="step">
+      <h3>Home hero and greeting</h3>
+      <div class="step-body">The top banner greets you by name with the <em>Project Captain</em> eyebrow. The home layout has two columns on desktop: <strong>My Projects</strong> and <strong>My Nominations</strong> on the left, <strong>My Tasks</strong> on the right.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>My Projects list</h3>
+      <div class="step-body">Shows up to five of your most recent active projects (status <em>Draft</em> or <em>Submitted</em> in core state), each with a status badge, project name, and city/state. Click a row to open the project, or click <em>View all</em> to land on the full <strong>/project-captains</strong> list with filters.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>My Tasks sidebar</h3>
+      <div class="step-body">Lists your open approval/fulfillment tasks from the Task API. By default this is filtered to <em>my tasks</em> and <em>open only</em> — click <em>View all</em> to go to <strong>/actions</strong> where you can toggle between tasks assigned to you individually and tasks assigned to any of your teams.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Nominate a Family</h3>
+      <div class="step-body">Below My Nominations is a shortcut to submit a new <code>swat-project-nomination</code> or <code>christmas-alive-family-nomination</code>. Every Team Captain can nominate families — nominations go to SWAT Leadership for approval.</div>
+      
+    </div>
+  
+
+    <div class="step">
+      <h3>Projects listing page</h3>
+      <div class="step-body">The full <strong>Projects</strong> page at <code>/project-captains</code> shows every project assigned to you with filter controls for status, county, and search. Each row links to the project's <strong>Instructions</strong> tab.</div>
+      
+    </div>
+  </div>
+      
+      <div class="field-reference">
+        <h3>Field reference</h3>
+        <dl>
+          <dt>Project Captain</dt><dd>The username of the captain on a &lt;code&gt;swat-projects&lt;/code&gt; record. The home page filters on this field matching your username.</dd><dt>Project Status</dt><dd>Workflow state — &lt;em&gt;Planning&lt;/em&gt;, &lt;em&gt;Ready to Work&lt;/em&gt;, &lt;em&gt;Active&lt;/em&gt;, &lt;em&gt;Ongoing&lt;/em&gt;, &lt;em&gt;Completed&lt;/em&gt;, &lt;em&gt;Canceled&lt;/em&gt;. Drives the status badge and banner on every project view.</dd>
+        </dl>
+      </div>
+      
+      <aside class="callout callout-tip">
+        <strong>Tips</strong>
+        <ul><li>The task count on the sidebar updates when you mark tasks complete, but you may need to refresh if you completed something in another tab.</li><li>If you expected a project to appear and it doesn't, confirm the Project Captain field matches your exact username — SWAT Leadership assigns this on approval.</li></ul>
+      </aside>
     </section>
   
 
     <section id="project-details" class="guide-section">
       <h2>Project Details</h2>
-      <p class="section-purpose">Placeholder — real content to be added after screenshots are captured.</p>
+      <p class="section-purpose">The Details tab is where you manage the core project record — status, scheduling, family information, skills and equipment needed, and the link to a serve day event. Changes here are saved directly to the &lt;code&gt;swat-projects&lt;/code&gt; submission.</p>
       
+      <div class="how-to-get-there">
+        <h3>How to get there</h3>
+        <p>Open a project from your home page or Projects list, then click the <strong>Details</strong> section in the sidebar (or the dropdown on mobile).</p>
+        
+      </div>
+      <div class="walkthrough">
+    <div class="step">
+      <h3>Setting project status</h3>
+      <div class="step-body">Status drives visibility. A <em>Planning</em> project is hidden from volunteers — the yellow banner at the top of the project reminds you to switch to <strong>Ready to Work</strong> when you're ready to recruit. <em>Active</em> and <em>Ongoing</em> projects are no longer listed for new volunteers; <em>Completed</em> and <em>Canceled</em> are locked down.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Scheduling the work</h3>
+      <div class="step-body">Set the <strong>Scheduled Date</strong> (and optionally a <strong>Completion Date</strong> after the project wraps). If the project is tied to a serve day event, picking an <strong>Associated Event</strong> auto-fills the scheduled date from the event record.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Skills and equipment needed</h3>
+      <div class="step-body">Fill in <strong>Skills Needed</strong> and <strong>Equipment Needed</strong> as free-text. These appear on the public <em>Upcoming Projects</em> list so volunteers can self-select into projects that match what they can offer.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Family information</h3>
+      <div class="step-body">The <strong>Family Information</strong> panel pulls from the <code>families</code> datastore via an integration. You can't edit family details here — if something needs to change, flag SWAT Leadership. Check <strong>Family Communication Complete</strong> once you've confirmed scope and timing with the family.</div>
+      
+    </div>
+  
+
+    <div class="step">
+      <h3>Captain and hours</h3>
+      <div class="step-body">SWAT Leadership can reassign the <strong>Project Captain</strong> from this page (the dropdown is read-only for captains who aren't leadership). <strong>Total Project Man Hours</strong> is auto-summed from Tasks; you can override it on the Details page if volunteers logged hours differently from the task plan.</div>
+      
+    </div>
+  </div>
+      
+      <div class="field-reference">
+        <h3>Field reference</h3>
+        <dl>
+          <dt>Project Status</dt><dd>&lt;em&gt;Planning&lt;/em&gt;, &lt;em&gt;Ready to Work&lt;/em&gt;, &lt;em&gt;Active&lt;/em&gt;, &lt;em&gt;Ongoing&lt;/em&gt;, &lt;em&gt;Completed&lt;/em&gt;, &lt;em&gt;Canceled&lt;/em&gt;. Controls public visibility and the project banner.</dd><dt>Scheduled Date</dt><dd>When the work will happen. Auto-fills from Associated Event if selected.</dd><dt>Completion Date</dt><dd>When the project was finished. Leave empty until the project closes out.</dd><dt>Skills Needed</dt><dd>Free-text description of the skills you're recruiting for.</dd><dt>Equipment Needed</dt><dd>Free-text list of tools/materials volunteers should bring or have available.</dd><dt>Associated Event</dt><dd>Optional — links this project to a record in the &lt;code&gt;events&lt;/code&gt; form so the project shows up for that serve day.</dd><dt>Family Type</dt><dd>&lt;em&gt;Foster Family&lt;/em&gt;, &lt;em&gt;Special Needs Family&lt;/em&gt;, &lt;em&gt;Single Parent Family&lt;/em&gt;, &lt;em&gt;Senior Citizen&lt;/em&gt;, &lt;em&gt;Other&lt;/em&gt;. Multi-select. Used for reporting.</dd><dt>Family Communication Complete</dt><dd>Checkbox — confirms you've reached the family and scope is agreed.</dd>
+        </dl>
+      </div>
+      
+      <aside class="callout callout-tip">
+        <strong>Tips</strong>
+        <ul><li>The status banner at the top of every project page links straight back to the Details tab so you can fix the root cause without hunting.</li><li>If the Associated Event dropdown looks empty, confirm the event is in &lt;em&gt;Open&lt;/em&gt; or &lt;em&gt;Planning&lt;/em&gt; status — closed events are filtered out.</li><li>Only SWAT Leadership can change the Project Captain. Don't try to reassign a project to yourself from the volunteer side — ask Leadership.</li></ul>
+      </aside>
     </section>
   
 
     <section id="volunteers" class="guide-section">
       <h2>Managing Volunteers</h2>
-      <p class="section-purpose">Placeholder — real content to be added after screenshots are captured.</p>
+      <p class="section-purpose">The Volunteers tab lists everyone currently signed up for your project and lets you add more, capture day-of attendance, and reach the team by text or email. Records live in the &lt;code&gt;swat-project-volunteers&lt;/code&gt; datastore.</p>
       
+      <div class="how-to-get-there">
+        <h3>How to get there</h3>
+        <p>Open a project, then click <strong>Volunteers</strong> in the sidebar.</p>
+        
+      </div>
+      <div class="walkthrough">
+    <div class="step">
+      <h3>Adding a volunteer</h3>
+      <div class="step-body">Type a first or last name into the typeahead — it searches the <code>volunteers</code> datastore and shows matches as you type. Select someone and the portal creates a <code>swat-project-volunteers</code> record with <em>Status: Active</em>. If the volunteer is already on the project, they won't show up in the picker.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Setting how many additional volunteers you need</h3>
+      <div class="step-body">The <strong>Additional Volunteers Needed</strong> field on the project tells other volunteers and SWAT Leadership how many more helpers you're recruiting. Adjust this as people sign up — when it hits zero, the project stops appearing on the Upcoming Projects list as a need.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Messaging the team</h3>
+      <div class="step-body">Use the phone and email icons at the top of the volunteer list to open a group SMS or email in your device's default app. The SMS link respects iOS/macOS conventions so it works correctly on every platform.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Marking attendance</h3>
+      <div class="step-body">On serve day, click the <strong>Present</strong> toggle next to each volunteer as they arrive. This flags the record so man-hour reporting reflects who actually showed up, not just who signed up.</div>
+      
+    </div>
+  
+
+    <div class="step">
+      <h3>Removing a volunteer</h3>
+      <div class="step-body">Click the trash icon to remove a volunteer — this soft-deletes the relationship by setting <strong>Status: Removed</strong> on the <code>swat-project-volunteers</code> record. The history stays so SWAT Leadership can see who was originally signed up.</div>
+      
+    </div>
+  
+
+    <div class="step">
+      <h3>Opening volunteer details</h3>
+      <div class="step-body">Click a volunteer's name to open the <strong>Volunteer Detail</strong> modal. You'll see their skills, tools, dietary restrictions, photo consent, and contact info — useful for planning lunch or knowing who can operate specific equipment.</div>
+      
+    </div>
+  </div>
+      
+      <div class="field-reference">
+        <h3>Field reference</h3>
+        <dl>
+          <dt>Status</dt><dd>&lt;em&gt;Active&lt;/em&gt; or &lt;em&gt;Removed&lt;/em&gt;. Changing status to Removed is a soft-delete; the record stays for history.</dd><dt>Present</dt><dd>True/false — whether the volunteer showed up on serve day. Use this to keep man-hour counts honest.</dd><dt>Volunteer ID</dt><dd>Business identifier of the linked volunteer (preferred over the raw submission ID).</dd><dt>Dietary Restrictions</dt><dd>Shown on the detail modal so you can plan meals appropriately.</dd><dt>Photo Consent</dt><dd>Check before including the volunteer in any photos uploaded under &lt;strong&gt;Photos&lt;/strong&gt;.</dd><dt>Additional Volunteers Needed</dt><dd>Lives on the &lt;code&gt;swat-projects&lt;/code&gt; record but surfaced here — drives recruitment visibility.</dd>
+        </dl>
+      </div>
+      
+      <aside class="callout callout-tip">
+        <strong>Tips</strong>
+        <ul><li>Don't delete a &lt;code&gt;swat-project-volunteers&lt;/code&gt; record outright — always use the trash icon in the UI so the status flips to &lt;em&gt;Removed&lt;/em&gt; rather than the record being destroyed.</li><li>The typeahead searches first and last name separately and merges results. If you can't find someone, they may not exist in the &lt;code&gt;volunteers&lt;/code&gt; datastore yet — direct them to the public sign-up at &lt;strong&gt;/public/events&lt;/strong&gt; or ask SWAT Leadership to create the record.</li><li>Photo Consent is a &lt;em&gt;Yes/No&lt;/em&gt;. Assume &lt;em&gt;No&lt;/em&gt; until verified — when in doubt, ask before posting.</li></ul>
+      </aside>
     </section>
   
 
     <section id="tasks" class="guide-section">
       <h2>Tasks</h2>
-      <p class="section-purpose">Placeholder — real content to be added after screenshots are captured.</p>
+      <p class="section-purpose">The Tasks tab is a simple checklist attached to your project — a way to plan the work, estimate man hours, and track what's done. Tasks are stored as JSON on the project submission (&lt;code&gt;Tasks JSON&lt;/code&gt; field), so there's no separate form to learn.</p>
       
+      <div class="how-to-get-there">
+        <h3>How to get there</h3>
+        <p>Open a project, then click <strong>Tasks</strong> in the sidebar.</p>
+        
+      </div>
+      <div class="walkthrough">
+    <div class="step">
+      <h3>Adding a task</h3>
+      <div class="step-body">Type a task description into the <em>Add a task…</em> input and press Enter (or click Add). New tasks appear at the bottom of the checklist with <em>Done: unchecked</em> and no hours estimate.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Estimating man hours</h3>
+      <div class="step-body">Enter a number in the <strong>hours</strong> field next to each task. The total at the bottom sums every task's estimate and is stored as <strong>Project Tasks Man Hours Total</strong> when you save — it feeds into the SWAT Reports dashboard.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Checking tasks off</h3>
+      <div class="step-body">Click the checkbox next to a task to toggle <em>done</em>. Done tasks stay in the list (don't disappear) so you can see progress at a glance. Unchecking and re-checking is fine — the order is preserved.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Removing a task</h3>
+      <div class="step-body">Click the trash icon to remove a task from the list. Unlike volunteers, tasks are not soft-deleted — once removed, they're gone. You'll see a save prompt before the change commits.</div>
+      
+    </div>
+  
+
+    <div class="step">
+      <h3>Saving changes</h3>
+      <div class="step-body">Any edits (add, remove, toggle, hours) are queued until you click <strong>Save</strong>. The button only activates when there are unsaved changes. A toast confirms the save and refreshes the project.</div>
+      
+    </div>
+  </div>
+      
+      <div class="field-reference">
+        <h3>Field reference</h3>
+        <dl>
+          <dt>text</dt><dd>Description of the task. Free-text, no length limit.</dd><dt>done</dt><dd>Checkbox — true if the task is complete.</dd><dt>estimatedHours</dt><dd>Number of man hours this task is expected to take. Blank or non-numeric values count as zero.</dd><dt>Project Tasks Man Hours Total</dt><dd>Field on the &lt;code&gt;swat-projects&lt;/code&gt; record — auto-summed from task estimates on save.</dd>
+        </dl>
+      </div>
+      
+      <aside class="callout callout-tip">
+        <strong>Tips</strong>
+        <ul><li>Hours are for &lt;em&gt;estimation and reporting&lt;/em&gt;, not time tracking. SWAT Leadership uses the sum to track impact across the organization.</li><li>If you leave the page with unsaved changes, your work isn't lost on the current tab but won't persist across reloads. Hit &lt;strong&gt;Save&lt;/strong&gt; before switching projects.</li><li>There's no built-in per-volunteer assignment today — use task text like &quot;(Joe &amp; Sarah) Install shelves&quot; if you need to note who's doing what.</li></ul>
+      </aside>
     </section>
   
 
@@ -124,28 +363,119 @@
         <h2>Expenses &amp; Reimbursements</h2>
         <div class="callout callout-coming-soon">
           <strong>Coming Soon</strong>
-          <p>Placeholder — real content to be added after screenshots are captured.</p>
+          <p>Submit and track reimbursements for project expenses — available in an upcoming release. For now, document reimbursement requests in the project &lt;strong&gt;Notes&lt;/strong&gt; tab and coordinate with SWAT Leadership directly.</p>
         </div>
       </section>
     
 
     <section id="photos-notes" class="guide-section">
       <h2>Photos &amp; Notes</h2>
-      <p class="section-purpose">Placeholder — real content to be added after screenshots are captured.</p>
+      <p class="section-purpose">Two separate tabs cover documentation. &lt;strong&gt;Photos&lt;/strong&gt; uploads image attachments onto the project record. &lt;strong&gt;Notes&lt;/strong&gt; captures prose and planning detail with full version history stored in the &lt;code&gt;project-notes&lt;/code&gt; datastore.</p>
       
+      <div class="how-to-get-there">
+        <h3>How to get there</h3>
+        <p>Open a project, then click <strong>Photos</strong> or <strong>Notes</strong> in the sidebar.</p>
+        
+      </div>
+      <div class="walkthrough">
+    <div class="step">
+      <h3>Uploading photos</h3>
+      <div class="step-body">On the <strong>Photos</strong> tab, drag-and-drop image files or click <em>Upload</em> to pick from your device. Files are saved onto the <code>swat-projects</code> submission in the <strong>Project Photos</strong> field as multipart attachments.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Viewing and removing photos</h3>
+      <div class="step-body">Uploaded images render as a gallery grid. Click any image to open the full-size view in a new tab. Use the trash icon on a thumbnail to remove an attachment from the project record.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Writing a note</h3>
+      <div class="step-body">On the <strong>Notes</strong> tab, the editor at the top is a rich-text field (Toast UI Editor) that supports markdown. Type your note and click <em>Save</em> — each save creates a new <code>project-notes</code> submission tied to the project.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Reading the history</h3>
+      <div class="step-body">Below the editor is a chronological list of every version, newest first. Each entry shows the author, timestamp, and a <em>word-level diff</em> against the previous version — added words highlight green, removed words strike through in red. Expand any entry to see the full content.</div>
+      
+    </div>
+  
+
+    <div class="step">
+      <h3>Legacy notes</h3>
+      <div class="step-body">Older projects may have a single <strong>Project Notes</strong> field (legacy) instead of the version-controlled list. If you see a plain text area on load, any new saves will migrate to the new <code>project-notes</code> datastore going forward.</div>
+      
+    </div>
+  </div>
+      
+      <div class="field-reference">
+        <h3>Field reference</h3>
+        <dl>
+          <dt>Project Photos</dt><dd>Multipart attachment field on &lt;code&gt;swat-projects&lt;/code&gt;. Accepts images; anything else works but won't render inline.</dd><dt>Content (project-notes)</dt><dd>Rich-text/markdown field on each note version. Rendered as-is in the history view.</dd><dt>Project ID (project-notes)</dt><dd>Links the note to its parent project. Don't edit directly.</dd><dt>Project Notes (legacy)</dt><dd>Deprecated single-field free-text on the project itself. Read-only for new writes.</dd>
+        </dl>
+      </div>
+      
+      <aside class="callout callout-tip">
+        <strong>Tips</strong>
+        <ul><li>Ask volunteers for &lt;em&gt;Photo Consent: Yes&lt;/em&gt; before uploading any photos that include them (see the Volunteers tab detail modal).</li><li>Notes are append-only — you can't edit a previous version. If you need to correct something, write a new note referencing the fix.</li><li>The word-diff is useful for quick review, but it can look noisy on formatting changes. Expand to see the full content when in doubt.</li></ul>
+      </aside>
     </section>
   
 
     <section id="requesting-help" class="guide-section">
       <h2>Requesting Help &amp; Event Association</h2>
-      <p class="section-purpose">Placeholder — real content to be added after screenshots are captured.</p>
+      <p class="section-purpose">Two levers help you pull in more volunteers: setting the &lt;strong&gt;Additional Volunteers Needed&lt;/strong&gt; count so your project surfaces on the public Upcoming Projects list, and linking an &lt;strong&gt;Associated Event&lt;/strong&gt; so signups from a serve day can be routed to your project.</p>
       
+      <div class="how-to-get-there">
+        <h3>How to get there</h3>
+        <p>Both controls live on the <strong>Details</strong> tab of your project.</p>
+        
+      </div>
+      <div class="walkthrough">
+    <div class="step">
+      <h3>Broadcasting a need on Upcoming Projects</h3>
+      <div class="step-body">Set <strong>Additional Volunteers Needed</strong> on Details to a number greater than zero, and set status to <strong>Ready to Work</strong>. The project will then appear on the public <em>Upcoming Projects</em> listing (<code>/upcoming-projects</code>) with its skills/equipment needs, and any logged-in volunteer can request to join via the <code>request-to-join-swat-project</code> form.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Associating with a serve day event</h3>
+      <div class="step-body">On Details, pick an event in the <strong>Associated Event</strong> dropdown (only <em>Open</em> and <em>Planning</em> events appear). This sets the project's Scheduled Date from the event and lets SWAT Leadership route event signups into your project on the <em>Assign</em> page.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>How assignments flow in</h3>
+      <div class="step-body">When SWAT Leadership assigns a signed-up volunteer to your project from the Event <strong>Assign</strong> page, a new <code>swat-project-volunteers</code> record is created automatically — the volunteer will appear on your Volunteers tab within moments.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Joining a project directly</h3>
+      <div class="step-body">If a volunteer in your network can't find your project on Upcoming Projects (maybe it's set to Planning), they can still join via a direct link you share: <code>/kapps/service-portal/forms/request-to-join-swat-project?Project%20ID=&lt;yourProjectID&gt;</code>. The request creates a task for Leadership (not you) so they can vet the match.</div>
+      
+    </div>
+  </div>
+      
+      <div class="field-reference">
+        <h3>Field reference</h3>
+        <dl>
+          <dt>Additional Volunteers Needed</dt><dd>Integer on &lt;code&gt;swat-projects&lt;/code&gt;. When &gt; 0 and status is &lt;em&gt;Ready to Work&lt;/em&gt;, the project is listed publicly for recruitment.</dd><dt>Associated Event</dt><dd>Submission ID of a record in the &lt;code&gt;events&lt;/code&gt; form. Filters to &lt;em&gt;Open&lt;/em&gt; and &lt;em&gt;Planning&lt;/em&gt; status in the dropdown.</dd><dt>Skills Needed / Equipment Needed</dt><dd>The two fields surfaced on Upcoming Projects listings — make these specific so the right volunteers self-select.</dd>
+        </dl>
+      </div>
+      
+      <aside class="callout callout-tip">
+        <strong>Tips</strong>
+        <ul><li>Lower Additional Volunteers Needed as people sign up — a project showing &quot;need 10 more&quot; when you have enough confuses recruitment.</li><li>If the Associated Event dropdown is empty, the event may have been closed out. Ask SWAT Leadership to reopen it (or link a different event).</li><li>Direct-link join requests still route through SWAT Leadership. You don't have to approve anyone yourself — Leadership fills that role.</li></ul>
+      </aside>
     </section>
   
     </div>
