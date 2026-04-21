@@ -355,41 +355,237 @@
 
     <section id="events" class="guide-section">
       <h2>Events &amp; Serve Days</h2>
-      <p class="section-purpose">Placeholder — real content to be added after screenshots are captured.</p>
+      <p class="section-purpose">Events (also called serve days) are how Waterboyz gathers volunteers for a coordinated push on several projects at once. SWAT Leadership creates the event record, opens public sign-ups, and then assigns signed-up volunteers to specific projects on assignment day.</p>
       
+      <div class="how-to-get-there">
+        <h3>How to get there</h3>
+        <p>From the hamburger menu choose <strong>Events</strong> to see the volunteer-facing event list. Click <strong>Manage Events</strong> (visible only to Leadership) to jump to the admin form at <strong>/admin/events</strong> where you create and edit event records.</p>
+        
+      </div>
+      <div class="walkthrough">
+    <div class="step">
+      <h3>Creating an event</h3>
+      <div class="step-body">From <strong>/admin/events</strong>, click <strong>New</strong> to add a record to the <code>events</code> admin form. Required fields are <strong>Event Name</strong>, <strong>Event Date</strong>, and <strong>Event Status</strong> (start with <em>Planning</em>). Add an <strong>Event Description</strong> and a <strong>Sign-up Deadline</strong> so volunteers know how long they have to register.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Wiring the sign-up form</h3>
+      <div class="step-body">Every event uses a dedicated <strong>Event Sign Up</strong> form. Set the <strong>Sign Up Form Slug</strong> field to either the default <code>serve-day-sign-up</code> form or a cloned copy of <code>event-signup-template</code> customized for this event. The public sign-up page is <code>/public/events/&lt;formSlug&gt;</code> — anyone can sign up without an account.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Opening and closing the event</h3>
+      <div class="step-body">Flip <strong>Event Status</strong> to <em>Open</em> when you want the event to appear on the public events list and accept signups. Change it to <em>Closed</em> after the sign-up deadline, and to <em>Completed</em> once the serve day is over. <em>Closed</em> and <em>Completed</em> events stop taking new signups.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Associating projects with the event</h3>
+      <div class="step-body">Open each <code>swat-projects</code> record that will run during the event and set its <strong>Associated Event</strong> to this event. Selecting the event also auto-populates the project's Scheduled Date from the event's date. Only associated projects appear on the assignment page.</div>
+      
+    </div>
+  
+
+    <div class="step">
+      <h3>Assigning volunteers</h3>
+      <div class="step-body">On assignment day open <strong>Events</strong> and click <strong>Assign</strong> next to the event (or go to <code>/events/:eventId/assign</code>). The assignment page shows signed-up volunteers on the left, grouped by affiliated organization, and every associated project on the right. Drag a volunteer onto a project to stage an assignment; click <strong>Save</strong> in the bottom bar when you're ready.</div>
+      
+    </div>
+  
+
+    <div class="step">
+      <h3>Filtering on the assign page</h3>
+      <div class="step-body">Use the filter bar to search by name, pick a specific affiliated organization, or filter by skill. Volunteers without a Volunteer ID are displayed with an <strong>Unregistered</strong> badge — they signed up anonymously and haven't created a volunteer profile yet. You can still assign them, but encourage them to complete their profile.</div>
+      
+    </div>
+  </div>
+      
+      <div class="field-reference">
+        <h3>Field reference</h3>
+        <dl>
+          <dt>Event Name</dt><dd>Shown on the public events list and assignment page.</dd><dt>Event Date</dt><dd>The day of the serve event. Auto-fills the Scheduled Date on any project you associate.</dd><dt>Event Status</dt><dd>Planning, Open, Closed, or Completed. Only Open events accept new signups.</dd><dt>Sign-up Deadline</dt><dd>Cutoff date displayed to volunteers. Flip the status to Closed at or after this date.</dd><dt>Sign Up Form Slug</dt><dd>Slug of the Event Sign Up form to use. Defaults to &lt;code&gt;serve-day-sign-up&lt;/code&gt; when blank.</dd><dt>Event Description</dt><dd>Short description shown on the public events list and in the sign-up confirmation.</dd>
+        </dl>
+      </div>
+      
+      <aside class="callout callout-tip">
+        <strong>Tips</strong>
+        <ul><li>Signup records live in their own &lt;em&gt;Event Sign Up&lt;/em&gt; form, not under the event. Search kapp-wide by &lt;code&gt;type = &quot;Event Sign Up&quot;&lt;/code&gt; and &lt;code&gt;values[Event ID]&lt;/code&gt; to find them.</li><li>An unassigned signup with no Volunteer ID is a public sign-up — once that person creates an account and volunteer profile, the two records get linked automatically.</li><li>Cloning the &lt;code&gt;event-signup-template&lt;/code&gt; form lets you ask event-specific questions (e.g. dietary preference, T-shirt size) without touching the default sign-up form.</li></ul>
+      </aside>
     </section>
   
 
     <section id="volunteer-notifications" class="guide-section">
       <h2>Volunteer Notifications</h2>
-      <p class="section-purpose">Placeholder — real content to be added after screenshots are captured.</p>
+      <p class="section-purpose">Send mass email notifications to volunteers about upcoming projects, and keep a full history of what was sent, to whom, and when. Notifications are a read-only audit trail once sent — every email is logged as a &lt;code&gt;swat-volunteer-notifications&lt;/code&gt; record.</p>
       
+      <div class="how-to-get-there">
+        <h3>How to get there</h3>
+        <p>Open the hamburger menu → <strong>Admin</strong> → <strong>Volunteer Notifications</strong> (or go directly to <strong>/admin/notify-volunteers</strong>).</p>
+        
+      </div>
+      <div class="walkthrough">
+    <div class="step">
+      <h3>Reviewing past notifications</h3>
+      <div class="step-body">The landing page lists every notification with a status badge (<em>Draft</em>, <em>Sending</em>, <em>Sent</em>, <em>Failed</em>), the notification type, recipient count, and when it was sent. Summary cards at the top show <strong>Total Notifications</strong>, <strong>Successfully Sent</strong>, and <strong>Total Emails Sent</strong>.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Inspecting a notification</h3>
+      <div class="step-body">Click any row to expand it. The detail view shows the list of <strong>Projects Included</strong>, the full <strong>Recipients</strong> list with names and emails, any <strong>Custom Message</strong> you added, and — for Skills-Based notifications — which skills were used to filter.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Sending a new notification</h3>
+      <div class="step-body">Click <strong>Send New Notification</strong>. Pick a <strong>Notification Type</strong>: <em>Upcoming Projects</em> emails every volunteer about projects needing help, while <em>Skills-Based</em> (coming soon) filters to volunteers whose skills match. The right-hand preview updates live to show exactly which projects and how many volunteers will be included.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Adding a custom message</h3>
+      <div class="step-body">The optional <strong>Custom Message</strong> text box is appended to the templated email. Use it for a personal note, a call to action, or details that aren't captured in the project list. The message is saved with the notification record for audit.</div>
+      
+    </div>
+  
+
+    <div class="step">
+      <h3>Confirming the send</h3>
+      <div class="step-body">Click <strong>Send Now</strong>. A confirmation dialog shows how many volunteers will be emailed about how many projects. Once confirmed, the notification is created with status <em>Draft</em>, picked up by the backend workflow, and moves to <em>Sent</em> (or <em>Failed</em>) when delivery completes.</div>
+      
+    </div>
+  </div>
+      
+      <div class="field-reference">
+        <h3>Field reference</h3>
+        <dl>
+          <dt>Notification Type</dt><dd>Upcoming Projects (default) or Skills-Based (coming soon). Determines how recipients are selected.</dd><dt>Custom Message</dt><dd>Free-text note appended to the email. Optional.</dd><dt>Skills Filter</dt><dd>JSON array of skills. Only populated for Skills-Based notifications — used to pick volunteers with matching Skill Areas.</dd><dt>Recipient Count</dt><dd>How many volunteers were emailed. Calculated and stored when the notification is created.</dd><dt>Status</dt><dd>Draft, Sending, Sent, or Failed. Driven by the backend email workflow.</dd><dt>Projects Included</dt><dd>JSON snapshot of the projects referenced in the email, so the record remains readable even if the projects change later.</dd>
+        </dl>
+      </div>
+      
+      <aside class="callout callout-tip">
+        <strong>Tips</strong>
+        <ul><li>There is no &quot;draft for later&quot; — sending is a one-way action. Review the preview carefully before confirming.</li><li>Notifications are limited to the 100 most recent records on the history page for performance. Use the platform console if you need to go deeper.</li><li>If a notification shows status &lt;em&gt;Failed&lt;/em&gt;, expand it to see the recipient list and then contact a platform admin to investigate the workflow run.</li></ul>
+      </aside>
     </section>
   
 
     <section id="captain-management" class="guide-section">
       <h2>Captain Management</h2>
-      <p class="section-purpose">Placeholder — real content to be added after screenshots are captured.</p>
+      <p class="section-purpose">Manage who sits on the &lt;strong&gt;SWAT Project Captains&lt;/strong&gt; team. Captains are the users who can own projects, run volunteer assignments, submit expenses, and see the Captain home page. Adding or removing someone here takes effect immediately.</p>
       
+      <div class="how-to-get-there">
+        <h3>How to get there</h3>
+        <p>Open the hamburger menu → <strong>Admin</strong> → <strong>Captain Management</strong> (or go directly to <strong>/admin/captain-management</strong>).</p>
+        
+      </div>
+      <div class="walkthrough">
+    <div class="step">
+      <h3>Reviewing current captains</h3>
+      <div class="step-body">The page loads a table (or card list on mobile) of every current captain with their display name, email, and username. These are the active members of the <em>SWAT Project Captains</em> team.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Adding a captain</h3>
+      <div class="step-body">Click <strong>Add Captain</strong> to open the user search modal. Type any part of a name, email, or username — the list filters in real time. Click a user to add them immediately; the modal closes and the new captain appears in the main list.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Removing a captain</h3>
+      <div class="step-body">Click the red trash icon next to any captain. A confirmation dialog asks you to confirm. Removing a captain deletes their membership in the <em>SWAT Project Captains</em> team but does not delete their user account or their past work.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>New users</h3>
+      <div class="step-body">If a new captain doesn't yet have an account, they need to register first — either through the public <code>account-registration</code> form or by a Space Admin creating their user. Once they exist, they'll show up in the Add Captain search.</div>
+      
+    </div>
+  </div>
+      
+      <div class="field-reference">
+        <h3>Field reference</h3>
+        <dl>
+          <dt>Name</dt><dd>The captain's display name from their user profile.</dd><dt>Email</dt><dd>Primary email on the user account. Used for notifications and password resets.</dd><dt>Username</dt><dd>Kinetic Platform username — shown for reference when identifying duplicate or similar users.</dd>
+        </dl>
+      </div>
+      
+      <aside class="callout callout-tip">
+        <strong>Tips</strong>
+        <ul><li>Adding someone to the Captains team gives them access to project management features right away; they may need to refresh their browser for the nav to update.</li><li>Past projects that were captained by a removed user keep their assignment. Update the &lt;strong&gt;Project Captain&lt;/strong&gt; field on each active project if you need another captain to take over.</li><li>This page manages the Captains team only. SWAT Leadership membership is managed through the platform console — ask a Space Admin if you need to add or remove a leader.</li></ul>
+      </aside>
     </section>
   
 
     <section id="settings" class="guide-section">
       <h2>Settings &amp; Datastore</h2>
-      <p class="section-purpose">Placeholder — real content to be added after screenshots are captured.</p>
+      <p class="section-purpose">The Settings page is where you manage your own profile and notification preferences. Space Admins also see the &lt;strong&gt;Datastore&lt;/strong&gt; link, which opens a browsable directory of every datastore form (families, events, skills, tools, affiliates, programs, and more) for direct editing.</p>
       
+      <div class="how-to-get-there">
+        <h3>How to get there</h3>
+        <p>Open the hamburger menu and choose <strong>Settings</strong>. Space Admins can also jump straight to <strong>/settings/datastore</strong> from the Admin page.</p>
+        
+      </div>
+      <div class="walkthrough">
+    <div class="step">
+      <h3>The Settings landing page</h3>
+      <div class="step-body">Settings shows cards for <strong>Profile</strong>, <strong>Notifications</strong>, and (for Space Admins) <strong>Datastore</strong>. Any settings-type forms configured on the platform are also listed automatically.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Profile</h3>
+      <div class="step-body">Edit your display name, email, phone, and any other user-profile attributes. These values show up on project assignments, approvals, and anywhere else your name is referenced in the portal.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Notifications</h3>
+      <div class="step-body">Choose which emails you receive from the portal — approvals, assignments, reminders, etc. Preferences are saved per-user and take effect immediately.</div>
       
+    </div>
+  
+
+    <div class="step">
+      <h3>Datastore (Space Admins only)</h3>
+      <div class="step-body">The <strong>Datastore</strong> page lists every datastore form: <code>swat-projects</code>, <code>families</code>, <code>family-members</code>, <code>volunteers</code>, <code>swat-project-volunteers</code>, <code>project-notes</code>, <code>reimbursements</code>, <code>events</code>, <code>programs</code>, <code>skills</code>, <code>tools</code>, <code>affiliates</code>, <code>states</code>, <code>state-counties</code>, and <code>scheduled-job-runs</code>. Click a form to browse records, open a record to edit it.</div>
+      
+    </div>
+  
+
+    <div class="step">
+      <h3>When to use Datastore editing</h3>
+      <div class="step-body">Use datastore editing only when the dedicated admin page can't do what you need — for example, correcting historical data, adding a new county to the <code>state-counties</code> reference, or updating a program icon in <code>programs</code>. Everything else should go through the purpose-built admin pages.</div>
+      
+    </div>
+  </div>
+      
+      <div class="field-reference">
+        <h3>Field reference</h3>
+        <dl>
+          <dt>Profile fields</dt><dd>Display name, email, preferred name, and any user attributes the organization has added.</dd><dt>Notification preferences</dt><dd>Per-user email opt-ins for the notification types the platform sends.</dd><dt>Datastore forms</dt><dd>Read-only links to each datastore form. Click through to browse or edit records.</dd>
+        </dl>
+      </div>
+      
+      <aside class="callout callout-tip">
+        <strong>Tips</strong>
+        <ul><li>Most leaders don't need to touch the datastore — the admin pages (Volunteer Management, Reports, Captain Management, Events) cover day-to-day work.</li><li>Editing a reference datastore (like &lt;code&gt;skills&lt;/code&gt; or &lt;code&gt;tools&lt;/code&gt;) changes the options everyone sees everywhere. Coordinate with the team before adding or renaming entries.</li><li>If you're a SWAT Leader but not a Space Admin, the Datastore card simply won't appear — that's expected.</li></ul>
+      </aside>
     </section>
   
     </div>
