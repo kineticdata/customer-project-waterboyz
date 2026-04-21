@@ -1,0 +1,10 @@
+module.exports = {
+  slug: 'volunteers',
+  title: 'Managing Volunteers',
+  purpose: 'Placeholder — real content to be added after screenshots are captured.',
+  howToGetThere: null,
+  steps: [],
+  fields: [],
+  tips: [],
+  comingSoon: false,
+};
