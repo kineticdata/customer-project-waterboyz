@@ -2,6 +2,14 @@
 import './help.css';
 import PropTypes from 'prop-types';
 
+// Plain <a href="#slug"> would trip HashRouter and push the user to a broken
+// route. Scroll the section into view imperatively instead.
+const scrollTo = slug => () => {
+  document
+    .getElementById(slug)
+    ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
 export function HelpLayout({ title, sections = [], children }) {
   return (
     <div className="gutter">
@@ -11,10 +19,14 @@ export function HelpLayout({ title, sections = [], children }) {
           <ol>
             {sections.map(s => (
               <li key={s.slug}>
-                <a href={`#${s.slug}`}>
+                <button
+                  type="button"
+                  onClick={scrollTo(s.slug)}
+                  className="help-toc-link"
+                >
                   {s.title}
                   {s.comingSoon ? <span className="help-badge">Coming Soon</span> : null}
-                </a>
+                </button>
               </li>
             ))}
           </ol>
