@@ -1,0 +1,9 @@
+{
+  "name": "customer-project-waterboyz",
+  "private": true,
+  "scripts": {
+    "help:build": "cd docs/user-guides && yarn build",
+    "help:capture": "cd docs/user-guides && yarn capture",
+    "help:test": "cd docs/user-guides && yarn test"
+  }
+}
