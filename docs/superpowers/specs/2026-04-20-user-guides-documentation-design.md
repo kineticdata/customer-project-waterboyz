@@ -144,7 +144,9 @@ export default {
 | 3 | Volunteer Management (search, filters, drawer, editing) | 5 |
 | 4 | SWAT Reports (dashboard, filters, inline edits) | 3 |
 | 5 | Events — create, clone sign-up form, Assign page | 4 |
-| 6 | Settings / Datastore (skills, tools, affiliates) | 2 |
+| 6 | Volunteer Notifications (`/admin/notify-volunteers`) | 2 |
+| 7 | Captain Management (`/admin/captain-management`) | 2 |
+| 8 | Settings / Datastore (skills, tools, affiliates) | 2 |
 
 ### Coverage (Team Captain)
 
