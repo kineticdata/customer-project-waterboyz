@@ -22,6 +22,7 @@ const Projects = lazy(() => import('./projects/Projects.jsx').then(m => ({ defau
 const UpcomingProjects = lazy(() => import('./upcoming-projects/UpcomingProjects.jsx').then(m => ({ default: m.UpcomingProjects })));
 const Events = lazy(() => import('./events/Events.jsx').then(m => ({ default: m.Events })));
 const AdminRouting = lazy(() => import('./admin/index.jsx').then(m => ({ default: m.AdminRouting })));
+const HelpRouting = lazy(() => import('./help/HelpRouting.jsx').then(m => ({ default: m.HelpRouting })));
 const MyVolunteeringPage = lazy(() => import('./my-volunteering/MyVolunteeringPage.jsx').then(m => ({ default: m.MyVolunteeringPage })));
 const Theme = lazy(() => import('./theme/index.jsx').then(m => ({ default: m.Theme })));
 
@@ -77,6 +78,7 @@ export const PrivateRoutes = () => {
 
                 {/* Portal routes */}
                 <Route path="/admin/*" element={<AdminRouting />} />
+                <Route path="/help/*" element={<HelpRouting />} />
                 <Route path="/my-volunteering/*" element={<MyVolunteeringPage />} />
                 <Route path="/actions/*" element={<Actions />} />
                 <Route path="/nominations/confirmed" element={<NominationConfirmed />} />
