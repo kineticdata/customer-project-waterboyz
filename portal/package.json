@@ -61,7 +61,7 @@
   "resolutions": {
     "**/draft-js/immutable": "3.8.3",
     "@kineticdata/react/immutable": "4.3.8",
-    "@kineticdata/react/axios": "1.15.1"
+    "@kineticdata/react/axios": "1.15.2"
   },
   "browserslist": {
     "production": [
