@@ -31,6 +31,7 @@ export const useStagedAssignments = ({
   assignments,
   signupByVolunteerId,
   reload,
+  initialized,
 }) => {
   const { kappSlug } = useSelector(state => state.app);
   const [stagedMap, setStagedMap] = useState({});
@@ -58,13 +59,15 @@ export const useStagedAssignments = ({
     return map;
   }, [assignments]);
 
-  // Initialize stagedMap from server on first load
+  // Initialize stagedMap from server on first load. Gated on `initialized` so
+  // we don't snapshot an empty serverMap before the API data has resolved —
+  // doing so would diff every existing assignment as a deletion on save.
   useEffect(() => {
-    if (!initializedRef.current && assignments.length >= 0) {
+    if (!initializedRef.current && initialized) {
       setStagedMap({ ...serverMap });
       initializedRef.current = true;
     }
-  }, [serverMap, assignments]);
+  }, [serverMap, initialized]);
 
   // Compute diff
   const pendingChanges = useMemo(() => {

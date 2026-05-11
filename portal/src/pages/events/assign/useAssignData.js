@@ -84,26 +84,29 @@ export const useAssignData = () => {
 
   const baseParams = useMemo(() => ({ kappSlug, eventId }), [kappSlug, eventId]);
 
-  const { initialized: eventsInit, response: eventsResponse } = useData(
+  const { response: eventsResponse } = useData(
     fetchAllEvents,
     useMemo(() => ({ kappSlug }), [kappSlug]),
   );
 
   const {
-    initialized: signupsInit,
     response: signupsResponse,
     actions: { reloadData: reloadSignups },
   } = useData(fetchSignups, baseParams);
 
-  const { initialized: projectsInit, response: projectsResponse } = useData(
-    fetchProjects,
-    baseParams,
-  );
+  const { response: projectsResponse } = useData(fetchProjects, baseParams);
 
-  const projects = useMemo(
-    () => projectsResponse?.submissions ?? [],
-    [projectsResponse],
-  );
+  // Sort projects alphabetically by Project Name. Treat missing names as
+  // empty string so localeCompare doesn't throw, and use a case-insensitive
+  // locale-aware comparator.
+  const projects = useMemo(() => {
+    const list = projectsResponse?.submissions ?? [];
+    return [...list].sort((a, b) => {
+      const an = a?.values?.['Project Name'] ?? '';
+      const bn = b?.values?.['Project Name'] ?? '';
+      return an.localeCompare(bn, undefined, { sensitivity: 'base' });
+    });
+  }, [projectsResponse]);
 
   const projectIds = useMemo(() => projects.map(p => p.id), [projects]);
 
@@ -113,24 +116,35 @@ export const useAssignData = () => {
   );
 
   const {
-    initialized: assignmentsInit,
     response: assignmentsResponse,
     actions: { reloadData: reloadAssignments },
   } = useData(fetchAssignments, assignmentsParams);
 
+  // Union of volunteer IDs from this event's signups AND from the assignments
+  // attached to the event's projects. The right-hand project panel renders
+  // every assigned volunteer, including those who didn't sign up to this
+  // specific event (e.g. added manually by the captain, approved from
+  // request-to-join, or assigned via a prior event) — without their records
+  // we'd display them as dashes.
   const volunteerIds = useMemo(() => {
-    const ids = (signupsResponse?.submissions ?? [])
-      .map(s => s.values?.['Volunteer ID'])
-      .filter(Boolean);
-    return [...new Set(ids)];
-  }, [signupsResponse]);
+    const ids = new Set();
+    for (const s of signupsResponse?.submissions ?? []) {
+      const vid = s.values?.['Volunteer ID'];
+      if (vid) ids.add(vid);
+    }
+    for (const a of assignmentsResponse?.submissions ?? []) {
+      const vid = a.values?.['Volunteer ID'];
+      if (vid) ids.add(vid);
+    }
+    return [...ids];
+  }, [signupsResponse, assignmentsResponse]);
 
   const volunteersParams = useMemo(
     () => (volunteerIds.length > 0 ? { kappSlug, volunteerIds } : null),
     [kappSlug, volunteerIds],
   );
 
-  const { initialized: volunteersInit, response: volunteersResponse } = useData(
+  const { response: volunteersResponse } = useData(
     fetchVolunteers,
     volunteersParams,
   );
@@ -171,15 +185,48 @@ export const useAssignData = () => {
     return map;
   }, [signups]);
 
+  // Group signups by Affiliated Organization. The signup form may not capture
+  // the affiliation (anonymous public signup, or the field was left blank), so
+  // fall back to the volunteer profile's affiliation before bucketing as
+  // "Unaffiliated". Signups within each org are sorted alphabetically by
+  // last name then first name, preferring the volunteer record's values
+  // (more authoritative) over the signup's contact fields.
   const signupsByOrg = useMemo(() => {
     const groups = {};
     for (const signup of signups) {
-      const org = signup.values?.['Affiliated Organization'] || 'Unaffiliated';
+      const vid = signup.values?.['Volunteer ID'];
+      const vol = vid ? volunteersById[vid] : null;
+      const org =
+        signup.values?.['Affiliated Organization'] ||
+        vol?.values?.['Affiliated Organization'] ||
+        'Unaffiliated';
       if (!groups[org]) groups[org] = [];
       groups[org].push(signup);
     }
-    return Object.entries(groups).sort(([a], [b]) => a.localeCompare(b));
-  }, [signups]);
+    const compareName = (a, b) => {
+      const aVid = a.values?.['Volunteer ID'];
+      const bVid = b.values?.['Volunteer ID'];
+      const aVol = aVid ? volunteersById[aVid] : null;
+      const bVol = bVid ? volunteersById[bVid] : null;
+      const aLast =
+        aVol?.values?.['Last Name'] ?? a.values?.['Last Name'] ?? '';
+      const bLast =
+        bVol?.values?.['Last Name'] ?? b.values?.['Last Name'] ?? '';
+      const lastCmp = aLast.localeCompare(bLast, undefined, {
+        sensitivity: 'base',
+      });
+      if (lastCmp !== 0) return lastCmp;
+      const aFirst =
+        aVol?.values?.['First Name'] ?? a.values?.['First Name'] ?? '';
+      const bFirst =
+        bVol?.values?.['First Name'] ?? b.values?.['First Name'] ?? '';
+      return aFirst.localeCompare(bFirst, undefined, { sensitivity: 'base' });
+    };
+    for (const list of Object.values(groups)) list.sort(compareName);
+    return Object.entries(groups).sort(([a], [b]) =>
+      a.localeCompare(b, undefined, { sensitivity: 'base' }),
+    );
+  }, [signups, volunteersById]);
 
   // Skill counts (based on unassigned volunteers)
   const assignmentByVolunteerId = useMemo(() => {
@@ -205,12 +252,17 @@ export const useAssignData = () => {
     return { allSkills: sorted, skillCounts: counts };
   }, [signups, volunteersById, assignmentByVolunteerId]);
 
+  // True only after all required API calls have actually resolved. The
+  // `*Init` flags from useData are misleading — they just mean params are set,
+  // not that a response has come back. Gating on responses ensures consumers
+  // (like useStagedAssignments) don't snapshot an empty serverMap before
+  // assignments have loaded.
   const initialized =
-    eventsInit &&
-    signupsInit &&
-    projectsInit &&
-    (projectIds.length === 0 || assignmentsInit) &&
-    (volunteerIds.length === 0 || volunteersInit);
+    eventsResponse !== null &&
+    signupsResponse !== null &&
+    projectsResponse !== null &&
+    (projectIds.length === 0 || assignmentsResponse !== null) &&
+    (volunteerIds.length === 0 || volunteersResponse !== null);
 
   const reload = useCallback(() => {
     reloadSignups();

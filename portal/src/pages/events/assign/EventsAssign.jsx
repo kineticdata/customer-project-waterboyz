@@ -43,6 +43,7 @@ export const EventsAssign = () => {
     assignments,
     signupByVolunteerId,
     reload,
+    initialized,
   });
 
   // Filter state
