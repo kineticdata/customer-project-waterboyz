@@ -6,13 +6,15 @@ Project Captains reported that the project status is not visible enough in the c
 
 ## Context
 
-Volunteers can only see projects in **"Ready to Work"** status (with `Additional Volunteers Needed = "Yes"`) on the Upcoming Projects page. Captains need to understand this clearly so they know when to change status to start recruiting.
+> **Superseded (2026-07-14):** Volunteer visibility was later expanded to **Planning, Ready to Work, and Active** (still gated by `Additional Volunteers Needed = "Yes"`). See [2026-07-14-volunteer-project-visibility-design.md](2026-07-14-volunteer-project-visibility-design.md). The banner/note wording described below has been updated accordingly.
+
+Volunteers can see projects in **Planning, Ready to Work, and Active** status (with `Additional Volunteers Needed = "Yes"`) on the Upcoming Projects page. Captains need to understand this clearly so they know when to change status to start recruiting.
 
 ### Project Status Values (in lifecycle order)
 
-1. **Planning** — Initial setup, not visible to volunteers
+1. **Planning** — Initial setup; visible to volunteers when recruiting
 2. **Ready to Work** — Visible to volunteers on Upcoming Projects
-3. **Active** — Work underway, no longer listed for new volunteers
+3. **Active** — Work underway; still visible to volunteers when recruiting
 4. **Ongoing** — Long-running project, not listed for new volunteers
 5. **Completed** — Finished
 6. **Canceled** — Canceled

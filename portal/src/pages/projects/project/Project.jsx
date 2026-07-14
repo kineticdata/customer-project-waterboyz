@@ -41,22 +41,19 @@ const navItems = [
   { label: 'Photos', to: 'photos', icon: 'camera' },
 ];
 
+const VISIBLE_BANNER = {
+  icon: 'eye',
+  title: 'Visible to volunteers',
+  message:
+    'Visible to volunteers when status is Planning, Ready to Work and Active.',
+  style: 'bg-success/10 border-success text-success-content',
+  linkTo: 'details',
+};
+
 const STATUS_BANNER = {
-  Planning: {
-    icon: 'alert-triangle',
-    title: 'Not visible to volunteers',
-    message:
-      'Set status to "Ready to Work" when you\'re ready to recruit volunteers.',
-    style: 'bg-warning/10 border-warning text-warning-content',
-    linkTo: 'details',
-  },
-  Active: {
-    icon: 'info-circle',
-    title: 'Work in progress',
-    message: 'This project is no longer listed for new volunteers.',
-    style: 'bg-info/10 border-info text-info-content',
-    linkTo: 'details',
-  },
+  Planning: VISIBLE_BANNER,
+  'Ready to Work': VISIBLE_BANNER,
+  Active: VISIBLE_BANNER,
   Ongoing: {
     icon: 'info-circle',
     title: 'Ongoing project',

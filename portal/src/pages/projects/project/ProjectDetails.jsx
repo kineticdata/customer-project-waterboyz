@@ -28,12 +28,13 @@ const FAMILY_TYPE_OPTIONS = [
   'Other',
 ];
 
+const VISIBLE_NOTE =
+  'Visible to volunteers when status is Planning, Ready to Work and Active. Requires "Additional Volunteers Needed" set to Yes.';
+
 const STATUS_VISIBILITY_NOTE = {
-  Planning:
-    'Volunteers can only see projects in "Ready to Work" status. Update the status when you\'re ready to recruit.',
-  'Ready to Work':
-    'This project is visible to volunteers on the Upcoming Projects page.',
-  Active: 'This project is no longer listed for new volunteers.',
+  Planning: VISIBLE_NOTE,
+  'Ready to Work': VISIBLE_NOTE,
+  Active: VISIBLE_NOTE,
   Ongoing: 'This project is no longer listed for new volunteers.',
   Completed: 'Project has been completed.',
   Canceled: 'This project is closed.',
@@ -265,7 +266,7 @@ export const ProjectDetails = ({
         {status && STATUS_VISIBILITY_NOTE[status] && (
           <div className="flex items-start gap-2 mt-3 text-sm text-base-content/60">
             <Icon
-              name={status === 'Ready to Work' ? 'eye' : 'eye-off'}
+              name={STATUS_VISIBILITY_NOTE[status] === VISIBLE_NOTE ? 'eye' : 'eye-off'}
               size={16}
               className="mt-0.5 flex-none"
             />
