@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import {
   CoreForm,
   deleteSubmission,
+  fetchForm,
   searchSubmissions,
 } from '@kineticdata/react';
 import { useSelector } from 'react-redux';
@@ -34,7 +35,24 @@ export const AdminFormRecords = ({ adminForms }) => {
   const { formSlug, id } = useParams();
   const navigate = useNavigate();
   const { kappSlug } = useSelector(state => state.app);
-  const form = adminForms?.find(f => f.slug === formSlug);
+  const listedForm = adminForms?.find(f => f.slug === formSlug);
+
+  // This route also serves forms that aren't of type "Admin" (e.g. the `events`
+  // datastore), which never appear in adminForms — look those up by slug.
+  const formParams = useMemo(
+    () =>
+      !adminForms || listedForm
+        ? null
+        : { kappSlug, formSlug, include: 'fields,attributesMap' },
+    [adminForms, listedForm, kappSlug, formSlug],
+  );
+
+  const { loading: formLoading, response: formResponse } = useData(
+    fetchForm,
+    formParams,
+  );
+
+  const form = listedForm || formResponse?.form;
 
   const params = useMemo(
     () => ({
@@ -86,7 +104,11 @@ export const AdminFormRecords = ({ adminForms }) => {
     navigate('./..', { state: { persistToasts: true } });
   }, [navigate, reloadData]);
 
-  const isLoading = !adminForms || !initialized || (loading && !response);
+  const isLoading =
+    !adminForms ||
+    !initialized ||
+    (loading && !response) ||
+    (!!formParams && formLoading && !formResponse);
   const showForm = typeof id === 'string';
 
   return (
