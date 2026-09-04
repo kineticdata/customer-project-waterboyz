@@ -208,11 +208,15 @@ PII boundary: sponsors see the anonymized browse, and full details only for fami
 
 **Cleanup:** delete the `Can Retrieve Family Member Details` kapp policy along with `family-members`, after confirming nothing else binds to it.
 
-## Spikes (must resolve before dependent work)
+## Platform facts (confirmed) and remaining spikes
 
-1. **Unique-index enforcement on submission create under concurrency.** The `unique` flag exists in the index schema; that the platform enforces it against simultaneous creates is unverified. Fallback is optimistic concurrency on `lockVersion`; if neither holds, the claim needs redesigning. **Everything in the claim flow depends on this.** Probe it against a throwaway form under a `TEST-` season, per the test data constraint — not against `christmas-alive-claims` once real claims exist.
-2. **Caller identity inside a WebAPI workflow.** The docs show `@request['Headers']` and `@request['Parameters']`. If identity must be passed in by the client rather than read server-side, the packet authorization does not hold as designed.
-3. **Behavior of the two existing nomination workflows.** "Nomination Process" and "On Update" are bound to the live form and undocumented. They may be stubs or may conflict with the new flow.
+**CONFIRMED — unique indexes are enforced by the platform.** The unique index on `christmas-alive-claims.Sponsorship ID` is therefore a real mutual-exclusion lock, and the claim flow in section 5 stands as designed. No fallback to `lockVersion` needed.
+
+**CONFIRMED — WebAPIs expose the caller as `@requested_by['username']`.** Identity is read server-side and cannot be supplied by the client, so the packet's ownership check and the claim's sponsor attribution both hold as designed.
+
+**REMAINING SPIKE — behavior of the two existing nomination workflows.** "Nomination Process" and "On Update" are bound to the live `christmas-alive-family-nomination` form and undocumented. They may be stubs or may conflict with the new flow. Audit before extending the form.
+
+**Production constraint.** There is one environment and it holds real family data. Additive changes are safe to make directly. The two irreversible items — deleting `family-members` and deleting the `Can Retrieve Family Member Details` policy — require explicit sign-off and are deliberately not sequenced as blockers.
 
 ## Verification
 
