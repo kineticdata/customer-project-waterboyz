@@ -132,3 +132,18 @@ export const isWithinSeason = (from, to, today = new Date()) => {
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return false;
   return today >= start && today <= end;
 };
+
+/**
+ * Household size bands used by the sponsor browse filter. Kept here with the
+ * other pure helpers so the filter component only exports a component (React
+ * fast refresh requires that).
+ */
+export const SIZE_BANDS = [
+  { value: 'small', label: '1–3 people', test: f => f.totalMembers <= 3 },
+  { value: 'medium', label: '4–6 people', test: f => f.totalMembers >= 4 && f.totalMembers <= 6 },
+  { value: 'large', label: '7 or more', test: f => f.totalMembers >= 7 },
+];
+
+/** Predicate for a size band value; an unknown or empty band matches everything. */
+export const sizeBandTest = value =>
+  SIZE_BANDS.find(b => b.value === value)?.test ?? (() => true);
