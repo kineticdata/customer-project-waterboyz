@@ -1134,3 +1134,64 @@ Not tasks. Do not execute without the user saying so.
 - Delete the `Can Retrieve Family Member Details` kapp policy (has the `Christams` typo; exists to gate `family-members`)
 
 Both are irreversible on a production space. Nothing in Tasks 1–24 depends on either.
+
+---
+
+# Addendum — discovered during Phase 3-4 (portal build)
+
+Recorded 2026-09-04 while building the portal. These change the platform work
+still outstanding; the tasks above are otherwise accurate.
+
+### Two more WebAPIs are needed
+
+Task 17 originally had the admin approve/reject/release actions writing the
+submission directly. They can't: approval resolves or creates a family,
+**allocates the next Family Number**, and writes the snapshot — multi-step, and
+two admins approving at the same moment must not be able to allocate the same
+number. That is the same reasoning that put the sponsor claim behind a WebAPI.
+
+Add to Phase 2:
+
+- **`christmas-alive-approve`** — body `{sponsorshipId, action: 'approve'|'reject', existingFamilyId?, reason?, duplicateOf?}`. Implements the Task 7 logic.
+- **`christmas-alive-release`** — body `{sponsorshipId, action: 'release'|'reassign', username?, notes?}`. Implements the Task 17 Step 5 logic, including deleting the claim record so the unique index doesn't block the next sponsor.
+
+The portal already calls both (`useApprovals.js`).
+
+### WebAPIs need `?timeout` or they return a run id
+
+`webapis-and-webhooks/SKILL.md:98` — by default a WebAPI call returns
+`{"messageType":"success","message":"Initiated run #N","runId":"N"}`, **not** the
+workflow's response. Without `?timeout=<seconds>` the sponsor would see
+"Initiated run #N" instead of whether they won the race.
+
+Handled portal-side in `executeWebApi` (`portal/src/helpers/api.js`), which
+defaults to 20s and treats a bare `runId` as a `TIMEOUT` outcome rather than
+reporting an unconfirmed success. WebAPIs are also served from
+`/app/kapps/{kapp}/webApis/{slug}` — **not** the `/app/api/v1` base that
+`bundle.apiLocation()` returns.
+
+### Operation response shape
+
+`useSponsorships.js` accepts both camelCase (`sponsorshipId`) and
+Kinetic-style (`Sponsorship Id`) keys from the `Items` output mapping, so the
+Task 9 operations can use either convention. Prefer camelCase.
+
+### `Test Fixture` must reach the duplicate matcher
+
+The matcher excludes rows flagged `isTestFixture`, which `useApprovals`
+populates from `families.Test Fixture`. Task 4 must create that field or the
+exclusion silently never fires.
+
+### No unit test runner existed
+
+The portal has no test dependency. Rather than adding one, the pure helpers are
+tested with Node's built-in runner: `cd frontend-testing && yarn test:unit`.
+Tasks 23-24 (Playwright, platform-dependent) remain outstanding.
+
+### Lint baseline is already red
+
+`yarn lint` uses `--max-warnings 0` and there are **5 pre-existing warnings**
+in `volunteer-notifications/` and related files, so the command exits non-zero
+on a clean checkout. All Christmas Alive files are clean; don't read a red lint
+as this work's failure.
+

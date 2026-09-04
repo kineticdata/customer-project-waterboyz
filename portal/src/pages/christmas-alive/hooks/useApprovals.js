@@ -76,6 +76,10 @@ const buildRows = response => {
       zip: fv['Zip'] || '',
       county: fv['County'] || v['County'] || '',
       nativeLanguage: fv['Native Language'] || v['Native Language'] || '',
+      // Drives the duplicate matcher's fixture exclusion. Without this the
+      // exclusion silently never fires and abandoned test families would
+      // surface as duplicate candidates against real nominations.
+      isTestFixture: String(fv['Test Fixture'] ?? '').toLowerCase() === 'true',
       roster,
       ...counts,
     };
