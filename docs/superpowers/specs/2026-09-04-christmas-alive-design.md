@@ -214,7 +214,11 @@ PII boundary: sponsors see the anonymized browse, and full details only for fami
 
 **CONFIRMED — WebAPIs expose the caller as `@requested_by['username']`.** Identity is read server-side and cannot be supplied by the client, so the packet's ownership check and the claim's sponsor attribution both hold as designed.
 
-**REMAINING SPIKE — behavior of the two existing nomination workflows.** "Nomination Process" and "On Update" are bound to the live `christmas-alive-family-nomination` form and undocumented. They may be stubs or may conflict with the new flow. Audit before extending the form.
+**RESOLVED — the two existing nomination workflows are safe to build alongside.** Both are Active and both do exactly one thing: call the routine `routine_wb_setadultchildcount` with the submission id and `Family Members JSON`, which derives Total Adults / Total Children and writes them back to the nomination.
+
+- **Neither creates a `families` record**, so the new nomination workflow can be added without double-creating families.
+- "On Update" is guarded by the connector expression `@values['Family Members JSON'] != @values_previous['Family Members JSON']`, so its own write-back cannot re-trigger it. This is the same self-write loop guard the packet email needs, already established as a house pattern.
+- **Open detail:** the routine's child-age threshold is not visible through the Core API (routines are Task-component trees). If it disagrees with this spec's `age <= 18`, the nomination's own totals and the derived counts would differ. Verify empirically when testing the nomination workflow — submit a fixture containing an 18-year-old and compare.
 
 **Production constraint.** There is one environment and it holds real family data. Additive changes are safe to make directly. The two irreversible items — deleting `family-members` and deleting the `Can Retrieve Family Member Details` policy — require explicit sign-off and are deliberately not sequenced as blockers.
 
