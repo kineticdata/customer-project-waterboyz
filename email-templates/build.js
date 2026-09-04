@@ -845,6 +845,148 @@ customMessage = @values['Custom Message'].to_s
       });
     },
   },
+
+  // ---------------------------------------------------------------- //
+  // Christmas Alive
+  // ---------------------------------------------------------------- //
+
+  'christmas-alive-sponsor-packet': {
+    subject: 'Your Christmas Alive family — Waterboyz',
+    preheader: "Here are your family's details and what to do next.",
+    build: () => {
+      const body = [
+        heading('You&rsquo;re sponsoring Family <%= @results["Get Sponsorship"]["Family Number"] %>'),
+        paragraph('Hi <%= @results["Get Sponsor"]["First Name"] %>,'),
+        paragraph(
+          'Thank you for sponsoring a family this Christmas. Keep your family number handy &mdash; you&rsquo;ll be asked for it at pickup.',
+        ),
+        note(
+          'Your family number is <strong><%= @results["Get Sponsorship"]["Family Number"] %></strong>',
+        ),
+        divider(),
+        heading('Your family'),
+        paragraph(
+          '<strong><%= @results["Get Family"]["First Name"] %> <%= @results["Get Family"]["Last Name"] %></strong><br>'
+          + '<%= @results["Get Family"]["Address Line 1"] %><br>'
+          + '<%= @results["Get Family"]["City"] %>, <%= @results["Get Family"]["State"] %> <%= @results["Get Family"]["Zip"] %><br>'
+          + 'Phone: <%= @results["Get Family"]["Phone Number"] %><br>'
+          + 'Language: <%= @results["Get Family"]["Native Language"] %>',
+        ),
+        paragraph('<%= @results["Build Roster"]["Roster HTML"] %>'),
+        action('See the full details', '<%= @results["Build Links"]["Packet URL"] %>'),
+        note(
+          'This email is a snapshot from today. If anything about the family changes, the portal is always current &mdash; check it before you shop or deliver.',
+        ),
+        divider(),
+        heading('What happens next'),
+        paragraph(
+          'Text your family to introduce yourself, then call to confirm their details and collect gift wishes. Please try three times; if you can&rsquo;t reach them, email christmasalivemaryland@gmail.com and we&rsquo;ll assign you another family.',
+        ),
+        paragraph(
+          '<strong>Family portraits:</strong> Saturday, December 6, by appointment &mdash; 240-394-7126<br>'
+          + '<strong>Curb-side pickup:</strong> Saturday, December 13, Restoration Church, 7899 Opossumtown Pike, Frederick',
+        ),
+        action('Read what sponsors do', '<%= @results["Build Links"]["Responsibilities URL"] %>'),
+        divider(),
+        paragraph('Thank you for making Christmas happen for this family.'),
+        paragraph('The Waterboyz Team'),
+        spacer(),
+      ].join('');
+
+      return layout({
+        subject: 'Your Christmas Alive family — Waterboyz',
+        preheader: "Here are your family's details and what to do next.",
+        body,
+      });
+    },
+  },
+
+  'christmas-alive-nudge': {
+    subject: 'Have you reached your Christmas Alive family? — Waterboyz',
+    preheader: 'A quick check-in about Family <%= @results["Get Sponsorship"]["Family Number"] %>.',
+    build: () => {
+      const body = [
+        heading('Have you reached Family <%= @results["Get Sponsorship"]["Family Number"] %>?'),
+        paragraph('Hi <%= @results["Get Sponsor"]["First Name"] %>,'),
+        paragraph(
+          'You sponsored this family a week ago. If you haven&rsquo;t connected with them yet, now is a good time &mdash; it gives you room to shop before the December 13 pickup.',
+        ),
+        paragraph(
+          'Tried three times without a reply? Contact the church or organization named in your first email. Still nothing after a week? Email christmasalivemaryland@gmail.com and we&rsquo;ll assign you another family.',
+        ),
+        action('See your family&rsquo;s details', '<%= @results["Build Links"]["Packet URL"] %>'),
+        divider(),
+        paragraph('Thank you,'),
+        paragraph('The Waterboyz Team'),
+        spacer(),
+      ].join('');
+
+      return layout({
+        subject: 'Have you reached your Christmas Alive family? — Waterboyz',
+        preheader: 'A quick check-in about your sponsored family.',
+        body,
+      });
+    },
+  },
+
+  'christmas-alive-pickup-reminder': {
+    subject: 'Christmas Alive pickup is Saturday — Waterboyz',
+    preheader: 'Curb-side pickup details and your family number.',
+    build: () => {
+      const body = [
+        heading('Pickup is Saturday, December 13'),
+        paragraph('Hi <%= @results["Get Sponsor"]["First Name"] %>,'),
+        paragraph(
+          'Bring your gifts to <strong>Restoration Church, 7899 Opossumtown Pike, Frederick</strong>. Stay in your car &mdash; we&rsquo;ll come out to you.',
+        ),
+        note(
+          'You&rsquo;ll be asked for your family number: <strong><%= @results["Get Sponsorship"]["Family Number"] %></strong>',
+        ),
+        paragraph(
+          'If the family requested a portrait, please include an 8&times;10 frame.',
+        ),
+        action('See your family&rsquo;s details', '<%= @results["Build Links"]["Packet URL"] %>'),
+        divider(),
+        paragraph('Thank you for everything you&rsquo;ve done for this family.'),
+        paragraph('The Waterboyz Team'),
+        spacer(),
+      ].join('');
+
+      return layout({
+        subject: 'Christmas Alive pickup is Saturday — Waterboyz',
+        preheader: 'Curb-side pickup details and your family number.',
+        body,
+      });
+    },
+  },
+
+  'christmas-alive-reassigned': {
+    subject: 'Your Christmas Alive family has been reassigned — Waterboyz',
+    preheader: 'Family <%= @results["Get Sponsorship"]["Family Number"] %> has been passed to someone else.',
+    build: () => {
+      const body = [
+        heading('Family <%= @results["Get Sponsorship"]["Family Number"] %> has been reassigned'),
+        paragraph('Hi <%= @results["Get Sponsor"]["First Name"] %>,'),
+        paragraph(
+          'We&rsquo;ve passed this family to another sponsor, so you no longer need to shop for them. Thank you for trying to reach them.',
+        ),
+        paragraph(
+          'There are still families waiting. If you&rsquo;d like another, you can choose one in the portal.',
+        ),
+        action('Choose another family', '<%= @results["Build Links"]["Browse URL"] %>'),
+        divider(),
+        paragraph('Thank you,'),
+        paragraph('The Waterboyz Team'),
+        spacer(),
+      ].join('');
+
+      return layout({
+        subject: 'Your Christmas Alive family has been reassigned — Waterboyz',
+        preheader: 'This family has been passed to another sponsor.',
+        body,
+      });
+    },
+  },
 };
 
 // ── CLI ──────────────────────────────────────────────────────────

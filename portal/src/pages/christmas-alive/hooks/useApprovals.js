@@ -5,6 +5,8 @@ import { useData } from '../../../helpers/hooks/useData.js';
 import { executeWebApi } from '../../../helpers/api.js';
 import { parseRoster, deriveCounts } from '../../../helpers/christmasAlive.js';
 
+export { findDuplicates } from '../../../helpers/christmasAlive.js';
+
 const APPROVE_WEBAPI = 'christmas-alive-approve';
 const RELEASE_WEBAPI = 'christmas-alive-release';
 
@@ -120,29 +122,4 @@ export const useApprovals = season => {
     reassign: (sponsorshipId, username, notes) =>
       call(RELEASE_WEBAPI, { sponsorshipId, action: 'reassign', username, notes }),
   };
-};
-
-/**
- * Likely duplicates of a nomination, from the family registry.
- *
- * Test fixtures are excluded: they live in the shared `families` store, and an
- * abandoned one would otherwise surface as a duplicate candidate against a
- * real nomination months later.
- */
-export const findDuplicates = (row, rows) => {
-  const norm = s => (s || '').trim().toLowerCase();
-  const lastName = norm(row.lastName);
-  const address = norm(row.addressLine1);
-  const phone = (row.phone || '').replace(/\D/g, '');
-
-  if (!lastName && !address && !phone) return [];
-
-  return rows
-    .filter(r => r.id !== row.id && r.familyId && !r.isTestFixture)
-    .filter(
-      r =>
-        (lastName && norm(r.lastName) === lastName) ||
-        (address && norm(r.addressLine1) === address) ||
-        (phone && (r.phone || '').replace(/\D/g, '') === phone),
-    );
 };

@@ -147,3 +147,78 @@ export const SIZE_BANDS = [
 /** Predicate for a size band value; an unknown or empty band matches everything. */
 export const sizeBandTest = value =>
   SIZE_BANDS.find(b => b.value === value)?.test ?? (() => true);
+
+/**
+ * Likely duplicates of a nomination, drawn from the family registry.
+ *
+ * Matches on last name, street address, or phone. Records flagged as test
+ * fixtures are excluded: fixtures live in the shared `families` store, so an
+ * abandoned one would otherwise surface as a duplicate candidate against a
+ * real nomination months later.
+ *
+ * @param {object} row   the nomination being reviewed
+ * @param {Array} rows   every sponsorship row for the season
+ * @returns {Array}
+ */
+export const findDuplicates = (row, rows) => {
+  const norm = s => (s || '').trim().toLowerCase();
+  const digits = s => (s || '').replace(/\D/g, '');
+
+  const lastName = norm(row?.lastName);
+  const address = norm(row?.addressLine1);
+  const phone = digits(row?.phone);
+
+  if (!lastName && !address && !phone) return [];
+
+  return (rows || [])
+    .filter(r => r.id !== row?.id && r.familyId && !r.isTestFixture)
+    .filter(
+      r =>
+        (!!lastName && norm(r.lastName) === lastName) ||
+        (!!address && norm(r.addressLine1) === address) ||
+        (!!phone && digits(r.phone) === phone),
+    );
+};
+
+/**
+ * Escape one CSV cell.
+ *
+ * A leading =, +, - or @ is prefixed with an apostrophe so a spreadsheet does
+ * not evaluate exported family data as a formula. This export contains names
+ * and addresses typed by nominators, so it is untrusted input.
+ */
+export const csvCell = value => {
+  const s = value === null || value === undefined ? '' : String(value);
+  const safe = /^[=+\-@]/.test(s) ? `'${s}` : s;
+  return `"${safe.replace(/"/g, '""')}"`;
+};
+
+/**
+ * Column order for the admin export, verbatim from the requirements document.
+ * "Family ID" is the human family number sponsors quote at pickup, not the
+ * submission id.
+ */
+export const EXPORT_COLUMNS = [
+  ['Family ID', r => r.familyNumber],
+  ['Status', r => r.status],
+  ['House Head First Name', r => r.firstName],
+  ['House Head Last Name', r => r.lastName],
+  ['House Head Email', r => r.email],
+  ['House Head Phone', r => r.phone],
+  ['Street', r => r.addressLine1],
+  ['City', r => r.city],
+  ['State', r => r.state],
+  ['Zip', r => r.zip],
+  ['Number of Members', r => r.totalMembers],
+  ['Adults', r => r.totalAdults],
+  ['Children', r => r.totalChildren],
+];
+
+/** Build the admin export CSV. */
+export const buildExportCsv = rows =>
+  [
+    EXPORT_COLUMNS.map(([label]) => csvCell(label)).join(','),
+    ...(rows || []).map(r =>
+      EXPORT_COLUMNS.map(([, get]) => csvCell(get(r))).join(','),
+    ),
+  ].join('\r\n');

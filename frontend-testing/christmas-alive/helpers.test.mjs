@@ -106,3 +106,104 @@ test('an unconfigured season reads as closed, not always-open', () => {
   assert.equal(isWithinSeason('2026-09-01', null), false);
   assert.equal(isWithinSeason('garbage', 'garbage'), false);
 });
+
+// --------------------------------------------------------------------------
+// Duplicate detection and the admin export
+// --------------------------------------------------------------------------
+
+const { findDuplicates, csvCell, buildExportCsv } = await import(
+  '../../portal/src/helpers/christmasAlive.js'
+);
+
+const fam = (id, over = {}) => ({
+  id,
+  familyId: `f-${id}`,
+  lastName: 'Martinez',
+  addressLine1: '12 Elm St',
+  phone: '301-555-0100',
+  ...over,
+});
+
+test('findDuplicates matches on last name, address, or phone', () => {
+  const target = fam('a');
+  const rows = [
+    target,
+    fam('b', { addressLine1: 'somewhere else', phone: '' }), // last name
+    fam('c', { lastName: 'Different', phone: '' }), // address
+    fam('d', { lastName: 'Different', addressLine1: 'elsewhere' }), // phone
+    fam('e', { lastName: 'Nope', addressLine1: 'nowhere', phone: '999' }),
+  ];
+  assert.deepEqual(
+    findDuplicates(target, rows).map(r => r.id).sort(),
+    ['b', 'c', 'd'],
+  );
+});
+
+test('findDuplicates ignores phone formatting differences', () => {
+  const target = fam('a', { lastName: '', addressLine1: '', phone: '(301) 555-0100' });
+  const rows = [target, fam('b', { lastName: 'X', addressLine1: 'Y', phone: '3015550100' })];
+  assert.deepEqual(findDuplicates(target, rows).map(r => r.id), ['b']);
+});
+
+test('findDuplicates never returns the row being reviewed', () => {
+  const target = fam('a');
+  assert.deepEqual(findDuplicates(target, [target]), []);
+});
+
+test('findDuplicates excludes test fixtures from the shared registry', () => {
+  // An abandoned fixture must never surface against a real nomination.
+  const target = fam('a');
+  const rows = [target, fam('fixture', { isTestFixture: true })];
+  assert.deepEqual(findDuplicates(target, rows), []);
+});
+
+test('findDuplicates skips rows with no family record yet', () => {
+  const target = fam('a');
+  const rows = [target, fam('b', { familyId: '' })];
+  assert.deepEqual(findDuplicates(target, rows), []);
+});
+
+test('findDuplicates returns nothing when there is nothing to match on', () => {
+  const target = { id: 'a', lastName: '', addressLine1: '', phone: '' };
+  assert.deepEqual(findDuplicates(target, [fam('b')]), []);
+});
+
+test('csvCell neutralizes spreadsheet formula injection', () => {
+  // Names and addresses are typed by nominators, so the export is untrusted.
+  assert.equal(csvCell('=cmd|/c calc'), `"'=cmd|/c calc"`);
+  assert.equal(csvCell('+1'), `"'+1"`);
+  assert.equal(csvCell('-1'), `"'-1"`);
+  assert.equal(csvCell('@SUM(A1)'), `"'@SUM(A1)"`);
+  assert.equal(csvCell('Martinez'), '"Martinez"');
+});
+
+test('csvCell escapes embedded quotes and handles empties', () => {
+  assert.equal(csvCell('He said "hi"'), '"He said ""hi"""');
+  assert.equal(csvCell(null), '""');
+  assert.equal(csvCell(undefined), '""');
+  assert.equal(csvCell(0), '"0"');
+});
+
+test('buildExportCsv emits the spec column order', () => {
+  const header = buildExportCsv([]).split('\r\n')[0];
+  assert.equal(
+    header,
+    '"Family ID","Status","House Head First Name","House Head Last Name",' +
+      '"House Head Email","House Head Phone","Street","City","State","Zip",' +
+      '"Number of Members","Adults","Children"',
+  );
+});
+
+test('buildExportCsv writes one CRLF row per family', () => {
+  const csv = buildExportCsv([
+    {
+      familyNumber: '14', status: 'Adopted', firstName: 'Ana', lastName: 'Martinez',
+      email: 'a@example.org', phone: '3015550100', addressLine1: '12 Elm St',
+      city: 'Frederick', state: 'MD', zip: '21701',
+      totalMembers: 5, totalAdults: 2, totalChildren: 3,
+    },
+  ]);
+  const lines = csv.split('\r\n');
+  assert.equal(lines.length, 2);
+  assert.equal(lines[1], '"14","Adopted","Ana","Martinez","a@example.org","3015550100","12 Elm St","Frederick","MD","21701","5","2","3"');
+});
