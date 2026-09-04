@@ -11,6 +11,7 @@
 @import './assets/styles/toasts.css';
 @import './assets/styles/typography.css';
 @import './assets/styles/utilities.css';
+@import './assets/styles/print.css';
 
 @theme {
   --font-sans: 'Onest';

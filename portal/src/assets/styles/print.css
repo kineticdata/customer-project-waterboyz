@@ -1,0 +1,40 @@
+/**
+ * Print rules for the Christmas Alive sponsor documents.
+ *
+ * The requirements originally asked for a generated PDF. We produce a
+ * print-styled page instead, so a sponsor gets the same artifact through their
+ * browser's Save as PDF with no PDF toolchain on the platform.
+ *
+ * Anything outside `.print-sheet` is chrome and is dropped.
+ */
+@media print {
+  .print-hide,
+  header,
+  nav,
+  footer {
+    display: none !important;
+  }
+
+  body {
+    background: #fff !important;
+  }
+
+  .print-sheet {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    color: #000 !important;
+  }
+
+  /* Keep a family member's details from splitting across a page break. */
+  .print-keep {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  a[href]::after {
+    content: '';
+  }
+}

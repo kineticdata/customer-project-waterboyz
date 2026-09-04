@@ -92,3 +92,38 @@ export const useClaimFamily = () => {
 
   return { claim, claiming };
 };
+
+const PACKET_WEBAPI = 'christmas-alive-packet';
+
+/**
+ * Full details for one sponsored family.
+ *
+ * Goes through a WebAPI rather than an operation because the authorization
+ * fact (is the caller the sponsor of record, or an admin?) lives on the
+ * sponsorship record while the protected data lives on the family record.
+ * That decision has to be made server-side, between two reads.
+ *
+ * Renders live rather than from the season snapshot, so a corrected address
+ * reaches the sponsor even though the email they received cannot be recalled.
+ */
+export const useFamilyPacket = sponsorshipId => {
+  const kappSlug = useSelector(state => state.app.kappSlug);
+  const params = useMemo(
+    () =>
+      kappSlug && sponsorshipId
+        ? {
+            kappSlug,
+            webApiSlug: PACKET_WEBAPI,
+            parameters: { sponsorshipId },
+          }
+        : null,
+    [kappSlug, sponsorshipId],
+  );
+  const { initialized, loading, response } = useData(executeWebApi, params);
+  return {
+    packet: response?.ok === false ? null : (response ?? null),
+    denied: response?.ok === false && response?.reason === 'NOT_AUTHORIZED',
+    error: response?.error ?? null,
+    loading: !initialized || loading,
+  };
+};
