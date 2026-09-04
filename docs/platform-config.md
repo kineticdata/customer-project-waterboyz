@@ -166,10 +166,28 @@ All forms live under the **`service-portal`** kapp.
   - `Sign Up Form Slug` — slug of the sign-up form to use for this event (defaults to `serve-day-sign-up` if blank)
 - **Portal access:** `/events` (authenticated volunteer list), `/events/:eventId/assign` (leadership assignment view), `/admin/events` (admin CRUD via AdminFormRecords), `/public/events` (public listing, no auth), `/public/events/:formSlug?eventId=<id>` (public sign-up)
 
+#### Christmas Alive Sponsorships (`christmas-alive-sponsorships`)
+- **Type:** Datastore | **Status:** Active | *Created 2026-09-04*
+- **Description:** One row per family per Christmas Alive season. Season state plus a snapshot of the fields the sponsor browse list and admin export need.
+- **Fields (21):** Family ID, Nomination ID, Season, Family Number, Status, Rejection Reason, Duplicate Of, Sponsor Username, Sponsor Email, Claimed At, Released At, Release Notes, Packet Sent At, Photo Requested, Support Currently Receiving, City, County, Native Language, Total Members, Total Adults, Total Children
+- **Status choices:** Pending, Approved, Rejected, Adopted
+- **Security:** Display/Access/Modification = `SWAT Leadership or Christmas Alive Admins`. Sponsors never read this form directly — they go through operations.
+- **Indexes (all Built):** `values[Family ID]`, `values[Nomination ID]`, `values[Season]`, `values[Status]`, `values[Sponsor Username]`, `values[Season],values[Status]`, `values[Season],values[Sponsor Username]`
+- **Key relationships:** `Family ID` → `families`; `Nomination ID` → `christmas-alive-family-nomination`; `Duplicate Of` → another sponsorship row
+
+#### Christmas Alive Claims (`christmas-alive-claims`)
+- **Type:** Datastore | **Status:** Active | *Created 2026-09-04*
+- **Description:** Mutual-exclusion lock for sponsoring. Deleted on release.
+- **Fields (3):** Sponsorship ID, Sponsor Username, Claimed At
+- **Security:** Display/Access/Modification = `Christmas Alive Admins`
+- **Indexes:** `values[Sponsorship ID]:UNIQUE` (**unique, Built**), `values[Sponsor Username]`
+- **The unique index is the concurrency guarantee for sponsoring.** Verified 2026-09-04: a second submission with a duplicate `Sponsorship ID` is rejected with HTTP 400 and `errorKey: "uniqueness_violation"` (case-insensitive). The claim WebAPI maps that errorKey to `ALREADY_CLAIMED`.
+
 #### Programs (`programs`)
 - **Type:** Datastore | **Status:** Active
 - **Description:** Configurable programs displayed on the home page (SWAT, Christmas Alive, etc.)
-- **Fields (7):** Program Name, Description, Icon, Color, Status, Nomination Form Slug, Home Page Order
+- **Fields (10):** Program Name, Description, Icon, Color, Status, Nomination Form Slug, Home Page Order, Active From, Active To, Current Season
+- **Season fields** (*added 2026-09-04*) drive the seasonal Christmas Alive entry point. Christmas Alive is set to Active From `2026-09-01`, Active To `2026-12-31`, Current Season `2026`. An unconfigured window reads as closed, never as always-open.
 - **Icon:** `apps`
 - **Used by:** `HomeNominator.jsx` fetches active programs to render nomination cards
 
@@ -414,7 +432,8 @@ All integrations share the same connection (`1415539c-bb98-48bb-ad33-11be25189ad
 | Team | Slug | Description | Members |
 |------|------|-------------|---------|
 | Bookkeepers | `79996d3f...` | Financial record keeping / reimbursement processing | james.davies@kineticdata.com |
-| Christmas Alive Nominators | `cd0f441a...` | People with nomination access for Christmas Alive | *(none currently)* |
+| Christmas Alive Nominators | `cd0f441a...` | People with nomination access for Christmas Alive | *(none yet — 14 people listed in the requirements PDF still need accounts)* |
+| Christmas Alive Admins | `6864f752...` | Reviews and approves Christmas Alive nominations, manages sponsorships | juddz@waterboyz.org, duanec@waterboyz.org, paulf@waterboyz.org *(Jim Baker has no account yet)* |
 | SWAT Leadership | `4f93f090...` | Project approvals and oversight | james.davies@kineticdata.com, jameswd89+leadership@gmail.com, juddz@waterboyz.org, lad12der@gmail.com, mr.currence@gmail.com, paulf@waterboyz.org |
 | SWAT Project Approvers | `aa1c27fd...` | Receive email notifications when new nominations need approval | james.davies@kineticdata.com, juddz@waterboyz.org, lad12der@gmail.com |
 | SWAT Project Captains | `c9e76136...` | People who lead SWAT projects | james.davies@kineticdata.com, jameswd89+captain@gmail.com, lad12der@gmail.com, mr.currence@gmail.com |

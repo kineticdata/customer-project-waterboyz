@@ -1195,3 +1195,24 @@ in `volunteer-notifications/` and related files, so the command exits non-zero
 on a clean checkout. All Christmas Alive files are clean; don't read a red lint
 as this work's failure.
 
+---
+
+# Progress — 2026-09-04
+
+**Done on the platform:**
+
+- Task 1 — `programs` gained Active From / Active To / Current Season; Christmas Alive set to 2026-09-01 → 2026-12-31, season `2026`. Spike resolved (see spec).
+- Task 2 — `christmas-alive-sponsorships` created, 21 fields, 12 indexes all Built, policies applied. A `Season + Status` query returns an empty set rather than 400, so the index genuinely serves it.
+- Task 3 — `christmas-alive-claims` created with `values[Sponsorship ID]:UNIQUE` Built. **Lock proven empirically:** duplicate insert → HTTP 400, `errorKey: "uniqueness_violation"`, case-insensitive. That errorKey is what the claim WebAPI maps to `ALREADY_CLAIMED`.
+- Task 5 — `Christmas Alive Admins` team created with Judd, Duane, Paul. Three kapp policies created: `Christmas Alive Admins`, `Christmas Alive Nominators or Admins`, `SWAT Leadership or Christmas Alive Admins`.
+
+**Task 4 deliberately NOT done — read before attempting.**
+
+Adding `Family Members JSON` and `Test Fixture` to `families` requires PUTting the whole `pages` array, and that array carries two large hand-written JavaScript blocks (~4,000 chars each, escaped) for the Family Members and Projects table widgets. There is no field-level partial update. Retyping them risks silently corrupting a working production form. Do this from a script that round-trips the export rather than by hand.
+
+**Correction to the plan's premise:** `family-members` is **not** unused. The `families` form's own event code mounts the Table widget against the `Family Members - Retrieve` integration with add/edit/delete wired up. The earlier "unused" finding only covered `portal/src` and missed platform-side form JavaScript. There are **2 records** (one created by juddz@waterboyz.org on 2026-03-24).
+
+That does not block deprecation, but it means Task 4 also has to replace that section's UI, and the 2 records need a decision. Both belong with the deferred deletions.
+
+**Also outstanding for Task 5:** One nominator has no account, and none of the 14 nominators from the requirements PDF do. Creating users fires the space `User Created` workflow, which emails a welcome and password reset to a real person — held for explicit sign-off.
+
