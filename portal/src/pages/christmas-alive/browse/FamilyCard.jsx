@@ -29,7 +29,13 @@ export const FamilyCard = ({ family, onSponsor, disabled }) => {
       <dl className="grid grid-cols-2 gap-x-4 gap-y-1 m-0 text-sm">
         <div className="flex-c-st">
           <dt className="text-base-content/60">Area</dt>
-          <dd className="m-0">{[city, county].filter(Boolean).join(', ') || 'Not given'}</dd>
+          <dd className="m-0">
+            {/* Frederick city sits in Frederick county — "Frederick, Frederick"
+                reads like a bug, so collapse the duplicate. */}
+            {[city, city === county ? null : county]
+              .filter(Boolean)
+              .join(', ') || 'Not given'}
+          </dd>
         </div>
         <div className="flex-c-st">
           <dt className="text-base-content/60">Language</dt>

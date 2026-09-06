@@ -10,6 +10,7 @@ import { useEventSignups } from '../../helpers/hooks/useEventSignups.js';
 import { executeIntegration } from '../../helpers/api.js';
 import { formatLocalDate } from '../../helpers/index.js';
 import { HomeSection } from '../../components/home/HomeSection.jsx';
+import { ChristmasAliveHeroCta } from '../../components/home/ChristmasAliveHeroCta.jsx';
 
 const FALLBACK_PROGRAMS = [
   {
@@ -181,6 +182,9 @@ export const HomeNominator = () => {
                 Set Up Your Volunteer Profile
               </Link>
             </div>
+            {/* HomeNominator duplicates the hero markup rather than using
+                HomeHero, so the seasonal CTA has to be added here too. */}
+            <ChristmasAliveHeroCta />
           </div>
         </div>
       </div>

@@ -14,29 +14,14 @@ import { HomeNominator } from './HomeNominator.jsx';
 import { HomeVolunteer } from './HomeVolunteer.jsx';
 import { HomeCaptain } from './HomeCaptain.jsx';
 import { HomeAdmin } from './HomeAdmin.jsx';
-import { ChristmasAliveBanner } from '../../components/home/ChristmasAliveBanner.jsx';
 
 export const Home = () => {
   const { isAdmin, hasProjectAccess, isVolunteer } = useRoles();
 
-  // Every role sees the seasonal Christmas Alive entry point, so it lives here
-  // rather than being repeated in each of the four role home pages.
-  const page = isAdmin ? (
-    <HomeAdmin />
-  ) : hasProjectAccess ? (
-    <HomeCaptain />
-  ) : isVolunteer ? (
-    <HomeVolunteer />
-  ) : (
-    <HomeNominator />
-  );
-
-  return (
-    <>
-      <ChristmasAliveBanner />
-      {page}
-    </>
-  );
+  if (isAdmin) return <HomeAdmin />;
+  if (hasProjectAccess) return <HomeCaptain />;
+  if (isVolunteer) return <HomeVolunteer />;
+  return <HomeNominator />;
 };
 
 export const ActivityList = ({ limit = 5, onLoaded }) => {

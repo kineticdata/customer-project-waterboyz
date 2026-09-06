@@ -36,15 +36,19 @@ export const BrowseFamilies = () => {
       .sort((a, b) => Number(a.familyNumber) - Number(b.familyNumber));
   }, [families, filters]);
 
-  const handleClaimed = async sponsorshipId => {
-    const result = await claim(sponsorshipId);
-    // Refresh either way: on success the family leaves the list, and on a lost
-    // race the list was stale, which is exactly why the claim failed.
+  // Refresh when the modal closes rather than during the claim. On success the
+  // family leaves the list; on a lost race the list was stale, which is why the
+  // claim failed. Either way the modal has already shown its outcome by then.
+  const closeAndRefresh = () => {
+    setSelected(null);
     reload?.();
-    return result;
   };
 
-  if (seasonLoading || loading) return <Loading />;
+  // Only block the whole page on the FIRST load. A background refetch must not
+  // unmount the page, because the sponsor modal lives here — unmounting it
+  // mid-claim resets it to the confirm step and swallows the outcome, success
+  // included.
+  if (seasonLoading || (loading && families.length === 0)) return <Loading />;
 
   if (!inSeason) {
     return (
@@ -143,9 +147,9 @@ export const BrowseFamilies = () => {
 
       <SponsorConfirmModal
         family={selected}
-        onClose={() => setSelected(null)}
-        onClaim={handleClaimed}
-        onSponsorAnother={() => setSelected(null)}
+        onClose={closeAndRefresh}
+        onClaim={claim}
+        onSponsorAnother={closeAndRefresh}
       />
     </div>
   );
