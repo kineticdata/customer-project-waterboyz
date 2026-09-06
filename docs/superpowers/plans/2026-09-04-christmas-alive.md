@@ -1267,8 +1267,30 @@ Ctrl+P to export. Now scoped with `body:has(.print-sheet)`. **Do not unscope.**
 
 ### Demo fixtures on production — delete when done
 
-Three rows in `christmas-alive-sponsorships`, season 2026, Family Numbers 1-3,
-each with `Release Notes = "ZZTEST FIXTURE - demo row, safe to delete"`. They
-exist so the browse page and filters can be exercised. No `families` records
-were created.
+**Corrected 2026-09-05.** The first version of these fixtures was `Approved`
+with a `Family Number` but **no `Family ID`** — a state the real pipeline can
+never produce, since `Family ID` is set at approval (spec data model; plan
+Task 7). They would have made the browse page look healthy while the packet
+page and the CSV export had no family record to join to.
+
+Now linked correctly:
+
+| Sponsorship (season 2026) | Family ID → `families` |
+|---|---|
+| Family 1 — Frederick, English, 5 | `f4faa698-…` ZZTEST-Alvarez, Maria |
+| Family 2 — Thurmont, Spanish, 3 | `f8be3e51-…` ZZTEST-Ramirez, Sofia |
+| Family 3 — Brunswick, English, 8 | `fc68cfc4-…` ZZTEST-Johnson, Deborah |
+
+Sponsorship rows carry `Release Notes = "ZZTEST FIXTURE - demo row, safe to
+delete"`. Family records use the `ZZTEST-` surname prefix.
+
+**Registry caveat:** these three families live in the shared `families` store.
+The `Test Fixture` field does not exist yet (Task 4 is blocked), so the
+duplicate matcher cannot exclude them by flag — only the `ZZTEST-` surname
+marks them. Delete all six rows before real nominations start, or add the flag
+with Task 4 first.
+
+**Invariant worth asserting in tests:** a sponsorship row may have a blank
+`Family ID` **only** while `Status = Pending`. Any `Approved`, `Adopted`, or
+duplicate-`Rejected` row without one is invalid.
 
