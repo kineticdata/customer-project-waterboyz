@@ -44,15 +44,18 @@ const buildRows = response => {
     const family = familiesById.get(v['Family ID']);
     const fv = family?.values ?? {};
     // Counts derive from the roster in hand rather than the stored snapshot,
-    // so an admin never sees a number lag behind an edit they just made.
+    // so an admin never sees a number lag behind an edit they just made --
+    // but only when a roster actually exists, or an empty one would zero out
+    // counts the snapshot already has correct.
     const roster = parseRoster(fv['Family Members JSON']);
-    const counts = family
-      ? deriveCounts(roster)
-      : {
-          totalMembers: Number(v['Total Members']) || 0,
-          totalAdults: Number(v['Total Adults']) || 0,
-          totalChildren: Number(v['Total Children']) || 0,
-        };
+    const counts =
+      roster.length > 0
+        ? deriveCounts(roster)
+        : {
+            totalMembers: Number(v['Total Members']) || 0,
+            totalAdults: Number(v['Total Adults']) || 0,
+            totalChildren: Number(v['Total Children']) || 0,
+          };
 
     return {
       id: s.id,

@@ -23,6 +23,9 @@ const NominateFamily = lazy(() =>
 const Approvals = lazy(() =>
   import('./approvals/Approvals.jsx').then(m => ({ default: m.Approvals })),
 );
+const AllFamilies = lazy(() =>
+  import('./all-families/AllFamilies.jsx').then(m => ({ default: m.AllFamilies })),
+);
 
 /**
  * Christmas Alive route subtree.
@@ -52,6 +55,10 @@ export const ChristmasAliveRouting = () => {
           <Route
             path="/approvals"
             element={isCAAdmin ? <Approvals /> : <Navigate to="/christmas-alive" replace />}
+          />
+          <Route
+            path="/all-families"
+            element={isCAAdmin ? <AllFamilies /> : <Navigate to="/christmas-alive" replace />}
           />
           <Route path="/*" element={<Navigate to="/christmas-alive" replace />} />
         </Routes>

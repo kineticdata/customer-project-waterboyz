@@ -1294,3 +1294,76 @@ with Task 4 first.
 `Family ID` **only** while `Status = Pending`. Any `Approved`, `Adopted`, or
 duplicate-`Rejected` row without one is invalid.
 
+---
+
+# Overnight session — 2026-09-05/06
+
+## The finding that unblocked the workflows
+
+**`kinetic_core_api_v1` does not work in this space.** Every tree using it fails
+with `run_results_error`, including a two-node minimal case. Every existing
+workflow here calls the platform through **`system_integration_v1`** with a
+connection + operation id instead. The ai-skills docs lead with
+`kinetic_core_api_v1`; do not follow that here.
+
+Established pattern, now proven end to end:
+
+1. Create an Integrator **Operation** for each call.
+2. Reference it from a node: `definitionId: system_integration_v1`, parameters
+   `connection`, `operation`, `parameters.<Name>`.
+3. **Every output expression must be defensive** (`?.` and `??`).
+   `system_integration_v1` has no `error_handling` lever, so a 4xx becomes a
+   hard `RuntimeError` and halts the run unless the outputs survive the error
+   body. This is what lets the claim branch on a failed create instead of dying.
+4. `webApiImport` (`POST /kapps/{kapp}/webApiImport`, `force=true`) creates the
+   WebAPI *and* its tree in one call. The Task API is not reachable from the
+   MCP session, so this is the only route.
+5. Debug with a throwaway WebAPI returning `@request.inspect` / `@requested_by.inspect`.
+
+Confirmed runtime context on this engine:
+
+```
+@request      = {"Body"=>"<raw post body>", "Query"=>"timeout=20"}   # no "Parameters" key
+@requested_by = {"email"=>..., "displayName"=>..., "username"=>...}
+```
+
+Values are pulled from the body with a regex rather than `JSON.parse` — no
+`require`, nothing to raise inside a connector expression.
+
+## Verified working on production
+
+| Thing | Evidence |
+|---|---|
+| `christmas-alive-claim` WebAPI | Claim returns `{"ok":true,...,"familyNumber":"2"}` |
+| **The race** | **5 simultaneous claims on one family → exactly 1 win, 4 ALREADY_CLAIMED, exactly 1 claim row** |
+| `christmas-alive-packet` WebAPI | Sponsor gets full details; **non-sponsor gets NOT_AUTHORIZED with no family data in the body** |
+| `CA - Available Families` | Returns the anonymized projection, no PII |
+| `CA - My Sponsorships` | Identity bound server-side |
+| All families page | Renders, filters, edits and saves a family record end to end |
+| Whole sponsor journey in a browser | Hero CTA → landing → browse → confirm → claim → packet |
+
+## Bugs found by actually clicking, all fixed
+
+1. **Sponsor modal unmounted mid-claim.** `handleClaimed` called `reload()`,
+   flipping `useData` to loading, and `BrowseFamilies` had an early
+   `if (loading) return <Loading />`. Every claim outcome — success included —
+   was silently swallowed and the modal reset to the confirm step.
+2. **`programs` has no `values[Program Name]` index.** The season lookup 400'd
+   and was swallowed as "not in season", hiding every entry point.
+3. **Prefilling a nonexistent form field breaks CoreForm outright.**
+4. **A kapp integration silently drops undeclared `inputMappings` parameters** —
+   returns an empty list with `Error: null`.
+5. **Print CSS was global** and would have broken printing SWAT Reports.
+6. **Counts zeroed out** when a family record existed without a roster.
+7. "Frederick, Frederick" when city equals county.
+
+## Still to do
+
+- **Task 4 (families fields)** — the one thing that could break SWAT. Needs a
+  script that round-trips the export; do not hand-write the `pages` array.
+- `christmas-alive-approve` / `christmas-alive-release` WebAPIs. Lower priority
+  now: the All families page can change status directly.
+- Nomination → sponsorship workflow (Task 6) and the `families` sync (Task 8).
+- Email send workflow. Templates are built; nothing sends yet.
+- Playwright suites (Tasks 23-24).
+

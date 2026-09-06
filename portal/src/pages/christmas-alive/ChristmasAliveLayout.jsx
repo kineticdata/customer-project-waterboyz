@@ -24,6 +24,7 @@ export const ChristmasAliveLayout = ({ children }) => {
     { to: '/christmas-alive/my-sponsorships', label: 'My sponsorships', icon: 'heart', show: true },
     { to: '/christmas-alive/nominate', label: 'Nominate a family', icon: 'user-plus', show: canNominate },
     { to: '/christmas-alive/approvals', label: 'Approvals', icon: 'checklist', show: isCAAdmin },
+    { to: '/christmas-alive/all-families', label: 'All families', icon: 'table', show: isCAAdmin },
   ].filter(l => l.show);
 
   return (
