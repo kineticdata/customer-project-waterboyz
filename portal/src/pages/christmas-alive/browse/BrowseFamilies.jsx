@@ -86,10 +86,13 @@ export const BrowseFamilies = () => {
       {families.length === 0 ? (
         <div className="flex-c-st gap-3 items-start p-6 rounded-lg border border-dashed border-base-300 max-w-prose">
           <Icon name="christmas-tree" size={32} className="text-accent" />
-          <p className="font-medium m-0">Every family has a sponsor. Thank you.</p>
+          <p className="font-medium m-0">
+            No families are waiting for a sponsor right now
+          </p>
           <p className="text-sm text-base-content/70 m-0">
-            New families are added as nominations are approved, so it&rsquo;s
-            worth checking back.
+            Families appear here once their nomination is approved. If you
+            sponsored earlier in the season, thank you — it&rsquo;s worth
+            checking back as more are added.
           </p>
           <Link to="/christmas-alive/my-sponsorships" className="kbtn kbtn-outline kbtn-sm">
             See the families you&rsquo;ve sponsored

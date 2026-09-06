@@ -5,17 +5,21 @@
  * print-styled page instead, so a sponsor gets the same artifact through their
  * browser's Save as PDF with no PDF toolchain on the platform.
  *
- * Anything outside `.print-sheet` is chrome and is dropped.
+ * SCOPING MATTERS: every rule here is scoped to a page containing
+ * `.print-sheet`. Bare `header, nav, footer` selectors would apply to every
+ * print in the portal, including the SWAT Reports page, which tells users to
+ * Ctrl+P to export. Do not unscope these.
  */
 @media print {
-  .print-hide,
-  header,
-  nav,
-  footer {
+  /* Drop chrome only on pages that are themselves a printable document. */
+  body:has(.print-sheet) .print-hide,
+  body:has(.print-sheet) > div > header,
+  body:has(.print-sheet) > div > nav,
+  body:has(.print-sheet) > div > footer {
     display: none !important;
   }
 
-  body {
+  body:has(.print-sheet) {
     background: #fff !important;
   }
 
@@ -29,12 +33,12 @@
   }
 
   /* Keep a family member's details from splitting across a page break. */
-  .print-keep {
+  .print-sheet .print-keep {
     break-inside: avoid;
     page-break-inside: avoid;
   }
 
-  a[href]::after {
+  .print-sheet a[href]::after {
     content: '';
   }
 }

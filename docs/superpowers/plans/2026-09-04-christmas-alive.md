@@ -1216,3 +1216,59 @@ That does not block deprecation, but it means Task 4 also has to replace that se
 
 **Also outstanding for Task 5:** One nominator has no account, and none of the 14 nominators from the requirements PDF do. Creating users fires the space `User Created` workflow, which emails a welcome and password reset to a real person — held for explicit sign-off.
 
+---
+
+# Live-testing findings — 2026-09-05
+
+Four bugs found by exercising the running app. All fixed.
+
+### 1. `programs` has no index on `values[Program Name]`
+
+`useChristmasAlive` queried it and got a 400, which the hook swallowed into
+"no season configured" — silently hiding every Christmas Alive entry point.
+Now queries `values[Status]="Active"` (the only value-level index on that form)
+and filters client-side, mirroring `HomeNominator.jsx`. The hook also returns
+`error` now, and the landing page surfaces it, so a failed lookup can never
+again look identical to "out of season".
+
+### 2. Prefilling a field that does not exist breaks CoreForm
+
+`NominateFamily` prefilled `Nominator First Name` and four siblings. Those
+fields don't exist on the form yet, and CoreForm fails to render rather than
+ignoring them — the whole page errors. Prefill is narrowed to `Requested By`
+until Task 16 adds the rest.
+
+### 3. **A kapp integration silently drops undeclared parameters**
+
+Worth knowing generally. `CA - Available Families` was registered with
+`inputMappings: {}`. Client-supplied `Season` never reached the operation,
+`{{Season}}` resolved empty, and the query returned **an empty list with
+`Error: null`** — a wrong answer that looks like a successful one. Declaring
+the parameter in `inputMappings` fixes it.
+
+This is not in the Integrations skill and should be added: an undeclared
+parameter fails silently rather than erroring.
+
+### 4. Print CSS was scoped globally — a real SWAT regression
+
+`print.css` used bare `header, nav, footer { display: none }`, which applied to
+every print in the portal, including the SWAT Reports page that tells users to
+Ctrl+P to export. Now scoped with `body:has(.print-sheet)`. **Do not unscope.**
+
+### SWAT regression audit (clean)
+
+- `programs`: all 7 original fields with original keys, `Get Nomination Forms`
+  integration and its dropdown binding, and the label expression all intact.
+- `families`: not modified. Security still SWAT-Leadership-only.
+- All 10 pre-existing kapp integrations unchanged; `Upcoming SWAT Projects`
+  smoke-tested live and returns 9 projects.
+- Portal: all shared-file changes additive. The home banner returns null on
+  loading, error, or out-of-season, so it cannot break a SWAT home page.
+
+### Demo fixtures on production — delete when done
+
+Three rows in `christmas-alive-sponsorships`, season 2026, Family Numbers 1-3,
+each with `Release Notes = "ZZTEST FIXTURE - demo row, safe to delete"`. They
+exist so the browse page and filters can be exercised. No `families` records
+were created.
+

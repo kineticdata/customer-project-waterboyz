@@ -27,7 +27,8 @@ const Card = ({ to, icon, title, body, cta }) => (
  * rendered disabled.
  */
 export const Landing = () => {
-  const { season, inSeason, canNominate, isCAAdmin, loading } = useChristmasAlive();
+  const { season, inSeason, canNominate, isCAAdmin, loading, error } =
+    useChristmasAlive();
 
   if (loading) return null;
 
@@ -77,13 +78,24 @@ export const Landing = () => {
         )}
       </div>
 
-      {!sponsoringOpen && (
-        <div className="kalert kalert-info kalert-soft">
-          <Icon name="calendar" size={20} />
+      {error ? (
+        <div className="kalert kalert-error kalert-soft">
+          <Icon name="alert-triangle" size={20} />
           <span>
-            Sponsorship opens each September. Check back then to choose a family.
+            We couldn&rsquo;t load the Christmas Alive season settings, so
+            sponsoring is unavailable. Please tell an administrator.
           </span>
         </div>
+      ) : (
+        !sponsoringOpen && (
+          <div className="kalert kalert-info kalert-soft">
+            <Icon name="calendar" size={20} />
+            <span>
+              Sponsorship opens each September. Check back then to choose a
+              family.
+            </span>
+          </div>
+        )
       )}
 
       <Link

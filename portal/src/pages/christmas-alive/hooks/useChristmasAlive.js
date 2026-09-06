@@ -6,8 +6,12 @@ import { isWithinSeason } from '../../../helpers/christmasAlive.js';
 
 const PROGRAM_NAME = 'Christmas Alive';
 
-const programQuery = defineKqlQuery()
-  .equals('values[Program Name]', 'name')
+// Query by Status, not Program Name. `values[Status]` is the only value-level
+// index on the programs form, and Kinetic rejects a query on an unindexed field
+// with a 400 -- which would silently read as "no season configured" and hide
+// every Christmas Alive entry point. This mirrors what HomeNominator.jsx does.
+const activeProgramsQuery = defineKqlQuery()
+  .equals('values[Status]', 'status')
   .end();
 
 const fetchProgram = ({ kappSlug }) =>
@@ -15,9 +19,9 @@ const fetchProgram = ({ kappSlug }) =>
     kapp: kappSlug,
     form: 'programs',
     search: {
-      q: programQuery({ name: PROGRAM_NAME }),
+      q: activeProgramsQuery({ status: 'Active' }),
       include: ['values'],
-      limit: 1,
+      limit: 20,
     },
   });
 
@@ -33,6 +37,7 @@ const fetchProgram = ({ kappSlug }) =>
  *   activeFrom: string|null,
  *   activeTo: string|null,
  *   inSeason: boolean,
+ *   error: object|null,
  *   isCANominator: boolean,
  *   isCAAdmin: boolean,
  *   canNominate: boolean,
@@ -46,7 +51,14 @@ export const useChristmasAlive = () => {
   const params = useMemo(() => (kappSlug ? { kappSlug } : null), [kappSlug]);
   const { initialized, loading, response } = useData(fetchProgram, params);
 
-  const values = response?.submissions?.[0]?.values ?? null;
+  // A failed lookup must not masquerade as "not in season" -- that hides every
+  // Christmas Alive entry point with no visible cause. Surface it instead.
+  const error = response?.error ?? null;
+
+  const values =
+    (response?.submissions ?? []).find(
+      sub => sub.values?.['Program Name'] === PROGRAM_NAME,
+    )?.values ?? null;
 
   const teamNames = useMemo(
     () => (profile?.memberships ?? []).map(({ team }) => team.name),
@@ -67,10 +79,11 @@ export const useChristmasAlive = () => {
       inSeason: isWithinSeason(activeFrom, activeTo),
       isCANominator,
       isCAAdmin,
+      error,
       // Admins can nominate too — the requirements list the Nominate page as
       // "nominators and admins".
       canNominate: isCANominator || isCAAdmin,
       loading: !initialized || loading,
     };
-  }, [values, isCANominator, isCAAdmin, initialized, loading]);
+  }, [values, error, isCANominator, isCAAdmin, initialized, loading]);
 };

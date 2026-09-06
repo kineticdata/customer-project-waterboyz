@@ -2,7 +2,6 @@ import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { KineticForm } from '../../../components/kinetic-form/KineticForm.jsx';
-import { getAttributeValue } from '../../../helpers/records.js';
 
 const FORM_SLUG = 'christmas-alive-family-nomination';
 
@@ -21,17 +20,15 @@ export const NominateFamily = () => {
   const profile = useSelector(state => state.app.profile);
 
   // A nominator is a known person — they shouldn't retype their own details.
+  //
+  // Only prefill fields that actually exist on the form. Passing a value for an
+  // unknown field name makes CoreForm fail to render, which is a hard error for
+  // the whole page rather than a quietly ignored value. The richer Nominator
+  // First/Last/Email/Phone/Organization prefill returns once those fields are
+  // added to the form.
   const values = useMemo(() => {
     if (!profile) return undefined;
-    const [first, ...rest] = (profile.displayName || '').split(' ');
-    return {
-      'Nominator First Name': first || '',
-      'Nominator Last Name': rest.join(' '),
-      'Nominator Email': profile.email || '',
-      'Nominator Phone': getAttributeValue(profile, 'Phone Number') || '',
-      'Nominator Organization':
-        getAttributeValue(profile, 'Affiliated Organization') || '',
-    };
+    return { 'Requested By': profile.username || '' };
   }, [profile]);
 
   const handleCompleted = useCallback(
