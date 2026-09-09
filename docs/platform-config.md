@@ -81,6 +81,8 @@ All forms live under the **`service-portal`** kapp.
 ### Nomination Forms (user-facing requests)
 
 #### Christmas Alive Family Nomination (`christmas-alive-family-nomination`)
+- **Family roster UI** *(added 2026-09-09)*: a `Load` event named **Load Family Roster** mounts the `FamilyRoster` widget into the `Family Members` **content** element, bound to the hidden `Family Members JSON` field. The form already had both the mount point and the hidden field but **no event code at all**, which is why there was no way to add family members. Counts are deliberately NOT written client-side — the `Nomination Process` workflow derives them from the same JSON on submit, and doing it twice would let the two disagree.
+- **⚠ Cosmetic bug, not yet fixed:** the section titled **"System - Hidden"** is `visible: true`, so Total Adults, Total Children, Family Status and Requested By are all shown to the nominator. The first two are overwritten by the workflow on submit, so anything typed is discarded. The section name says the intent; it just was never hidden.
 - **Type:** Nominations | **Status:** Active
 - **Category:** `christmas-alive` | **Icon:** `pointer-cancel`
 - **Description:** Nominate a family for Christmas Alive
