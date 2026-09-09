@@ -2,7 +2,7 @@ import { useParams } from 'react-router-dom';
 import { Icon } from '../../../atoms/Icon.jsx';
 import { Loading } from '../../../components/states/Loading.jsx';
 import { useFamilyPacket } from '../hooks/useSponsorships.js';
-import { parseRoster, deriveCounts, describeHousehold, familyLabel } from '../../../helpers/christmasAlive.js';
+import { parseRoster, householdCounts, describeHousehold, familyLabel } from '../../../helpers/christmasAlive.js';
 
 const Row = ({ label, value }) =>
   value ? (
@@ -36,7 +36,8 @@ export const FamilyPacket = () => {
   }
 
   const roster = parseRoster(packet.roster ?? packet.familyMembersJson);
-  const counts = deriveCounts(roster);
+  // Household totals -- the roster excludes the head, who is shown under Contact.
+  const counts = householdCounts(roster);
   const support = Array.isArray(packet.supportReceiving)
     ? packet.supportReceiving
     : parseRoster(packet.supportReceiving);
@@ -92,10 +93,15 @@ export const FamilyPacket = () => {
 
       <section className="flex-c-st gap-2">
         <h2 className="text-h3 font-bold m-0">Who you&rsquo;re shopping for</h2>
+        <p className="text-sm text-base-content/70 m-0">
+          Plus the head of household listed above. Gifts are asked for every
+          child 18 or younger; gifts for adults are welcome but optional.
+        </p>
         {roster.length === 0 ? (
           <p className="text-base-content/70 m-0">
-            No family members were recorded. Contact Christmas Alive before you
-            shop.
+            No other household members were recorded — just the head of
+            household above. Contact Christmas Alive before you shop if that
+            looks wrong.
           </p>
         ) : (
           <ul className="flex-c-st gap-2 list-none p-0 m-0">

@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { defineKqlQuery, searchSubmissions } from '@kineticdata/react';
 import { useData } from '../../../helpers/hooks/useData.js';
 import { executeWebApi } from '../../../helpers/api.js';
-import { parseRoster, deriveCounts } from '../../../helpers/christmasAlive.js';
+import { parseRoster, householdCounts } from '../../../helpers/christmasAlive.js';
 
 export { findDuplicates } from '../../../helpers/christmasAlive.js';
 
@@ -64,7 +64,7 @@ const buildRows = response => {
     const roster = parseRoster(fv['Family Members JSON']);
     const counts =
       roster.length > 0
-        ? deriveCounts(roster)
+        ? householdCounts(roster)
         : {
             totalMembers: Number(v['Total Members']) || 0,
             totalAdults: Number(v['Total Adults']) || 0,

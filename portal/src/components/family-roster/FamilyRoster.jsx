@@ -5,7 +5,7 @@ import { Icon } from '../../atoms/Icon.jsx';
 import {
   parseRoster,
   serializeRoster,
-  deriveCounts,
+  householdCounts,
   describeHousehold,
   suggestMemberType,
   MEMBER_TYPES,
@@ -15,13 +15,13 @@ import {
 let seq = 0;
 const nextId = () => `m${Date.now().toString(36)}${(seq++).toString(36)}`;
 
-const blankMember = index => ({
+const blankMember = () => ({
   id: nextId(),
   firstName: '',
   lastName: '',
   age: '',
   gender: '',
-  type: suggestMemberType(index, ''),
+  type: suggestMemberType(''),
   shirtSize: '',
   shoeSize: '',
 });
@@ -46,7 +46,9 @@ const hasContent = m =>
  */
 export const FamilyRoster = ({ value, onChange, disabled = false }) => {
   const roster = useMemo(() => parseRoster(value), [value]);
-  const counts = useMemo(() => deriveCounts(roster), [roster]);
+  // Household totals, so the head of household -- who is a record field, not
+  // a roster row -- is counted. Otherwise the summary reads one adult short.
+  const counts = useMemo(() => householdCounts(roster), [roster]);
 
   const emit = useCallback(next => onChange(serializeRoster(next)), [onChange]);
 
@@ -56,7 +58,7 @@ export const FamilyRoster = ({ value, onChange, disabled = false }) => {
       // Keep `type` in step with age unless the person has chosen one
       // themselves — typing an age is the common path, picking a type is not.
       if (patch.age !== undefined && !next[index].typeTouched) {
-        next[index].type = suggestMemberType(index, patch.age);
+        next[index].type = suggestMemberType(patch.age);
       }
       emit(next);
     },
@@ -64,7 +66,7 @@ export const FamilyRoster = ({ value, onChange, disabled = false }) => {
   );
 
   const addMember = useCallback(() => {
-    emit([...roster, blankMember(roster.length)]);
+    emit([...roster, blankMember()]);
   }, [roster, emit]);
 
   // Inline confirmation rather than a modal: this component also runs inside a
@@ -106,10 +108,10 @@ export const FamilyRoster = ({ value, onChange, disabled = false }) => {
     <div className="flex-c-st gap-3">
       {roster.length === 0 ? (
         <div className="rounded-lg border border-dashed border-base-300 p-6 text-center">
-          <p className="font-medium">No family members added yet</p>
+          <p className="font-medium">No other household members added yet</p>
           <p className="text-sm text-base-content/70 mt-1">
-            Start with the head of household, then add everyone else living in
-            the home.
+            Add everyone else living in the home — a spouse, children, other
+            adults. The head of household is already captured above.
           </p>
           <button
             type="button"
@@ -118,7 +120,7 @@ export const FamilyRoster = ({ value, onChange, disabled = false }) => {
             disabled={disabled}
           >
             <Icon name="plus" size={16} />
-            Add the head of household
+            Add a household member
           </button>
         </div>
       ) : (
@@ -269,11 +271,12 @@ export const FamilyRoster = ({ value, onChange, disabled = false }) => {
               <Icon name="plus" size={16} />
               Add family member
             </button>
-            <p
-              className={clsx('text-sm font-medium')}
-              aria-live="polite"
-            >
+            <p className={clsx('text-sm font-medium')} aria-live="polite">
               {describeHousehold(counts)}
+              <span className="font-normal text-base-content/60">
+                {' '}
+                (including head of household)
+              </span>
             </p>
           </div>
         </>

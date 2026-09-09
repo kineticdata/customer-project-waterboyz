@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { searchSubmissions, updateSubmission } from '@kineticdata/react';
 import { useData } from '../../../helpers/hooks/useData.js';
-import { parseRoster, deriveCounts } from '../../../helpers/christmasAlive.js';
+import { parseRoster, householdCounts } from '../../../helpers/christmasAlive.js';
 
 /**
  * Every Christmas Alive family across every season, joined to the family
@@ -54,7 +54,7 @@ const buildRows = response => {
     // snapshot already has correct.
     const counts =
       roster.length > 0
-        ? deriveCounts(roster)
+        ? householdCounts(roster)
         : {
             totalMembers: Number(v['Total Members']) || 0,
             totalAdults: Number(v['Total Adults']) || 0,

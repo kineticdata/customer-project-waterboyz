@@ -22,8 +22,16 @@ export const CA_STATUS = {
  */
 export const CHILD_MAX_AGE = 18;
 
-/** Roster member `type` values. */
-export const MEMBER_TYPES = ['Head of Household', 'Spouse', 'Child', 'Adult'];
+/**
+ * Roster member `type` values.
+ *
+ * "Head of Household" is deliberately absent. The head is captured as real
+ * fields on the record itself (First Name / Last Name on both the nomination
+ * and `families`), so offering it here would invite entering that person
+ * twice. The roster is everyone ELSE in the home — which is also why the
+ * legacy widget on `families` was titled "Additional Family Members".
+ */
+export const MEMBER_TYPES = ['Spouse', 'Child', 'Adult'];
 
 /** Gender values collected on the paper form. */
 export const GENDERS = ['Male', 'Female'];
@@ -65,7 +73,32 @@ const isChildAge = raw => {
 };
 
 /**
- * Derive household counts from a roster.
+ * Household totals: the roster PLUS the head of household.
+ *
+ * The roster holds everyone except the head, who lives in the record's own
+ * name fields. Every total shown to a user or stored on a sponsorship row is a
+ * household total, so the head has to be added back exactly once. Centralised
+ * here so the +1 cannot drift between the widget, the packet, the admin views
+ * and the workflow.
+ *
+ * The head is counted as an adult — they are by definition the responsible
+ * adult in the home, and their age is not captured (the paper form does not
+ * ask for it either).
+ *
+ * @param {Array<object>} roster  members EXCLUDING the head
+ */
+export const householdCounts = roster => {
+  const { totalMembers, totalAdults, totalChildren } = deriveCounts(roster);
+  return {
+    totalMembers: totalMembers + 1,
+    totalAdults: totalAdults + 1,
+    totalChildren,
+  };
+};
+
+/**
+ * Derive counts from a roster ALONE, with no head of household added.
+ * Prefer `householdCounts` for anything user-facing.
  * Anything without a usable age counts as an adult — an unknown age is far
  * more likely to be a grown-up whose age nobody recorded than a child, and
  * under-counting children would under-buy gifts.
@@ -84,14 +117,16 @@ export const deriveCounts = roster => {
 };
 
 /**
- * Suggest a member type from position and age, so admins entering 250
- * families rarely have to touch the dropdown.
+ * Suggest a member type from age, so someone entering a large household
+ * rarely has to touch the dropdown.
+ *
+ * Position is deliberately NOT used: the head of household is a record field
+ * rather than a roster row, so there is no privileged first row to guess at.
  */
-export const suggestMemberType = (index, age) => {
-  if (index === 0) return 'Head of Household';
-  if (index === 1) return 'Spouse';
+export const suggestMemberType = age => {
+  if (age === null || age === undefined || age === '') return 'Adult';
   const n = Number(age);
-  if (Number.isFinite(n) && n <= CHILD_MAX_AGE) return 'Child';
+  if (Number.isFinite(n) && n >= 0 && n <= CHILD_MAX_AGE) return 'Child';
   return 'Adult';
 };
 
