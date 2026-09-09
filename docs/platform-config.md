@@ -111,7 +111,9 @@ All forms live under the **`service-portal`** kapp.
 #### Families (`families`)
 - **Type:** Datastore | **Status:** Active
 - **Description:** Families being served, have been served, or will be served
-- **Fields (12):** First Name, Last Name, Email, Phone Number, Address Line 1, Address Line 2, City, State, Zip, County, Native Language, Needs Interpreter
+- **Fields (14):** First Name, Last Name, Email, Phone Number, Address Line 1, Address Line 2, City, State, Zip, County, Native Language, Needs Interpreter, **Family Members JSON**, **Test Fixture** *(last two added 2026-09-09)*
+- **Security (widened 2026-09-09):** Display/Access/Modification = `SWAT Leadership or Christmas Alive Admins`
+- **⚠ Known bug in the `Family - Retrieve By ID` integration.** Its `Needs Interpreter` output is `body['submission']['values']['Needs Interpreter'][0]` — an unguarded `[0]` on a checkbox field whose value is a JSON array. **Any family saved without ticking Needs Interpreter makes that integration return 500**, which breaks the Family Information card on the SWAT project detail page. Pre-existing; found 2026-09-09. Fix is `?.[0] ?? ""`, per the defensive-output rule in the Integrations skill.
 - **Security:** Display/Access/Modification = SWAT Leadership
 
 #### Family Members (`family-members`)
