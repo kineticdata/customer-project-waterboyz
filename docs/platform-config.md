@@ -122,6 +122,16 @@ All forms live under the **`service-portal`** kapp.
 
   All three now use `current.values?.["Needs Interpreter"]?.[0] ?? ""` (or the `body?.submission?…` equivalent). Verified by creating a family with the field unset and confirming both the operations and the nomination form still work. Originals recorded in `docs/platform-backups/operations-2026-09-09-pre-needs-interpreter-fix.json`.
 
+  **Also hardened 2026-09-09, found by scanning every operation for the same pattern:**
+
+  | Operation | Was | Verdict |
+  |---|---|---|
+  | `Get form Approvers by Submission Id` | `attributesMap.Approvers[0].split(",")` | **Was genuinely broken for every caller.** `.split()` throws on undefined, and all 27 forms have `Approvers` as an empty array with none set. Now returns `[]` |
+  | `Get User` | `attributesMap['Volunteer Id'][0]` | **Not a live bug.** All 369 users have the key present (23 empty), and `[][0]` is `undefined`, not a throw. Hardened for robustness only |
+  | `Get Space` | `['Web Server Url'][0]` | **Left unchanged.** The attribute is set, so it resolves |
+
+  Note the distinction that matters: a bare `[0]` on a missing key yields `undefined` harmlessly, but `[0]` on a key that is *absent from the parent object*, or any method call on the result (`.split()`), throws.
+
   **The lesson generalises:** any checkbox/multi-select field is an array, and an integration output that indexes one without `?.` turns a single incomplete record into an outage for every consumer. `system_integration_v1` has no error-handling lever, so these fail hard.
 - **Security:** Display/Access/Modification = SWAT Leadership
 

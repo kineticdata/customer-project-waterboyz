@@ -8,7 +8,9 @@
       "usedBy": "swat-project-nomination form integration 'Search Families'; kapp integration 'Families - Retrieve'",
       "lockVersionAtBackup": 7,
       "originalOutputs": {
-        "Error": { "value": "body['error']" },
+        "Error": {
+          "value": "body['error']"
+        },
         "Families": {
           "value": "body['submissions'] || []",
           "children": {
@@ -34,21 +36,93 @@
       "usedBy": "kapp integration 'Family - Retrieve By ID'; SWAT project detail Family Information card (Project.jsx:119)",
       "lockVersionAtBackup": 4,
       "originalOutputs": {
-        "Address Line 1": { "value": "body['submission']['values']['Address Line 1']" },
-        "Address Line 2": { "value": "body['submission']['values']['Address Line 2']" },
-        "City": { "value": "body['submission']['values']['City']" },
-        "County": { "value": "body['submission']['values']['County']" },
-        "Email": { "value": "body['submission']['values']['Email']" },
-        "Error": { "value": "body['error']" },
-        "Family ID": { "value": "body['submission']['id']" },
-        "First Name": { "value": "body['submission']['values']['First Name']" },
-        "Last Name": { "value": "body['submission']['values']['Last Name']" },
-        "Native Language": { "value": "body['submission']['values']['Native Language']" },
-        "Needs Interpreter": { "value": "body['submission']['values']['Needs Interpreter'][0]" },
-        "Phone Number": { "value": "body['submission']['values']['Phone Number']" },
-        "State": { "value": "body['submission']['values']['State']" },
-        "Zip": { "value": "body['submission']['values']['Zip']" }
+        "Address Line 1": {
+          "value": "body['submission']['values']['Address Line 1']"
+        },
+        "Address Line 2": {
+          "value": "body['submission']['values']['Address Line 2']"
+        },
+        "City": {
+          "value": "body['submission']['values']['City']"
+        },
+        "County": {
+          "value": "body['submission']['values']['County']"
+        },
+        "Email": {
+          "value": "body['submission']['values']['Email']"
+        },
+        "Error": {
+          "value": "body['error']"
+        },
+        "Family ID": {
+          "value": "body['submission']['id']"
+        },
+        "First Name": {
+          "value": "body['submission']['values']['First Name']"
+        },
+        "Last Name": {
+          "value": "body['submission']['values']['Last Name']"
+        },
+        "Native Language": {
+          "value": "body['submission']['values']['Native Language']"
+        },
+        "Needs Interpreter": {
+          "value": "body['submission']['values']['Needs Interpreter'][0]"
+        },
+        "Phone Number": {
+          "value": "body['submission']['values']['Phone Number']"
+        },
+        "State": {
+          "value": "body['submission']['values']['State']"
+        },
+        "Zip": {
+          "value": "body['submission']['values']['Zip']"
+        }
       }
+    },
+    {
+      "id": "771f279a-988d-4b91-9b8f-85861c5c13fe",
+      "name": "Get User",
+      "usedBy": "request-to-join-swat-project workflow, 'Get Captain' step",
+      "lockVersionAtBackup": 4,
+      "originalOutputs": {
+        "Attributes": {
+          "value": "body.user?.attributesMap"
+        },
+        "Display Name": {
+          "value": "body.user?.displayName"
+        },
+        "Email": {
+          "value": "body.user?.email"
+        },
+        "User Exists": {
+          "value": "body.error ? false : true"
+        },
+        "Username": {
+          "value": "body.user?.username"
+        },
+        "Volunteer Profile ID": {
+          "value": "body.user?.attributesMap['Volunteer Id'][0]"
+        }
+      },
+      "_assessment": "NOT a live bug. Verified 2026-09-09: all 369 users have the 'Volunteer Id' key present in attributesMap (23 as an empty array), and [][0] is undefined rather than a throw. Hardened for robustness only."
+    },
+    {
+      "id": "ea6546cb-e8e7-4083-85c9-cb535b81e58a",
+      "name": "Get form Approvers by Submission Id",
+      "usedBy": "approval routing (consumers not exhaustively traced)",
+      "lockVersionAtBackup": 2,
+      "originalOutputs": {
+        "Approvers": {
+          "value": "body.submission.form.attributesMap.Approvers[0].split(\",\")"
+        }
+      },
+      "_assessment": "GENUINELY BROKEN before the fix. Unlike a bare [0], .split() throws on undefined. Verified 2026-09-09: all 27 forms in service-portal have Approvers as an empty array and none have it set, so this threw for every caller. Now returns []."
+    },
+    {
+      "id": "7ad51a20-8bab-422b-a0f7-247e082dccd5",
+      "name": "Get Space",
+      "_assessment": "NOT CHANGED. Its ['Web Server Url'][0] is unguarded but the space attribute is present with a real value, so it resolves. Left alone deliberately."
     }
   ]
 }
