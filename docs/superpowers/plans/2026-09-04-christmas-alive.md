@@ -1367,3 +1367,56 @@ Values are pulled from the body with a regex rather than `JSON.parse` — no
 - Email send workflow. Templates are built; nothing sends yet.
 - Playwright suites (Tasks 23-24).
 
+---
+
+# Session — 2026-09-09 (nomination pipeline)
+
+**Task 6 done and verified on production.** A nomination now creates its Pending
+season row automatically.
+
+Three new operations plus a workflow (`Christmas Alive - Create Sponsorship Row`,
+added *alongside* the existing "Nomination Process" tree rather than modifying it):
+
+| Operation | Purpose |
+|---|---|
+| `CA - Get Current Season` | Reads season config off `programs`. Queries `values[Status]` because that is the only value-level index there, then picks Christmas Alive out by name |
+| `CA - Find Sponsorship By Nomination` | Idempotency guard — a resubmission cannot create a second row |
+| `CA - Create Sponsorship` | Creates the Pending row |
+
+Counts are derived in the workflow from `Family Members JSON`, verified against
+every edge case: **18 = child, 19 = adult, age 0 = child, missing age = adult**.
+
+### Escaping rule, learned across three attempts
+
+Mustache `{{X}}` in an operation body **already escapes for JSON context**. Pass
+the real value; pre-escaping double-escapes and stores literal backslashes.
+
+For a checkbox field, `@values['X']` is a Ruby **array**:
+
+- `.to_s`    → Ruby inspect form `["a", "b"]` (note the space) — wrong
+- `.to_json` → real JSON `["a","b"]` — correct
+
+### Admin queue fix
+
+Both `useApprovals` and `useAllFamilies` now also fetch nominations and fall back
+to them when no family record exists. Without it every Pending row read "Name not
+yet recorded" — precisely the rows an admin has to read in order to decide. The
+review panel labels the provenance so it is clear the data is the nominator's,
+not a family record.
+
+### Still to do
+
+- `christmas-alive-approve` — the last broken link. Approve must resolve or create
+  the family, allocate the next Family Number, and refresh the snapshot.
+- `christmas-alive-release` (All families can change status directly meanwhile).
+- Mount `FamilyRoster` on the nomination form and on `families` — the field exists
+  now, so the packet says "No family members were recorded" until this lands.
+- `families` → sponsorship sync workflow.
+- Email send workflow. Templates built; nothing sends.
+- Playwright suites.
+
+### Test data on production
+
+Three ZZTEST nominations with Pending rows, plus the three earlier ZZTEST families
+and their Approved rows. All carry `ZZTEST` in the name. Delete before real use.
+

@@ -18,7 +18,10 @@ const seasonQuery = defineKqlQuery().equals('values[Season]', 'season').end();
  * the browser. Two queries, never one per row.
  */
 const fetchApprovals = async ({ kappSlug, season }) => {
-  const [sponsorships, families] = await Promise.all([
+  // Nominations are fetched too: a Pending row has no family record yet, so
+  // without them the review queue shows "Name not yet recorded" for exactly
+  // the rows an admin needs to read in order to decide.
+  const [sponsorships, families, nominations] = await Promise.all([
     searchSubmissions({
       kapp: kappSlug,
       form: 'christmas-alive-sponsorships',
@@ -29,8 +32,13 @@ const fetchApprovals = async ({ kappSlug, season }) => {
       form: 'families',
       search: { include: ['values'], limit: 1000 },
     }),
+    searchSubmissions({
+      kapp: kappSlug,
+      form: 'christmas-alive-family-nomination',
+      search: { include: ['values'], limit: 1000 },
+    }),
   ]);
-  return { sponsorships, families };
+  return { sponsorships, families, nominations };
 };
 
 const buildRows = response => {
@@ -38,11 +46,17 @@ const buildRows = response => {
   const familiesById = new Map(
     (response?.families?.submissions ?? []).map(f => [f.id, f]),
   );
+  const nominationsById = new Map(
+    (response?.nominations?.submissions ?? []).map(n => [n.id, n]),
+  );
 
   return sponsorships.map(s => {
     const v = s.values ?? {};
     const family = familiesById.get(v['Family ID']);
-    const fv = family?.values ?? {};
+    const nomination = nominationsById.get(v['Nomination ID']);
+    // Prefer the family record once it exists; fall back to what the nominator
+    // typed so a Pending row is still reviewable.
+    const fv = family?.values ?? nomination?.values ?? {};
     // Counts derive from the roster in hand rather than the stored snapshot,
     // so an admin never sees a number lag behind an edit they just made --
     // but only when a roster actually exists, or an empty one would zero out
@@ -73,7 +87,9 @@ const buildRows = response => {
       lastName: fv['Last Name'] || '',
       email: fv['Email'] || '',
       phone: fv['Phone Number'] || '',
-      addressLine1: fv['Address Line 1'] || '',
+      // The nomination form stores one freetext Address; families splits it.
+      addressLine1: fv['Address Line 1'] || fv['Address'] || '',
+      fromNomination: !family && !!nomination,
       city: fv['City'] || v['City'] || '',
       state: fv['State'] || '',
       zip: fv['Zip'] || '',

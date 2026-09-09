@@ -47,6 +47,12 @@ export const ReviewPanel = ({
 
   return (
     <div className="border-t border-base-300 p-3 flex-c-st gap-4">
+      {row.fromNomination && (
+        <p className="text-xs text-base-content/60 m-0">
+          Showing what the nominator submitted. A family record is created when
+          you approve.
+        </p>
+      )}
       <dl className="grid grid-cols-2 md:grid-cols-4 gap-3 m-0">
         <Field label="Phone" value={row.phone} />
         <Field label="Email" value={row.email} />

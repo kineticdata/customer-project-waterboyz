@@ -13,7 +13,9 @@ import { parseRoster, deriveCounts } from '../../../helpers/christmasAlive.js';
  * joined in the browser; never one request per row.
  */
 const fetchAll = async ({ kappSlug }) => {
-  const [sponsorships, families] = await Promise.all([
+  // Nominations are fetched too so Pending rows -- which have no family
+  // record yet -- still show who they are.
+  const [sponsorships, families, nominations] = await Promise.all([
     searchSubmissions({
       kapp: kappSlug,
       form: 'christmas-alive-sponsorships',
@@ -24,18 +26,27 @@ const fetchAll = async ({ kappSlug }) => {
       form: 'families',
       search: { include: ['values'], limit: 1000 },
     }),
+    searchSubmissions({
+      kapp: kappSlug,
+      form: 'christmas-alive-family-nomination',
+      search: { include: ['values'], limit: 1000 },
+    }),
   ]);
-  return { sponsorships, families };
+  return { sponsorships, families, nominations };
 };
 
 const buildRows = response => {
   const familiesById = new Map(
     (response?.families?.submissions ?? []).map(f => [f.id, f]),
   );
+  const nominationsById = new Map(
+    (response?.nominations?.submissions ?? []).map(n => [n.id, n]),
+  );
   return (response?.sponsorships?.submissions ?? []).map(s => {
     const v = s.values ?? {};
     const family = familiesById.get(v['Family ID']);
-    const fv = family?.values ?? {};
+    const nomination = nominationsById.get(v['Nomination ID']);
+    const fv = family?.values ?? nomination?.values ?? {};
     const roster = parseRoster(fv['Family Members JSON']);
     // Derive from the roster ONLY when there is one. A family record can exist
     // without a roster (the Family Members JSON field is added in a later
@@ -65,7 +76,7 @@ const buildRows = response => {
       lastName: fv['Last Name'] || '',
       email: fv['Email'] || '',
       phone: fv['Phone Number'] || '',
-      addressLine1: fv['Address Line 1'] || '',
+      addressLine1: fv['Address Line 1'] || fv['Address'] || '',
       city: fv['City'] || v['City'] || '',
       state: fv['State'] || '',
       zip: fv['Zip'] || '',
