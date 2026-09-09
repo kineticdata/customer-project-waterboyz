@@ -1420,3 +1420,60 @@ not a family record.
 Three ZZTEST nominations with Pending rows, plus the three earlier ZZTEST families
 and their Approved rows. All carry `ZZTEST` in the name. Delete before real use.
 
+---
+
+# Session — 2026-09-09 (approve; pipeline closed)
+
+`christmas-alive-approve` is live. **The whole pipeline now runs end to end.**
+
+Four new operations plus the WebAPI tree:
+
+| Operation | Purpose |
+|---|---|
+| `CA - Retrieve Nomination` | Reads the nomination so the family record can be built from it |
+| `CA - Create Family` | Creates the shared `families` record at approval |
+| `CA - Next Family Number` | `max(Family Number)+1` for the season |
+| `CA - Retrieve Sponsorship` *(extended)* | Now also returns `Nomination Id` |
+
+Verified on production:
+
+| Case | Result |
+|---|---|
+| Approve a Pending nomination | Family created with the roster intact, Family Number 4 allocated, Status Approved, counts 4/2/2 |
+| **Approve the same row twice** | `NOT_PENDING` — no second family, no second number |
+| Reject as duplicate | Status Rejected with reason and `Duplicate Of` recorded, **and no family record created** |
+| Claim → packet | Packet renders the full roster with type, gender and age |
+
+### Two deliberate design calls
+
+**No "approve onto an existing family" path.** The review UI only offers *approve
+as a new family* or *reject as duplicate of Family N*, so a duplicate is rejected
+rather than merged. `useApprovals.approve()` still accepts an `existingFamilyId`
+argument; the WebAPI ignores it. Remove the argument or implement the branch.
+
+**Family Number is `max+1`, not a reservation.** Two admins approving in the same
+instant could read the same max. With four admins the risk is low and a collision
+is visible and fixable. A hard guarantee would need a reservation record with a
+unique index on `Season-Number`, the same trick as the claim lock — worth doing
+only if it actually bites.
+
+### Still outstanding
+
+- `christmas-alive-release` — All families can change status directly meanwhile.
+- Mount `FamilyRoster` on the nomination form. The field and the pipeline both
+  work now, but a nominator still has no UI to enter members; the roster only
+  arrives if something writes the JSON directly.
+- `families` → sponsorship sync workflow (edits to a family do not yet refresh
+  the season snapshot).
+- Email send workflow. Templates built; nothing sends.
+- Playwright suites.
+
+### Test data on production
+
+Family 4 (`Wanda ZZTEST-Pipeline`) is Approved **and claimed by james.davies**, so
+it currently sits in My Sponsorships and shows a full packet — useful for a
+walkthrough. `Yolanda ZZTEST-Escaping` is Rejected as a duplicate. One ZZTEST
+nomination remains Pending, plus the three original ZZTEST families. All carry
+`ZZTEST`. One earlier row still holds the double-escaped `Support Currently
+Receiving` value from before that bug was fixed.
+
