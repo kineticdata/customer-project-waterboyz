@@ -1,0 +1,54 @@
+{
+  "_why": "Originals of the two operations whose unguarded [0] on the Needs Interpreter checkbox field took down swat-project-nomination on 2026-09-09. Restore by PUTting either object back to /app/integrator/api/connections/1415539c-bb98-48bb-ad33-11be25189ad0/operations/<id>.",
+  "_incident": "Needs Interpreter is dataType json (a checkbox), so its value is an array. Indexing [0] on a family that never had the field set throws 'Cannot read properties of undefined (reading 0)'. system_integration_v1 and the form page-content resolver both surface that as a hard failure, so ONE bad family row prevented the whole nomination form from rendering.",
+  "operations": [
+    {
+      "id": "e5e3f818-ce28-4eb8-86cc-7dbb4b6e49c2",
+      "name": "Families Retrieve All",
+      "usedBy": "swat-project-nomination form integration 'Search Families'; kapp integration 'Families - Retrieve'",
+      "lockVersionAtBackup": 7,
+      "originalOutputs": {
+        "Error": { "value": "body['error']" },
+        "Families": {
+          "value": "body['submissions'] || []",
+          "children": {
+            "Address Line 1": "current.values[\"Address Line 1\"]",
+            "Address Line 2": "current.values[\"Address Line 2\"]",
+            "City": "current.values[\"City\"]",
+            "County": "current.values[\"County\"]",
+            "Family ID": "current.id",
+            "First Name": "current.values[\"First Name\"]",
+            "Last Name": "current.values[\"Last Name\"]",
+            "Native Language": "current.values[\"Native Language\"]",
+            "Needs Interpreter": "current.values[\"Needs Interpreter\"][0]",
+            "Phone Number": "current.values[\"Phone Number\"]",
+            "State": "current.values[\"State\"]",
+            "Zip": "current.values[\"Zip\"]"
+          }
+        }
+      }
+    },
+    {
+      "id": "958d96ab-f438-4701-b9c6-cc848d267491",
+      "name": "Family Retrieve by ID",
+      "usedBy": "kapp integration 'Family - Retrieve By ID'; SWAT project detail Family Information card (Project.jsx:119)",
+      "lockVersionAtBackup": 4,
+      "originalOutputs": {
+        "Address Line 1": { "value": "body['submission']['values']['Address Line 1']" },
+        "Address Line 2": { "value": "body['submission']['values']['Address Line 2']" },
+        "City": { "value": "body['submission']['values']['City']" },
+        "County": { "value": "body['submission']['values']['County']" },
+        "Email": { "value": "body['submission']['values']['Email']" },
+        "Error": { "value": "body['error']" },
+        "Family ID": { "value": "body['submission']['id']" },
+        "First Name": { "value": "body['submission']['values']['First Name']" },
+        "Last Name": { "value": "body['submission']['values']['Last Name']" },
+        "Native Language": { "value": "body['submission']['values']['Native Language']" },
+        "Needs Interpreter": { "value": "body['submission']['values']['Needs Interpreter'][0]" },
+        "Phone Number": { "value": "body['submission']['values']['Phone Number']" },
+        "State": { "value": "body['submission']['values']['State']" },
+        "Zip": { "value": "body['submission']['values']['Zip']" }
+      }
+    }
+  ]
+}

@@ -113,7 +113,16 @@ All forms live under the **`service-portal`** kapp.
 - **Description:** Families being served, have been served, or will be served
 - **Fields (14):** First Name, Last Name, Email, Phone Number, Address Line 1, Address Line 2, City, State, Zip, County, Native Language, Needs Interpreter, **Family Members JSON**, **Test Fixture** *(last two added 2026-09-09)*
 - **Security (widened 2026-09-09):** Display/Access/Modification = `SWAT Leadership or Christmas Alive Admins`
-- **⚠ Known bug in the `Family - Retrieve By ID` integration.** Its `Needs Interpreter` output is `body['submission']['values']['Needs Interpreter'][0]` — an unguarded `[0]` on a checkbox field whose value is a JSON array. **Any family saved without ticking Needs Interpreter makes that integration return 500**, which breaks the Family Information card on the SWAT project detail page. Pre-existing; found 2026-09-09. Fix is `?.[0] ?? ""`, per the defensive-output rule in the Integrations skill.
+- **Fixed 2026-09-09 — the `Needs Interpreter` outage.** `Needs Interpreter` is a checkbox (`dataType: json`), so its value is an **array**. Three operations indexed it with an unguarded `[0]`, so a single family saved without that field threw `Cannot read properties of undefined (reading '0')` and failed the whole operation:
+  | Operation | Consumer | Impact |
+  |---|---|---|
+  | `Families Retrieve All` (`e5e3f818`) | `Search Families` on `swat-project-nomination`; kapp `Families - Retrieve` | **The public nomination form failed to render** — integrations resolve during page content |
+  | `Family Retrieve by ID` (`958d96ab`) | kapp `Family - Retrieve By ID`; `Project.jsx:119` | Family Information card 500'd on project detail |
+  | `Families Retrieve By Last Name` (`96cbc895`) | family lookup | Whole search failed |
+
+  All three now use `current.values?.["Needs Interpreter"]?.[0] ?? ""` (or the `body?.submission?…` equivalent). Verified by creating a family with the field unset and confirming both the operations and the nomination form still work. Originals recorded in `docs/platform-backups/operations-2026-09-09-pre-needs-interpreter-fix.json`.
+
+  **The lesson generalises:** any checkbox/multi-select field is an array, and an integration output that indexes one without `?.` turns a single incomplete record into an outage for every consumer. `system_integration_v1` has no error-handling lever, so these fail hard.
 - **Security:** Display/Access/Modification = SWAT Leadership
 
 #### Family Members (`family-members`)
