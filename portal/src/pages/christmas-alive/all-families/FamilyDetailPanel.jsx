@@ -147,26 +147,80 @@ export const FamilyDetailPanel = ({ row, onSaveFamily, onSaveSponsorship, saving
         <h3 className="text-sm font-semibold m-0">
           Household — {describeHousehold(row)}
         </h3>
-        {row.roster.length === 0 ? (
-          <p className="text-sm text-base-content/70 m-0">
-            No family members recorded.
-          </p>
-        ) : (
-          <ul className="flex-c-st gap-1 list-none p-0 m-0">
-            {row.roster.map((m, i) => (
-              <li key={m.id || i} className="text-sm">
+        <ul className="flex-c-st gap-1 list-none p-0 m-0">
+          <li className="text-sm">
+            <span className="font-medium">
+              {[row.firstName, row.lastName].filter(Boolean).join(' ') || 'Head of household'}
+            </span>
+            <span className="text-base-content/60"> — Head of household</span>
+          </li>
+          {row.roster.map((m, i) => (
+            <li key={m.id || i} className="text-sm">
+              <span className="font-medium">
                 {[m.firstName, m.lastName].filter(Boolean).join(' ') || `Member ${i + 1}`}
-                <span className="text-base-content/60">
-                  {' — '}
-                  {[m.type, m.gender, m.age !== '' && m.age != null ? `age ${m.age}` : null]
-                    .filter(Boolean)
-                    .join(' · ')}
-                </span>
-              </li>
-            ))}
-          </ul>
+              </span>
+              <span className="text-base-content/60">
+                {' — '}
+                {[
+                  m.type,
+                  m.gender,
+                  m.age !== '' && m.age != null ? `age ${m.age}` : null,
+                  m.shirtSize ? `shirt ${m.shirtSize}` : null,
+                  m.shoeSize ? `shoe ${m.shoeSize}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </span>
+            </li>
+          ))}
+        </ul>
+        {row.roster.length === 0 && (
+          <p className="text-sm text-base-content/70 m-0">
+            No other household members were recorded.
+          </p>
         )}
       </section>
+
+      {(row.supportReceiving.length > 0 || row.needsInterpreter || row.photoRequested) && (
+        <section className="flex-c-st gap-1">
+          <h3 className="text-sm font-semibold m-0">Circumstances</h3>
+          {row.supportReceiving.length > 0 && (
+            <p className="text-sm m-0">
+              <span className="text-base-content/60">Support received: </span>
+              {row.supportReceiving.join(', ')}
+            </p>
+          )}
+          {row.needsInterpreter && (
+            <p className="text-sm m-0">An interpreter is needed.</p>
+          )}
+          {row.photoRequested && (
+            <p className="text-sm m-0">
+              <span className="text-base-content/60">Family portrait: </span>
+              {row.photoRequested}
+            </p>
+          )}
+        </section>
+      )}
+
+      {row.background && (
+        <section className="flex-c-st gap-1">
+          <h3 className="text-sm font-semibold m-0">
+            Background from the nominator
+          </h3>
+          <p className="text-sm m-0 max-w-prose whitespace-pre-line">
+            {row.background}
+          </p>
+        </section>
+      )}
+
+      {row.nominationId && (
+        <a
+          href={`#/forms/christmas-alive-family-nomination/${row.nominationId}`}
+          className="text-sm w-fit"
+        >
+          Open the full nomination
+        </a>
+      )}
 
       {/* Deliberately no link to the sponsor packet here. The packet WebAPI
           authorizes on "is the caller the sponsor of record", so an admin who

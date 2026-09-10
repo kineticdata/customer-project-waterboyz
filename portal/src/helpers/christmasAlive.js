@@ -46,12 +46,21 @@ export const GENDERS = ['Male', 'Female'];
  */
 export const parseRoster = json => {
   if (!json) return [];
+  let parsed;
   try {
-    const parsed = typeof json === 'string' ? JSON.parse(json) : json;
-    return Array.isArray(parsed) ? parsed : [];
+    parsed = typeof json === 'string' ? JSON.parse(json) : json;
   } catch {
     return [];
   }
+  if (!Array.isArray(parsed)) return [];
+  // Drop any row typed "Head of Household". The head lives in the record's own
+  // name fields, so such a row is that same person a second time -- it renders
+  // as a duplicate and inflates every household count by one. Rows like this
+  // exist in data written before the head became a record field. The stored
+  // JSON is left alone; this only affects what is read back.
+  return parsed.filter(
+    m => String(m?.type ?? '').toLowerCase() !== 'head of household',
+  );
 };
 
 /** Serialize a roster back to the field. */
@@ -257,3 +266,39 @@ export const buildExportCsv = rows =>
       EXPORT_COLUMNS.map(([, get]) => csvCell(get(r))).join(','),
     ),
   ].join('\r\n');
+
+/**
+ * Normalize a Kinetic checkbox / multi-select value to an array of strings.
+ *
+ * The same logical value arrives in three shapes depending on where it is read
+ * from: a real array from a form submission's values, a JSON string once it
+ * has been copied onto a text field by a workflow, or a bare string if someone
+ * typed into it. Callers should not have to care which.
+ *
+ * @param {Array|string|null|undefined} value
+ * @returns {string[]}
+ */
+export const parseChoices = value => {
+  if (Array.isArray(value)) return value.map(String).filter(Boolean);
+  if (typeof value !== 'string') return [];
+  const trimmed = value.trim();
+  if (!trimmed) return [];
+  if (trimmed.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      return Array.isArray(parsed) ? parsed.map(String).filter(Boolean) : [];
+    } catch {
+      // Fall through — an older row may hold a double-escaped string.
+      return trimmed
+        .replace(/^\[|\]$/g, '')
+        .split(',')
+        .map(s => s.replace(/\\?"/g, '').trim())
+        .filter(Boolean);
+    }
+  }
+  return [trimmed];
+};
+
+/** "Yes" if a checkbox-style value contains an affirmative, else "No". */
+export const isYes = value =>
+  parseChoices(value).some(v => v.toLowerCase() === 'yes');

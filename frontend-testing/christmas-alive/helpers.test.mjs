@@ -13,6 +13,8 @@ import {
   familyLabel,
   isWithinSeason,
   CHILD_MAX_AGE,
+  MEMBER_TYPES,
+  householdCounts,
 } from '../../portal/src/helpers/christmasAlive.js';
 
 test('CHILD_MAX_AGE matches the responsibilities sheet', () => {
@@ -64,12 +66,45 @@ test('parseRoster tolerates garbage rather than throwing', () => {
   assert.deepEqual(parseRoster([{ age: 5 }]), [{ age: 5 }]); // already parsed
 });
 
-test('suggestMemberType fills the roster the way a person would', () => {
-  assert.equal(suggestMemberType(0, 40), 'Head of Household');
-  assert.equal(suggestMemberType(1, 38), 'Spouse');
-  assert.equal(suggestMemberType(2, 9), 'Child');
-  assert.equal(suggestMemberType(2, 30), 'Adult');
-  assert.equal(suggestMemberType(3, undefined), 'Adult');
+test('suggestMemberType guesses from age alone', () => {
+  // Position is deliberately not used: the head of household is a record
+  // field, not a roster row, so there is no privileged first row.
+  assert.equal(suggestMemberType(9), 'Child');
+  assert.equal(suggestMemberType(18), 'Child');
+  assert.equal(suggestMemberType(19), 'Adult');
+  assert.equal(suggestMemberType(0), 'Child');
+  assert.equal(suggestMemberType(undefined), 'Adult');
+  assert.equal(suggestMemberType(''), 'Adult');
+  assert.equal(suggestMemberType(null), 'Adult');
+});
+
+test('Head of Household is not an offered roster type', () => {
+  // Offering it would invite entering the head twice -- once in the record's
+  // own name fields and again as a roster row.
+  assert.ok(!MEMBER_TYPES.includes('Head of Household'));
+  assert.deepEqual(MEMBER_TYPES, ['Spouse', 'Child', 'Adult']);
+});
+
+test('householdCounts adds the head back in as one adult', () => {
+  // roster = everyone EXCEPT the head
+  assert.deepEqual(householdCounts([{ age: 9 }, { age: 7 }]), {
+    totalMembers: 3, totalAdults: 1, totalChildren: 2,
+  });
+  assert.deepEqual(householdCounts([{ age: 38 }, { age: 9 }]), {
+    totalMembers: 3, totalAdults: 2, totalChildren: 1,
+  });
+});
+
+test('householdCounts on an empty roster is a household of one adult', () => {
+  const lone = { totalMembers: 1, totalAdults: 1, totalChildren: 0 };
+  assert.deepEqual(householdCounts([]), lone);
+  assert.deepEqual(householdCounts(null), lone);
+});
+
+test('deriveCounts still reports the roster alone, without the head', () => {
+  assert.deepEqual(deriveCounts([{ age: 9 }, { age: 7 }]), {
+    totalMembers: 2, totalAdults: 0, totalChildren: 2,
+  });
 });
 
 test('describeHousehold reads as a sentence, not a field grid', () => {
@@ -206,4 +241,70 @@ test('buildExportCsv writes one CRLF row per family', () => {
   const lines = csv.split('\r\n');
   assert.equal(lines.length, 2);
   assert.equal(lines[1], '"14","Adopted","Ana","Martinez","a@example.org","3015550100","12 Elm St","Frederick","MD","21701","5","2","3"');
+});
+
+// --------------------------------------------------------------------------
+// Checkbox value normalisation
+// --------------------------------------------------------------------------
+
+const { parseChoices, isYes } = await import(
+  '../../portal/src/helpers/christmasAlive.js'
+);
+
+test('parseChoices handles every shape the same value arrives in', () => {
+  // real array, straight off a submission
+  assert.deepEqual(parseChoices(['Food Stamps', 'Section 8']), ['Food Stamps', 'Section 8']);
+  // JSON string, after a workflow copied it onto a text field
+  assert.deepEqual(parseChoices('["Food Stamps","Section 8"]'), ['Food Stamps', 'Section 8']);
+  // bare string
+  assert.deepEqual(parseChoices('Food Stamps'), ['Food Stamps']);
+});
+
+test('parseChoices recovers the double-escaped rows written before that bug was fixed', () => {
+  assert.deepEqual(
+    parseChoices('[\\"Food Stamps\\", \\"Section 8 Resident\\"]'),
+    ['Food Stamps', 'Section 8 Resident'],
+  );
+});
+
+test('parseChoices is empty for empty input rather than throwing', () => {
+  assert.deepEqual(parseChoices(null), []);
+  assert.deepEqual(parseChoices(undefined), []);
+  assert.deepEqual(parseChoices(''), []);
+  assert.deepEqual(parseChoices('   '), []);
+  assert.deepEqual(parseChoices('[]'), []);
+  assert.deepEqual(parseChoices(42), []);
+});
+
+test('isYes reads an interpreter checkbox in any shape', () => {
+  assert.equal(isYes(['Yes']), true);
+  assert.equal(isYes('["Yes"]'), true);
+  assert.equal(isYes('Yes'), true);
+  assert.equal(isYes(['No']), false);
+  assert.equal(isYes([]), false);
+  assert.equal(isYes(null), false);
+});
+
+test('parseRoster drops a duplicate Head of Household row', () => {
+  // The head is a record field. A roster row typed Head of Household is that
+  // same person twice -- it rendered as a duplicate and inflated every count.
+  const legacy = JSON.stringify([
+    { firstName: 'Wanda', age: 40, type: 'Head of Household' },
+    { firstName: 'Kid', age: 5, type: 'Child' },
+  ]);
+  assert.deepEqual(parseRoster(legacy).map(m => m.firstName), ['Kid']);
+  // and the household total is then right: head + one child
+  assert.deepEqual(householdCounts(parseRoster(legacy)), {
+    totalMembers: 2, totalAdults: 1, totalChildren: 1,
+  });
+});
+
+test('parseRoster head-row filter is case-insensitive and tolerant', () => {
+  const r = JSON.stringify([
+    { firstName: 'A', type: 'head of household' },
+    { firstName: 'B', type: 'HEAD OF HOUSEHOLD' },
+    { firstName: 'C', type: 'Child' },
+    { firstName: 'D' },
+  ]);
+  assert.deepEqual(parseRoster(r).map(m => m.firstName), ['C', 'D']);
 });

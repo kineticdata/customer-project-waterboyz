@@ -3,7 +3,12 @@ import { useSelector } from 'react-redux';
 import { defineKqlQuery, searchSubmissions } from '@kineticdata/react';
 import { useData } from '../../../helpers/hooks/useData.js';
 import { executeWebApi } from '../../../helpers/api.js';
-import { parseRoster, householdCounts } from '../../../helpers/christmasAlive.js';
+import {
+  parseRoster,
+  householdCounts,
+  parseChoices,
+  isYes,
+} from '../../../helpers/christmasAlive.js';
 
 export { findDuplicates } from '../../../helpers/christmasAlive.js';
 
@@ -57,19 +62,13 @@ const buildRows = response => {
     // Prefer the family record once it exists; fall back to what the nominator
     // typed so a Pending row is still reviewable.
     const fv = family?.values ?? nomination?.values ?? {};
-    // Counts derive from the roster in hand rather than the stored snapshot,
-    // so an admin never sees a number lag behind an edit they just made --
-    // but only when a roster actually exists, or an empty one would zero out
-    // counts the snapshot already has correct.
     const roster = parseRoster(fv['Family Members JSON']);
-    const counts =
-      roster.length > 0
-        ? householdCounts(roster)
-        : {
-            totalMembers: Number(v['Total Members']) || 0,
-            totalAdults: Number(v['Total Adults']) || 0,
-            totalChildren: Number(v['Total Children']) || 0,
-          };
+    // Always derive, never fall back to the stored snapshot. Admin views
+    // always have the underlying record in hand, and deriving is both
+    // self-consistent with the roster editor and incapable of producing a
+    // household of zero people -- there is always a head. Stored snapshots
+    // can be stale (rows written before the head was counted read one low).
+    const counts = householdCounts(roster);
 
     return {
       id: s.id,
@@ -99,6 +98,16 @@ const buildRows = response => {
       // exclusion silently never fires and abandoned test families would
       // surface as duplicate candidates against real nominations.
       isTestFixture: String(fv['Test Fixture'] ?? '').toLowerCase() === 'true',
+      // Everything an approver needs to judge the nomination without
+      // leaving the page. Support lives under two different field names
+      // depending on whether it has been copied to the season row yet.
+      background: fv['Background on the Family'] || '',
+      supportReceiving: parseChoices(
+        v['Support Currently Receiving'] || fv['Support Received'],
+      ),
+      needsInterpreter: isYes(fv['Needs Interpreter']),
+      photoRequested: v['Photo Requested'] || '',
+      requestedBy: fv['Requested By'] || '',
       roster,
       ...counts,
     };

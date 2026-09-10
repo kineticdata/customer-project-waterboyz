@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import t from 'prop-types';
 import { Icon } from '../../../atoms/Icon.jsx';
-import { CA_STATUS, familyLabel } from '../../../helpers/christmasAlive.js';
+import { CA_STATUS, familyLabel, describeHousehold } from '../../../helpers/christmasAlive.js';
 
 const Field = ({ label, value }) => (
   <div className="flex-c-st">
@@ -63,6 +63,88 @@ export const ReviewPanel = ({
         <Field label="Children" value={row.totalChildren} />
         {row.sponsorUsername && <Field label="Sponsor" value={row.sponsorUsername} />}
       </dl>
+
+      <section className="flex-c-st gap-2">
+        <h3 className="text-sm font-semibold m-0">
+          Household — {describeHousehold(row)}
+        </h3>
+        {row.roster.length === 0 ? (
+          <p className="text-sm text-base-content/70 m-0">
+            Only the head of household was listed. No other members were
+            recorded on the nomination.
+          </p>
+        ) : (
+          <ul className="flex-c-st gap-1 list-none p-0 m-0">
+            <li className="text-sm">
+              <span className="font-medium">
+                {[row.firstName, row.lastName].filter(Boolean).join(' ')}
+              </span>
+              <span className="text-base-content/60"> — Head of household</span>
+            </li>
+            {row.roster.map((m, i) => (
+              <li key={m.id || i} className="text-sm">
+                <span className="font-medium">
+                  {[m.firstName, m.lastName].filter(Boolean).join(' ') ||
+                    `Member ${i + 1}`}
+                </span>
+                <span className="text-base-content/60">
+                  {' — '}
+                  {[
+                    m.type,
+                    m.gender,
+                    m.age !== '' && m.age != null ? `age ${m.age}` : null,
+                    m.shirtSize ? `shirt ${m.shirtSize}` : null,
+                    m.shoeSize ? `shoe ${m.shoeSize}` : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {(row.supportReceiving.length > 0 || row.needsInterpreter || row.photoRequested) && (
+        <section className="flex-c-st gap-1">
+          <h3 className="text-sm font-semibold m-0">Circumstances</h3>
+          {row.supportReceiving.length > 0 && (
+            <p className="text-sm m-0">
+              <span className="text-base-content/60">Support received: </span>
+              {row.supportReceiving.join(', ')}
+            </p>
+          )}
+          {row.needsInterpreter && (
+            <p className="text-sm m-0">An interpreter is needed.</p>
+          )}
+          {row.photoRequested && (
+            <p className="text-sm m-0">
+              <span className="text-base-content/60">Family portrait: </span>
+              {row.photoRequested}
+            </p>
+          )}
+        </section>
+      )}
+
+      {row.background && (
+        <section className="flex-c-st gap-1">
+          <h3 className="text-sm font-semibold m-0">
+            Background from the nominator
+          </h3>
+          <p className="text-sm m-0 max-w-prose whitespace-pre-line">
+            {row.background}
+          </p>
+        </section>
+      )}
+
+      {row.nominationId && (
+        <a
+          href={`#/forms/christmas-alive-family-nomination/${row.nominationId}`}
+          className="text-sm w-fit"
+        >
+          Open the full nomination
+        </a>
+      )}
 
       {row.status === CA_STATUS.PENDING && (
         <>

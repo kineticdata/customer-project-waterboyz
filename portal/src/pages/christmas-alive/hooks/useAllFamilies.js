@@ -2,7 +2,12 @@ import { useCallback, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { searchSubmissions, updateSubmission } from '@kineticdata/react';
 import { useData } from '../../../helpers/hooks/useData.js';
-import { parseRoster, householdCounts } from '../../../helpers/christmasAlive.js';
+import {
+  parseRoster,
+  householdCounts,
+  parseChoices,
+  isYes,
+} from '../../../helpers/christmasAlive.js';
 
 /**
  * Every Christmas Alive family across every season, joined to the family
@@ -52,14 +57,12 @@ const buildRows = response => {
     // without a roster (the Family Members JSON field is added in a later
     // step), and deriving from an empty roster would zero out counts the
     // snapshot already has correct.
-    const counts =
-      roster.length > 0
-        ? householdCounts(roster)
-        : {
-            totalMembers: Number(v['Total Members']) || 0,
-            totalAdults: Number(v['Total Adults']) || 0,
-            totalChildren: Number(v['Total Children']) || 0,
-          };
+    // Always derive, never fall back to the stored snapshot. Admin views
+    // always have the underlying record in hand, and deriving is both
+    // self-consistent with the roster editor and incapable of producing a
+    // household of zero people -- there is always a head. Stored snapshots
+    // can be stale (rows written before the head was counted read one low).
+    const counts = householdCounts(roster);
     return {
       id: s.id,
       familyId: v['Family ID'] || '',
@@ -83,6 +86,16 @@ const buildRows = response => {
       county: fv['County'] || v['County'] || '',
       nativeLanguage: fv['Native Language'] || v['Native Language'] || '',
       isTestFixture: String(fv['Test Fixture'] ?? '').toLowerCase() === 'true',
+      // Everything an approver needs to judge the nomination without
+      // leaving the page. Support lives under two different field names
+      // depending on whether it has been copied to the season row yet.
+      background: fv['Background on the Family'] || '',
+      supportReceiving: parseChoices(
+        v['Support Currently Receiving'] || fv['Support Received'],
+      ),
+      needsInterpreter: isYes(fv['Needs Interpreter']),
+      requestedBy: fv['Requested By'] || '',
+      nominationId: v['Nomination ID'] || '',
       roster,
       ...counts,
     };
