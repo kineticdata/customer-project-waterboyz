@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 import t from 'prop-types';
-import { CA_STATUS, describeHousehold } from '../../../helpers/christmasAlive.js';
+import {
+  CA_STATUS,
+  describeHousehold,
+  serializeRoster,
+} from '../../../helpers/christmasAlive.js';
+import { FamilyRoster } from '../../../components/family-roster/FamilyRoster.jsx';
 import { SponsorControls } from './SponsorControls.jsx';
 
 /** Platform timestamps are second-precision UTC; match them exactly. */
@@ -29,13 +34,35 @@ const FAMILY_FIELDS = [
 export const FamilyDetailPanel = ({ row, onSaveFamily, onSaveSponsorship, saving }) => {
   const [draft, setDraft] = useState({});
   const [status, setStatus] = useState(row.status);
+  const [rosterDraft, setRosterDraft] = useState('[]');
   const [message, setMessage] = useState(null);
 
   useEffect(() => {
     setDraft(Object.fromEntries(FAMILY_FIELDS.map(([, k]) => [k, row[k] ?? ''])));
     setStatus(row.status);
+    setRosterDraft(serializeRoster(row.roster));
     setMessage(null);
   }, [row]);
+
+  const rosterDirty = rosterDraft !== serializeRoster(row.roster);
+
+  // The roster lives on the shared families record, so this is the same write
+  // as a contact correction. The household counts on the season row are NOT
+  // written here -- the sync workflow derives them, which keeps one authority
+  // for the counting rules instead of two.
+  const saveRoster = async () => {
+    const result = await onSaveFamily(row.familyId, {
+      'Family Members JSON': rosterDraft,
+    });
+    setMessage(
+      result?.error
+        ? { tone: 'error', text: 'Could not save the household. Nothing was changed.' }
+        : {
+            tone: 'success',
+            text: 'Household saved. The sponsor list and packet catch up in a moment.',
+          },
+    );
+  };
 
   const dirty = FAMILY_FIELDS.some(([, k]) => (draft[k] ?? '') !== (row[k] ?? ''));
 
@@ -185,40 +212,52 @@ export const FamilyDetailPanel = ({ row, onSaveFamily, onSaveSponsorship, saving
       </section>
 
       <section className="flex-c-st gap-2">
-        <h3 className="text-sm font-semibold m-0">
-          Household — {describeHousehold(row)}
-        </h3>
-        <ul className="flex-c-st gap-1 list-none p-0 m-0">
-          <li className="text-sm">
-            <span className="font-medium">
-              {[row.firstName, row.lastName].filter(Boolean).join(' ') || 'Head of household'}
-            </span>
-            <span className="text-base-content/60"> — Head of household</span>
-          </li>
-          {row.roster.map((m, i) => (
-            <li key={m.id || i} className="text-sm">
-              <span className="font-medium">
-                {[m.firstName, m.lastName].filter(Boolean).join(' ') || `Member ${i + 1}`}
-              </span>
-              <span className="text-base-content/60">
-                {' — '}
-                {[
-                  m.type,
-                  m.gender,
-                  m.age !== '' && m.age != null ? `age ${m.age}` : null,
-                  m.shirtSize ? `shirt ${m.shirtSize}` : null,
-                  m.shoeSize ? `shoe ${m.shoeSize}` : null,
-                ]
-                  .filter(Boolean)
-                  .join(' · ')}
-              </span>
-            </li>
-          ))}
-        </ul>
-        {row.roster.length === 0 && (
+        <div className="flex-bc gap-2 flex-wrap">
+          <h3 className="text-sm font-semibold m-0">
+            Household — {describeHousehold(row)}
+          </h3>
+          <span className="text-xs text-base-content/60">
+            Changing this updates what the sponsor sees
+          </span>
+        </div>
+
+        {/* The head of household is the record's own name, not a roster row.
+            Showing them here keeps the household readable as a whole, while
+            the editor below covers everybody else. */}
+        <p className="text-sm m-0">
+          <span className="font-medium">
+            {[row.firstName, row.lastName].filter(Boolean).join(' ') ||
+              'Head of household'}
+          </span>
+          <span className="text-base-content/60">
+            {' '}
+            — Head of household (edit their name above)
+          </span>
+        </p>
+
+        {!row.hasFamilyRecord ? (
           <p className="text-sm text-base-content/70 m-0">
-            No other household members were recorded.
+            The household comes from the nomination until it is approved, so it
+            cannot be edited here yet.
           </p>
+        ) : (
+          <>
+            <FamilyRoster
+              value={rosterDraft}
+              onChange={setRosterDraft}
+              disabled={saving}
+            />
+            <div className="flex-ec gap-2">
+              <button
+                type="button"
+                className="kbtn kbtn-accent kbtn-sm"
+                onClick={saveRoster}
+                disabled={!rosterDirty || saving}
+              >
+                {saving ? 'Saving…' : 'Save household'}
+              </button>
+            </div>
+          </>
         )}
       </section>
 
