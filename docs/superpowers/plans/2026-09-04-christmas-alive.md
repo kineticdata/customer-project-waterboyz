@@ -1477,3 +1477,42 @@ nomination remains Pending, plus the three original ZZTEST families. All carry
 `ZZTEST`. One earlier row still holds the double-escaped `Support Currently
 Receiving` value from before that bug was fixed.
 
+
+---
+
+## Addendum — 2026-09-16 — packet email body installed
+
+`Christmas Alive - Send Sponsor Packet` (workflow `6806e7cc-6020-4a27-b01d-85c1250d3822`,
+on `christmas-alive-sponsorships` / Submission Updated) now carries the real
+designed template. Until today its `htmlbody` was an 849-byte placeholder.
+
+The 11,272-byte body is the build output of
+`email-templates/dist/christmas-alive-sponsor-packet.html`. It was moved into the
+node by having the browser fetch both the file and the workflow and write the
+value directly, so the HTML never passed through a hand transcription. The
+installed value was then read back and compared to the source: identical.
+
+**To change the packet body:** edit `email-templates/build.js`, run
+`node build.js christmas-alive-sponsor-packet`, and swap the `dist/` output into
+the node's `htmlbody`. Do not hand-edit the HTML on the platform — the workflow
+copy is output, not source.
+
+`textbody` is a plaintext equivalent maintained inline in the node; it is short
+enough to edit in place, but keep it in step with the HTML.
+
+### What the send proves
+
+Clearing `Packet Sent At` on Family 1's sponsorship re-opened the Start guard and
+the tree ran end to end, re-stamping at `2026-09-16T14:35:47Z`. Node parameters
+are ERB-evaluated before the handler runs, so an unresolved `@results` lookup or
+a malformed `Family Members JSON` would have raised and stopped the tree short of
+`stamp_sent`. Reaching the stamp means every binding in the template resolved and
+the inline roster parse ran clean.
+
+Loop guard re-confirmed: after the send, a re-read showed `updatedAt` equal to the
+stamp and not advancing. One email per claim.
+
+### Still outstanding on email
+
+- `+7 day` nudge and reassignment-notice templates are built but unwired.
+- Nothing has verified the *rendered* email visually — that needs an inbox check.
