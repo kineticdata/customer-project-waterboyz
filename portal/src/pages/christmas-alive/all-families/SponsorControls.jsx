@@ -178,8 +178,8 @@ export const SponsorControls = ({ row, saving, onRelease, onReassign }) => {
           </ul>
 
           <p className="text-xs text-base-content/60 m-0">
-            The new sponsor is emailed their packet straight away.{' '}
-            {row.sponsorUsername} is not emailed — tell them yourself.
+            Both people are emailed: the new sponsor gets their packet, and{' '}
+            {row.sponsorUsername} is told the family was passed on.
           </p>
 
           <div className="flex-ec">
