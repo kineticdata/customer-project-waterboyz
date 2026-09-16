@@ -22,16 +22,11 @@ export const ReviewPanel = ({
   duplicates,
   onApprove,
   onReject,
-  onRelease,
-  onReassign,
   onDone,
 }) => {
   const [busy, setBusy] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState('');
-  const [releasing, setReleasing] = useState(false);
-  const [notes, setNotes] = useState('');
-  const [reassignTo, setReassignTo] = useState('');
 
   const run = async fn => {
     setBusy(true);
@@ -231,63 +226,12 @@ export const ReviewPanel = ({
       )}
 
       {row.status === CA_STATUS.ADOPTED && (
-        <div className="flex-c-st gap-2">
-          {releasing ? (
-            <>
-              <label className="flex-c-st gap-1">
-                <span className="text-xs text-base-content/70">
-                  What happened? (kept on the record)
-                </span>
-                <input
-                  className="kinput kinput-bordered w-full"
-                  value={notes}
-                  onChange={e => setNotes(e.target.value)}
-                  placeholder="Sponsor could not reach the family after three attempts"
-                />
-              </label>
-              <label className="flex-c-st gap-1">
-                <span className="text-xs text-base-content/70">
-                  Reassign to a username, or leave blank to return the family to the list
-                </span>
-                <input
-                  className="kinput kinput-bordered w-full"
-                  value={reassignTo}
-                  onChange={e => setReassignTo(e.target.value)}
-                />
-              </label>
-              <p className="text-sm text-base-content/70 m-0">
-                {reassignTo
-                  ? `${familyLabel(row.familyNumber)} moves to ${reassignTo}, who will be emailed the details. ${row.sponsorUsername} will be told the family was reassigned.`
-                  : `${familyLabel(row.familyNumber)} returns to the sponsor list and ${row.sponsorUsername} will be told it was reassigned.`}
-              </p>
-              <div className="flex-ec gap-2">
-                <button type="button" className="kbtn kbtn-ghost kbtn-sm" onClick={() => setReleasing(false)}>
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  className="kbtn kbtn-warning kbtn-sm"
-                  disabled={busy}
-                  onClick={() =>
-                    run(() =>
-                      reassignTo
-                        ? onReassign(row.id, reassignTo.trim(), notes.trim())
-                        : onRelease(row.id, notes.trim()),
-                    )
-                  }
-                >
-                  {reassignTo ? 'Reassign family' : 'Return to the list'}
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="flex-ec">
-              <button type="button" className="kbtn kbtn-outline kbtn-sm" onClick={() => setReleasing(true)}>
-                Release or reassign
-              </button>
-            </div>
-          )}
-        </div>
+        <p className="text-sm text-base-content/70 m-0">
+          Sponsored by {row.sponsorUsername}. Sponsors cannot hand a family back
+          on their own — they are asked to contact Christmas Alive. To return
+          this family to the list or move it to someone else, open it in All
+          families.
+        </p>
       )}
 
       {row.status === CA_STATUS.REJECTED && row.rejectionReason && (
@@ -304,7 +248,5 @@ ReviewPanel.propTypes = {
   duplicates: t.array.isRequired,
   onApprove: t.func.isRequired,
   onReject: t.func.isRequired,
-  onRelease: t.func.isRequired,
-  onReassign: t.func.isRequired,
   onDone: t.func.isRequired,
 };

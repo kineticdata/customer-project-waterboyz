@@ -23,7 +23,7 @@ const EMPTY_COPY = {
 
 export const Approvals = () => {
   const { season, loading: seasonLoading } = useChristmasAlive();
-  const { rows, loading, approve, reject, release, reassign } = useApprovals(season);
+  const { rows, loading, approve, reject } = useApprovals(season);
   const [tab, setTab] = useState(CA_STATUS.PENDING);
   const [openRow, setOpenRow] = useState(null);
 
@@ -118,8 +118,6 @@ export const Approvals = () => {
                     duplicates={findDuplicates(row, rows)}
                     onApprove={approve}
                     onReject={reject}
-                    onRelease={release}
-                    onReassign={reassign}
                     onDone={() => setOpenRow(null)}
                   />
                 )}

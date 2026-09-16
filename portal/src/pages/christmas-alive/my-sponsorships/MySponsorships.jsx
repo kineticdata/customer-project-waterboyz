@@ -86,6 +86,22 @@ export const MySponsorships = () => {
           ))}
         </ul>
       )}
+
+      {/* There is deliberately no "give this family back" button. Leadership
+          wants a conversation before a family goes back on the list, partly
+          because it is usually a family who cannot be reached rather than a
+          sponsor who changed their mind. */}
+      {families.length > 0 && (
+        <p className="text-sm text-base-content/70 m-0 max-w-prose">
+          If something has changed and you can no longer sponsor, or you
+          can&rsquo;t reach your family after three tries, email{' '}
+          <a href="mailto:christmasalivemaryland@gmail.com">
+            christmasalivemaryland@gmail.com
+          </a>{' '}
+          and we&rsquo;ll sort it out. Please don&rsquo;t just leave it — the
+          family is counting on this.
+        </p>
+      )}
     </div>
   );
 };

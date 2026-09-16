@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import t from 'prop-types';
 import { CA_STATUS, describeHousehold } from '../../../helpers/christmasAlive.js';
+import { SponsorControls } from './SponsorControls.jsx';
+
+/** Platform timestamps are second-precision UTC; match them exactly. */
+const nowStamp = () => new Date().toISOString().replace(/\.\d{3}Z$/, 'Z');
 
 const FAMILY_FIELDS = [
   ['First Name', 'firstName'],
@@ -53,6 +57,41 @@ export const FamilyDetailPanel = ({ row, onSaveFamily, onSaveSponsorship, saving
       result?.error
         ? { tone: 'error', text: 'Could not change status.' }
         : { tone: 'success', text: `Status is now ${status}.` },
+    );
+  };
+
+  // Returning a family to the list clears every trace of the claim, so the row
+  // is indistinguishable from one that was never sponsored. Packet Sent At goes
+  // too, or a future sponsor would never be sent their packet.
+  const releaseSponsor = async () => {
+    const result = await onSaveSponsorship(row.id, {
+      Status: CA_STATUS.APPROVED,
+      'Sponsor Username': '',
+      'Sponsor Email': '',
+      'Claimed At': '',
+      'Packet Sent At': '',
+    });
+    setMessage(
+      result?.error
+        ? { tone: 'error', text: 'Could not return the family to the list.' }
+        : { tone: 'success', text: 'Back on the list for anyone to sponsor.' },
+    );
+  };
+
+  // Clearing Packet Sent At re-arms the send-packet workflow, which is what
+  // emails the incoming sponsor their details.
+  const reassignSponsor = async (username, email) => {
+    const result = await onSaveSponsorship(row.id, {
+      Status: CA_STATUS.ADOPTED,
+      'Sponsor Username': username,
+      'Sponsor Email': email || username,
+      'Claimed At': nowStamp(),
+      'Packet Sent At': '',
+    });
+    setMessage(
+      result?.error
+        ? { tone: 'error', text: 'Could not reassign the family.' }
+        : { tone: 'success', text: `Reassigned to ${username}, who has been emailed.` },
     );
   };
 
@@ -130,12 +169,14 @@ export const FamilyDetailPanel = ({ row, onSaveFamily, onSaveSponsorship, saving
           >
             Change status
           </button>
-          {row.sponsorUsername && (
-            <span className="text-sm text-base-content/70">
-              Sponsored by {row.sponsorUsername}
-            </span>
-          )}
         </div>
+
+        <SponsorControls
+          row={row}
+          saving={saving}
+          onRelease={releaseSponsor}
+          onReassign={reassignSponsor}
+        />
         {row.rejectionReason && (
           <p className="text-sm text-base-content/70 m-0">
             Rejected: {row.rejectionReason}

@@ -13,7 +13,6 @@ import {
 export { findDuplicates } from '../../../helpers/christmasAlive.js';
 
 const APPROVE_WEBAPI = 'christmas-alive-approve';
-const RELEASE_WEBAPI = 'christmas-alive-release';
 
 const seasonQuery = defineKqlQuery().equals('values[Season]', 'season').end();
 
@@ -117,9 +116,14 @@ const buildRows = response => {
 /**
  * Admin data and mutations for the Christmas Alive review queue.
  *
- * Approve and release go through WebAPIs rather than direct submission writes:
- * both are multi-step, and approval allocates the next Family Number, which
- * two admins approving at the same moment must not be able to duplicate.
+ * Approve and reject go through a WebAPI rather than direct submission writes:
+ * both are multi-step, and approval allocates the next Family Number, which two
+ * admins approving at the same moment must not be able to duplicate.
+ *
+ * There is deliberately no release or reassign here. Sponsors are not allowed
+ * to hand a family back on their own -- they contact Christmas Alive, and
+ * leadership makes the change in All families, where the sponsor fields are
+ * editable directly.
  */
 export const useApprovals = season => {
   const kappSlug = useSelector(state => state.app.kappSlug);
@@ -149,9 +153,5 @@ export const useApprovals = season => {
       call(APPROVE_WEBAPI, { sponsorshipId, action: 'approve', existingFamilyId }),
     reject: (sponsorshipId, reason, duplicateOf) =>
       call(APPROVE_WEBAPI, { sponsorshipId, action: 'reject', reason, duplicateOf }),
-    release: (sponsorshipId, notes) =>
-      call(RELEASE_WEBAPI, { sponsorshipId, action: 'release', notes }),
-    reassign: (sponsorshipId, username, notes) =>
-      call(RELEASE_WEBAPI, { sponsorshipId, action: 'reassign', username, notes }),
   };
 };
