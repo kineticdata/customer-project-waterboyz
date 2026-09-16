@@ -81,6 +81,11 @@ All forms live under the **`service-portal`** kapp.
 ### Nomination Forms (user-facing requests)
 
 #### Christmas Alive Family Nomination (`christmas-alive-family-nomination`)
+- **Reviewers see the whole nomination.** Both the Approvals review panel and the All families detail panel render the full household (head first, then each member with type, gender, age and sizes), the support the family receives, the interpreter flag, the portrait request, the nominator's background notes, and a link to open the underlying nomination submission. Checkbox values are normalised by `parseChoices()`, which copes with all three shapes the same value arrives in — a real array, a JSON string once a workflow has copied it to a text field, and the double-escaped rows written before that escaping bug was fixed.
+- **`parseRoster()` drops any row typed `Head of Household`.** The head is a record field, so such a row is that person twice: it rendered as a visible duplicate and inflated every household count by one. Rows like this exist in data written before the convention changed. Only what is read back is affected; the stored JSON is untouched.
+- **Head of household is NOT a roster row.** The head is captured in the record's own `First Name` / `Last Name` fields on both the nomination and `families`; the roster holds *everyone else*, which is why the legacy widget on `families` was titled "Additional Family Members". `Head of Household` is therefore not an offered roster type. Every household total adds the head back as exactly one adult — centralised in `householdCounts()` in `helpers/christmasAlive.js`, and mirrored in the nomination workflow and the approve WebAPI so the stored snapshot matches what the UI shows.
+- **Family roster UI** *(added 2026-09-09)*: a `Load` event named **Load Family Roster** mounts the `FamilyRoster` widget into the `Family Members` **content** element, bound to the hidden `Family Members JSON` field. The form already had both the mount point and the hidden field but **no event code at all**, which is why there was no way to add family members. Counts are deliberately NOT written client-side — the `Nomination Process` workflow derives them from the same JSON on submit, and doing it twice would let the two disagree.
+- **⚠ Cosmetic bug, not yet fixed:** the section titled **"System - Hidden"** is `visible: true`, so Total Adults, Total Children, Family Status and Requested By are all shown to the nominator. The first two are overwritten by the workflow on submit, so anything typed is discarded. The section name says the intent; it just was never hidden.
 - **Type:** Nominations | **Status:** Active
 - **Category:** `christmas-alive` | **Icon:** `pointer-cancel`
 - **Description:** Nominate a family for Christmas Alive
@@ -111,7 +116,28 @@ All forms live under the **`service-portal`** kapp.
 #### Families (`families`)
 - **Type:** Datastore | **Status:** Active
 - **Description:** Families being served, have been served, or will be served
-- **Fields (12):** First Name, Last Name, Email, Phone Number, Address Line 1, Address Line 2, City, State, Zip, County, Native Language, Needs Interpreter
+- **Fields (14):** First Name, Last Name, Email, Phone Number, Address Line 1, Address Line 2, City, State, Zip, County, Native Language, Needs Interpreter, **Family Members JSON**, **Test Fixture** *(last two added 2026-09-09)*
+- **Security (widened 2026-09-09):** Display/Access/Modification = `SWAT Leadership or Christmas Alive Admins`
+- **Fixed 2026-09-09 — the `Needs Interpreter` outage.** `Needs Interpreter` is a checkbox (`dataType: json`), so its value is an **array**. Three operations indexed it with an unguarded `[0]`, so a single family saved without that field threw `Cannot read properties of undefined (reading '0')` and failed the whole operation:
+  | Operation | Consumer | Impact |
+  |---|---|---|
+  | `Families Retrieve All` (`e5e3f818`) | `Search Families` on `swat-project-nomination`; kapp `Families - Retrieve` | **The public nomination form failed to render** — integrations resolve during page content |
+  | `Family Retrieve by ID` (`958d96ab`) | kapp `Family - Retrieve By ID`; `Project.jsx:119` | Family Information card 500'd on project detail |
+  | `Families Retrieve By Last Name` (`96cbc895`) | family lookup | Whole search failed |
+
+  All three now use `current.values?.["Needs Interpreter"]?.[0] ?? ""` (or the `body?.submission?…` equivalent). Verified by creating a family with the field unset and confirming both the operations and the nomination form still work. Originals recorded in `docs/platform-backups/operations-2026-09-09-pre-needs-interpreter-fix.json`.
+
+  **Also hardened 2026-09-09, found by scanning every operation for the same pattern:**
+
+  | Operation | Was | Verdict |
+  |---|---|---|
+  | `Get form Approvers by Submission Id` | `attributesMap.Approvers[0].split(",")` | **Was genuinely broken for every caller.** `.split()` throws on undefined, and all 27 forms have `Approvers` as an empty array with none set. Now returns `[]` |
+  | `Get User` | `attributesMap['Volunteer Id'][0]` | **Not a live bug.** All 369 users have the key present (23 empty), and `[][0]` is `undefined`, not a throw. Hardened for robustness only |
+  | `Get Space` | `['Web Server Url'][0]` | **Left unchanged.** The attribute is set, so it resolves |
+
+  Note the distinction that matters: a bare `[0]` on a missing key yields `undefined` harmlessly, but `[0]` on a key that is *absent from the parent object*, or any method call on the result (`.split()`), throws.
+
+  **The lesson generalises:** any checkbox/multi-select field is an array, and an integration output that indexes one without `?.` turns a single incomplete record into an outage for every consumer. `system_integration_v1` has no error-handling lever, so these fail hard.
 - **Security:** Display/Access/Modification = SWAT Leadership
 
 #### Family Members (`family-members`)
@@ -166,10 +192,33 @@ All forms live under the **`service-portal`** kapp.
   - `Sign Up Form Slug` — slug of the sign-up form to use for this event (defaults to `serve-day-sign-up` if blank)
 - **Portal access:** `/events` (authenticated volunteer list), `/events/:eventId/assign` (leadership assignment view), `/admin/events` (admin CRUD via AdminFormRecords), `/public/events` (public listing, no auth), `/public/events/:formSlug?eventId=<id>` (public sign-up)
 
+#### Christmas Alive Sponsorships (`christmas-alive-sponsorships`)
+- **Workflow: `Christmas Alive - Send Sponsor Packet`** (Submission Updated, *added 2026-09-16*). Guard on the Start connector: `Status == 'Adopted' && Packet Sent At` is empty. Fetches the family and the sponsor, sends the packet, then stamps `Packet Sent At`.
+  - **That guard is also the loop guard.** Stamping `Packet Sent At` re-triggers this same workflow; the guard is the only thing that stops it. Removing it creates an infinite send loop. Verified 2026-09-16: after a send, `updatedAt` equals the stamp and does not advance — the re-trigger fired and was correctly refused, so exactly one email went out.
+  - **Re-sending is deliberate and easy:** clear `Packet Sent At` and the packet goes again. That is the recovery path for a sponsor who lost the email.
+  - Decoupled from the claim WebAPI on purpose — the claim stays inside its 30s ceiling, and a mail failure cannot roll back a valid claim.
+
+- **Type:** Datastore | **Status:** Active | *Created 2026-09-04*
+- **Description:** One row per family per Christmas Alive season. Season state plus a snapshot of the fields the sponsor browse list and admin export need.
+- **Fields (21):** Family ID, Nomination ID, Season, Family Number, Status, Rejection Reason, Duplicate Of, Sponsor Username, Sponsor Email, Claimed At, Released At, Release Notes, Packet Sent At, Photo Requested, Support Currently Receiving, City, County, Native Language, Total Members, Total Adults, Total Children
+- **Status choices:** Pending, Approved, Rejected, Adopted
+- **Security:** Display/Access/Modification = `SWAT Leadership or Christmas Alive Admins`. Sponsors never read this form directly — they go through operations.
+- **Indexes (all Built):** `values[Family ID]`, `values[Nomination ID]`, `values[Season]`, `values[Status]`, `values[Sponsor Username]`, `values[Season],values[Status]`, `values[Season],values[Sponsor Username]`
+- **Key relationships:** `Family ID` → `families`; `Nomination ID` → `christmas-alive-family-nomination`; `Duplicate Of` → another sponsorship row
+
+#### Christmas Alive Claims (`christmas-alive-claims`)
+- **Type:** Datastore | **Status:** Active | *Created 2026-09-04*
+- **Description:** Mutual-exclusion lock for sponsoring. Deleted on release.
+- **Fields (3):** Sponsorship ID, Sponsor Username, Claimed At
+- **Security:** Display/Access/Modification = `Christmas Alive Admins`
+- **Indexes:** `values[Sponsorship ID]:UNIQUE` (**unique, Built**), `values[Sponsor Username]`
+- **The unique index is the concurrency guarantee for sponsoring.** Verified 2026-09-04: a second submission with a duplicate `Sponsorship ID` is rejected with HTTP 400 and `errorKey: "uniqueness_violation"` (case-insensitive). The claim WebAPI maps that errorKey to `ALREADY_CLAIMED`.
+
 #### Programs (`programs`)
 - **Type:** Datastore | **Status:** Active
 - **Description:** Configurable programs displayed on the home page (SWAT, Christmas Alive, etc.)
-- **Fields (7):** Program Name, Description, Icon, Color, Status, Nomination Form Slug, Home Page Order
+- **Fields (10):** Program Name, Description, Icon, Color, Status, Nomination Form Slug, Home Page Order, Active From, Active To, Current Season
+- **Season fields** (*added 2026-09-04*) drive the seasonal Christmas Alive entry point. Christmas Alive is set to Active From `2026-09-01`, Active To `2026-12-31`, Current Season `2026`. An unconfigured window reads as closed, never as always-open.
 - **Icon:** `apps`
 - **Used by:** `HomeNominator.jsx` fetches active programs to render nomination cards
 
@@ -414,7 +463,8 @@ All integrations share the same connection (`1415539c-bb98-48bb-ad33-11be25189ad
 | Team | Slug | Description | Members |
 |------|------|-------------|---------|
 | Bookkeepers | `79996d3f...` | Financial record keeping / reimbursement processing | james.davies@kineticdata.com |
-| Christmas Alive Nominators | `cd0f441a...` | People with nomination access for Christmas Alive | *(none currently)* |
+| Christmas Alive Nominators | `cd0f441a...` | People with nomination access for Christmas Alive | *(none yet — 14 people listed in the requirements PDF still need accounts)* |
+| Christmas Alive Admins | `6864f752...` | Reviews and approves Christmas Alive nominations, manages sponsorships | juddz@waterboyz.org, duanec@waterboyz.org, paulf@waterboyz.org *(Jim Baker has no account yet)* |
 | SWAT Leadership | `4f93f090...` | Project approvals and oversight | james.davies@kineticdata.com, jameswd89+leadership@gmail.com, juddz@waterboyz.org, lad12der@gmail.com, mr.currence@gmail.com, paulf@waterboyz.org |
 | SWAT Project Approvers | `aa1c27fd...` | Receive email notifications when new nominations need approval | james.davies@kineticdata.com, juddz@waterboyz.org, lad12der@gmail.com |
 | SWAT Project Captains | `c9e76136...` | People who lead SWAT projects | james.davies@kineticdata.com, jameswd89+captain@gmail.com, lad12der@gmail.com, mr.currence@gmail.com |

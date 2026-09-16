@@ -1,3 +1,5 @@
+import { ChristmasAliveHeroCta } from './ChristmasAliveHeroCta.jsx';
+
 /**
  * Standard primary-color hero banner used on role-specific home pages.
  * Accepts optional eyebrow text, a title, subtitle, and a children slot for
@@ -28,6 +30,10 @@ export const HomeHero = ({ eyebrow, title, subtitle, children, py = 'py-10 md:py
           </p>
         )}
         {children}
+        {/* Seasonal Christmas Alive entry point. Self-gating — renders nothing
+            out of season, so every hero-using page gets it for free without
+            any of them needing to know about the program. */}
+        <ChristmasAliveHeroCta />
       </div>
     </div>
   </div>

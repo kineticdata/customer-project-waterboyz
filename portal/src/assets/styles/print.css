@@ -1,0 +1,44 @@
+/**
+ * Print rules for the Christmas Alive sponsor documents.
+ *
+ * The requirements originally asked for a generated PDF. We produce a
+ * print-styled page instead, so a sponsor gets the same artifact through their
+ * browser's Save as PDF with no PDF toolchain on the platform.
+ *
+ * SCOPING MATTERS: every rule here is scoped to a page containing
+ * `.print-sheet`. Bare `header, nav, footer` selectors would apply to every
+ * print in the portal, including the SWAT Reports page, which tells users to
+ * Ctrl+P to export. Do not unscope these.
+ */
+@media print {
+  /* Drop chrome only on pages that are themselves a printable document. */
+  body:has(.print-sheet) .print-hide,
+  body:has(.print-sheet) > div > header,
+  body:has(.print-sheet) > div > nav,
+  body:has(.print-sheet) > div > footer {
+    display: none !important;
+  }
+
+  body:has(.print-sheet) {
+    background: #fff !important;
+  }
+
+  .print-sheet {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    color: #000 !important;
+  }
+
+  /* Keep a family member's details from splitting across a page break. */
+  .print-sheet .print-keep {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .print-sheet a[href]::after {
+    content: '';
+  }
+}

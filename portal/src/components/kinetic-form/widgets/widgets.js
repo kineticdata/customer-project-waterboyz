@@ -1,4 +1,5 @@
 import { CategoryPicker } from './categorypicker.js';
+import { FamilyRosterWidget } from './familyroster.js';
 import { Markdown } from './markdown.js';
 import { Search } from './search.js';
 import { Signature } from './signature.js';
@@ -10,6 +11,7 @@ import utils from './utils.js';
 // Defines a map of available widgets
 const AVAILABLE_WIDGETS = {
   CategoryPicker,
+  FamilyRoster: FamilyRosterWidget,
   Markdown,
   Search,
   Signature,

@@ -1,0 +1,128 @@
+{
+  "_why": "Originals of the two operations whose unguarded [0] on the Needs Interpreter checkbox field took down swat-project-nomination on 2026-09-09. Restore by PUTting either object back to /app/integrator/api/connections/1415539c-bb98-48bb-ad33-11be25189ad0/operations/<id>.",
+  "_incident": "Needs Interpreter is dataType json (a checkbox), so its value is an array. Indexing [0] on a family that never had the field set throws 'Cannot read properties of undefined (reading 0)'. system_integration_v1 and the form page-content resolver both surface that as a hard failure, so ONE bad family row prevented the whole nomination form from rendering.",
+  "operations": [
+    {
+      "id": "e5e3f818-ce28-4eb8-86cc-7dbb4b6e49c2",
+      "name": "Families Retrieve All",
+      "usedBy": "swat-project-nomination form integration 'Search Families'; kapp integration 'Families - Retrieve'",
+      "lockVersionAtBackup": 7,
+      "originalOutputs": {
+        "Error": {
+          "value": "body['error']"
+        },
+        "Families": {
+          "value": "body['submissions'] || []",
+          "children": {
+            "Address Line 1": "current.values[\"Address Line 1\"]",
+            "Address Line 2": "current.values[\"Address Line 2\"]",
+            "City": "current.values[\"City\"]",
+            "County": "current.values[\"County\"]",
+            "Family ID": "current.id",
+            "First Name": "current.values[\"First Name\"]",
+            "Last Name": "current.values[\"Last Name\"]",
+            "Native Language": "current.values[\"Native Language\"]",
+            "Needs Interpreter": "current.values[\"Needs Interpreter\"][0]",
+            "Phone Number": "current.values[\"Phone Number\"]",
+            "State": "current.values[\"State\"]",
+            "Zip": "current.values[\"Zip\"]"
+          }
+        }
+      }
+    },
+    {
+      "id": "958d96ab-f438-4701-b9c6-cc848d267491",
+      "name": "Family Retrieve by ID",
+      "usedBy": "kapp integration 'Family - Retrieve By ID'; SWAT project detail Family Information card (Project.jsx:119)",
+      "lockVersionAtBackup": 4,
+      "originalOutputs": {
+        "Address Line 1": {
+          "value": "body['submission']['values']['Address Line 1']"
+        },
+        "Address Line 2": {
+          "value": "body['submission']['values']['Address Line 2']"
+        },
+        "City": {
+          "value": "body['submission']['values']['City']"
+        },
+        "County": {
+          "value": "body['submission']['values']['County']"
+        },
+        "Email": {
+          "value": "body['submission']['values']['Email']"
+        },
+        "Error": {
+          "value": "body['error']"
+        },
+        "Family ID": {
+          "value": "body['submission']['id']"
+        },
+        "First Name": {
+          "value": "body['submission']['values']['First Name']"
+        },
+        "Last Name": {
+          "value": "body['submission']['values']['Last Name']"
+        },
+        "Native Language": {
+          "value": "body['submission']['values']['Native Language']"
+        },
+        "Needs Interpreter": {
+          "value": "body['submission']['values']['Needs Interpreter'][0]"
+        },
+        "Phone Number": {
+          "value": "body['submission']['values']['Phone Number']"
+        },
+        "State": {
+          "value": "body['submission']['values']['State']"
+        },
+        "Zip": {
+          "value": "body['submission']['values']['Zip']"
+        }
+      }
+    },
+    {
+      "id": "771f279a-988d-4b91-9b8f-85861c5c13fe",
+      "name": "Get User",
+      "usedBy": "request-to-join-swat-project workflow, 'Get Captain' step",
+      "lockVersionAtBackup": 4,
+      "originalOutputs": {
+        "Attributes": {
+          "value": "body.user?.attributesMap"
+        },
+        "Display Name": {
+          "value": "body.user?.displayName"
+        },
+        "Email": {
+          "value": "body.user?.email"
+        },
+        "User Exists": {
+          "value": "body.error ? false : true"
+        },
+        "Username": {
+          "value": "body.user?.username"
+        },
+        "Volunteer Profile ID": {
+          "value": "body.user?.attributesMap['Volunteer Id'][0]"
+        }
+      },
+      "_assessment": "NOT a live bug. Verified 2026-09-09: all 369 users have the 'Volunteer Id' key present in attributesMap (23 as an empty array), and [][0] is undefined rather than a throw. Hardened for robustness only."
+    },
+    {
+      "id": "ea6546cb-e8e7-4083-85c9-cb535b81e58a",
+      "name": "Get form Approvers by Submission Id",
+      "usedBy": "approval routing (consumers not exhaustively traced)",
+      "lockVersionAtBackup": 2,
+      "originalOutputs": {
+        "Approvers": {
+          "value": "body.submission.form.attributesMap.Approvers[0].split(\",\")"
+        }
+      },
+      "_assessment": "GENUINELY BROKEN before the fix. Unlike a bare [0], .split() throws on undefined. Verified 2026-09-09: all 27 forms in service-portal have Approvers as an empty array and none have it set, so this threw for every caller. Now returns []."
+    },
+    {
+      "id": "7ad51a20-8bab-422b-a0f7-247e082dccd5",
+      "name": "Get Space",
+      "_assessment": "NOT CHANGED. Its ['Web Server Url'][0] is unguarded but the space attribute is present with a real value, so it resolves. Left alone deliberately."
+    }
+  ]
+}
