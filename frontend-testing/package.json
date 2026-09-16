@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test:unit": "node --test christmas-alive/*.test.mjs"
+    "test:unit": "node --test christmas-alive/*.test.mjs",
+    "test:e2e": "playwright test",
+    "test:christmas-alive": "playwright test tests/christmas-alive"
   },
   "keywords": [],
   "author": "",
