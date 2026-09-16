@@ -22,10 +22,10 @@ export const ChristmasAliveHeroCta = ({ className = 'mt-6' }) => {
     <div className={`flex flex-wrap items-center gap-3 ${className}`}>
       <Link to="/christmas-alive" className="kbtn kbtn-accent kbtn-lg">
         <Icon name="christmas-tree" size={20} />
-        Sponsor a family for Christmas
+        Christmas Alive
       </Link>
       <span className="text-primary-content/70 text-sm">
-        Christmas Alive {season} is open
+        {season} season is open
       </span>
     </div>
   );
