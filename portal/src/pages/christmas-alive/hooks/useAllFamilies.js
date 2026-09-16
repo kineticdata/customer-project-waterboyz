@@ -74,6 +74,7 @@ const buildRows = response => {
       sponsorUsername: v['Sponsor Username'] || '',
       sponsorEmail: v['Sponsor Email'] || '',
       claimedAt: v['Claimed At'] || '',
+      pickupReminderSentAt: v['Pickup Reminder Sent At'] || '',
       photoRequested: v['Photo Requested'] || '',
       firstName: fv['First Name'] || '',
       lastName: fv['Last Name'] || '',
@@ -149,7 +150,12 @@ export const useAllFamilies = () => {
   return {
     rows,
     seasons,
-    loading: !initialized || loading,
+    // Only the FIRST load blocks the page. A reload triggered by a save must
+    // not unmount the view: doing so throws away any open detail panel and any
+    // just-set confirmation message, and flashes the whole table on every
+    // inline edit.
+    loading: !initialized,
+    refreshing: loading,
     saving,
     reload,
     saveFamily,

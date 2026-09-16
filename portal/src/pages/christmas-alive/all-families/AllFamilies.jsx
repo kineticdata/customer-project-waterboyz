@@ -5,6 +5,7 @@ import { useChristmasAlive } from '../hooks/useChristmasAlive.js';
 import { useAllFamilies } from '../hooks/useAllFamilies.js';
 import { FamilyDetailPanel } from './FamilyDetailPanel.jsx';
 import { ExportButton } from '../approvals/ExportButton.jsx';
+import { PickupReminderButton } from './PickupReminderButton.jsx';
 import {
   CA_STATUS,
   statusBadgeClass,
@@ -114,7 +115,18 @@ export const AllFamilies = () => {
             </select>
           </label>
         </div>
-        <ExportButton rows={visible} season={effectiveSeason} label="all-families" />
+        <div className="flex-ss gap-2 flex-wrap items-start">
+          {/* Deliberately driven off `rows`, not `visible`: a filter is a
+              view, and a reminder that silently skipped the sponsors you
+              happened to have filtered out would be a very quiet failure. */}
+          <PickupReminderButton
+            rows={rows}
+            season={currentSeason}
+            onSend={saveSponsorship}
+            disabled={saving}
+          />
+          <ExportButton rows={visible} season={effectiveSeason} label="all-families" />
+        </div>
       </div>
 
       <p className="text-sm text-base-content/70 m-0">
