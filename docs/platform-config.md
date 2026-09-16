@@ -193,6 +193,11 @@ All forms live under the **`service-portal`** kapp.
 - **Portal access:** `/events` (authenticated volunteer list), `/events/:eventId/assign` (leadership assignment view), `/admin/events` (admin CRUD via AdminFormRecords), `/public/events` (public listing, no auth), `/public/events/:formSlug?eventId=<id>` (public sign-up)
 
 #### Christmas Alive Sponsorships (`christmas-alive-sponsorships`)
+- **Workflow: `Christmas Alive - Send Sponsor Packet`** (Submission Updated, *added 2026-09-16*). Guard on the Start connector: `Status == 'Adopted' && Packet Sent At` is empty. Fetches the family and the sponsor, sends the packet, then stamps `Packet Sent At`.
+  - **That guard is also the loop guard.** Stamping `Packet Sent At` re-triggers this same workflow; the guard is the only thing that stops it. Removing it creates an infinite send loop. Verified 2026-09-16: after a send, `updatedAt` equals the stamp and does not advance — the re-trigger fired and was correctly refused, so exactly one email went out.
+  - **Re-sending is deliberate and easy:** clear `Packet Sent At` and the packet goes again. That is the recovery path for a sponsor who lost the email.
+  - Decoupled from the claim WebAPI on purpose — the claim stays inside its 30s ceiling, and a mail failure cannot roll back a valid claim.
+
 - **Type:** Datastore | **Status:** Active | *Created 2026-09-04*
 - **Description:** One row per family per Christmas Alive season. Season state plus a snapshot of the fields the sponsor browse list and admin export need.
 - **Fields (21):** Family ID, Nomination ID, Season, Family Number, Status, Rejection Reason, Duplicate Of, Sponsor Username, Sponsor Email, Claimed At, Released At, Release Notes, Packet Sent At, Photo Requested, Support Currently Receiving, City, County, Native Language, Total Members, Total Adults, Total Children

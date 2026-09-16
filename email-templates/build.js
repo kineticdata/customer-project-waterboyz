@@ -855,13 +855,13 @@ customMessage = @values['Custom Message'].to_s
     preheader: "Here are your family's details and what to do next.",
     build: () => {
       const body = [
-        heading('You&rsquo;re sponsoring Family <%= @results["Get Sponsorship"]["Family Number"] %>'),
+        heading('You&rsquo;re sponsoring Family <%= @values["Family Number"] %>'),
         paragraph('Hi <%= @results["Get Sponsor"]["First Name"] %>,'),
         paragraph(
           'Thank you for sponsoring a family this Christmas. Keep your family number handy &mdash; you&rsquo;ll be asked for it at pickup.',
         ),
         note(
-          'Your family number is <strong><%= @results["Get Sponsorship"]["Family Number"] %></strong>',
+          'Your family number is <strong><%= @values["Family Number"] %></strong>',
         ),
         divider(),
         heading('Your family'),
@@ -872,8 +872,30 @@ customMessage = @values['Custom Message'].to_s
           + 'Phone: <%= @results["Get Family"]["Phone Number"] %><br>'
           + 'Language: <%= @results["Get Family"]["Native Language"] %>',
         ),
-        paragraph('<%= @results["Build Roster"]["Roster HTML"] %>'),
-        action('See the full details', '<%= @results["Build Links"]["Packet URL"] %>'),
+        paragraph(
+          // Rendered inline rather than by a workflow node: there is no handler
+          // that simply computes a value, and every extra node is another thing
+          // that can fail at runtime. Drops any legacy "Head of Household" row,
+          // which is the head a second time -- they are named just above.
+          '<%= begin; require \'json\'; ' +
+            'r = (JSON.parse(@results["Get Family"]["Family Members JSON"].to_s) rescue []); ' +
+            'r = r.reject { |m| m["type"].to_s.downcase == "head of household" }; ' +
+            'lines = r.map { |m| ' +
+              'nm = [m["firstName"], m["lastName"]].compact.join(" ").strip; ' +
+              'bits = [m["type"], m["gender"], ' +
+                '(m["age"].to_s.strip.empty? ? nil : "age " + m["age"].to_s), ' +
+                '(m["shirtSize"].to_s.strip.empty? ? nil : "shirt " + m["shirtSize"].to_s), ' +
+                '(m["shoeSize"].to_s.strip.empty? ? nil : "shoe " + m["shoeSize"].to_s)' +
+              '].compact.reject { |x| x.to_s.empty? }; ' +
+              '"<strong>" + nm + "</strong> &mdash; " + bits.join(" &middot; ") ' +
+            '}; ' +
+            'lines.empty? ? "No other household members were recorded." : lines.join("<br>"); ' +
+          'rescue; ""; end %>',
+        ),
+        action(
+          'See the full details',
+          '<%= @space_attributes["Web Server Url"] %>/#/christmas-alive/packet/<%= @submission["Id"] %>',
+        ),
         note(
           'This email is a snapshot from today. If anything about the family changes, the portal is always current &mdash; check it before you shop or deliver.',
         ),
@@ -886,7 +908,10 @@ customMessage = @values['Custom Message'].to_s
           '<strong>Family portraits:</strong> Saturday, December 6, by appointment &mdash; 240-394-7126<br>'
           + '<strong>Curb-side pickup:</strong> Saturday, December 13, Restoration Church, 7899 Opossumtown Pike, Frederick',
         ),
-        action('Read what sponsors do', '<%= @results["Build Links"]["Responsibilities URL"] %>'),
+        action(
+          'Read what sponsors do',
+          '<%= @space_attributes["Web Server Url"] %>/#/christmas-alive/responsibilities',
+        ),
         divider(),
         paragraph('Thank you for making Christmas happen for this family.'),
         paragraph('The Waterboyz Team'),
@@ -903,10 +928,10 @@ customMessage = @values['Custom Message'].to_s
 
   'christmas-alive-nudge': {
     subject: 'Have you reached your Christmas Alive family? — Waterboyz',
-    preheader: 'A quick check-in about Family <%= @results["Get Sponsorship"]["Family Number"] %>.',
+    preheader: 'A quick check-in about Family <%= @values["Family Number"] %>.',
     build: () => {
       const body = [
-        heading('Have you reached Family <%= @results["Get Sponsorship"]["Family Number"] %>?'),
+        heading('Have you reached Family <%= @values["Family Number"] %>?'),
         paragraph('Hi <%= @results["Get Sponsor"]["First Name"] %>,'),
         paragraph(
           'You sponsored this family a week ago. If you haven&rsquo;t connected with them yet, now is a good time &mdash; it gives you room to shop before the December 13 pickup.',
@@ -914,7 +939,10 @@ customMessage = @values['Custom Message'].to_s
         paragraph(
           'Tried three times without a reply? Contact the church or organization named in your first email. Still nothing after a week? Email christmasalivemaryland@gmail.com and we&rsquo;ll assign you another family.',
         ),
-        action('See your family&rsquo;s details', '<%= @results["Build Links"]["Packet URL"] %>'),
+        action(
+          'See your family&rsquo;s details',
+          '<%= @space_attributes["Web Server Url"] %>/#/christmas-alive/packet/<%= @submission["Id"] %>',
+        ),
         divider(),
         paragraph('Thank you,'),
         paragraph('The Waterboyz Team'),
@@ -940,12 +968,15 @@ customMessage = @values['Custom Message'].to_s
           'Bring your gifts to <strong>Restoration Church, 7899 Opossumtown Pike, Frederick</strong>. Stay in your car &mdash; we&rsquo;ll come out to you.',
         ),
         note(
-          'You&rsquo;ll be asked for your family number: <strong><%= @results["Get Sponsorship"]["Family Number"] %></strong>',
+          'You&rsquo;ll be asked for your family number: <strong><%= @values["Family Number"] %></strong>',
         ),
         paragraph(
           'If the family requested a portrait, please include an 8&times;10 frame.',
         ),
-        action('See your family&rsquo;s details', '<%= @results["Build Links"]["Packet URL"] %>'),
+        action(
+          'See your family&rsquo;s details',
+          '<%= @space_attributes["Web Server Url"] %>/#/christmas-alive/packet/<%= @submission["Id"] %>',
+        ),
         divider(),
         paragraph('Thank you for everything you&rsquo;ve done for this family.'),
         paragraph('The Waterboyz Team'),
@@ -962,10 +993,10 @@ customMessage = @values['Custom Message'].to_s
 
   'christmas-alive-reassigned': {
     subject: 'Your Christmas Alive family has been reassigned — Waterboyz',
-    preheader: 'Family <%= @results["Get Sponsorship"]["Family Number"] %> has been passed to someone else.',
+    preheader: 'Family <%= @values["Family Number"] %> has been passed to someone else.',
     build: () => {
       const body = [
-        heading('Family <%= @results["Get Sponsorship"]["Family Number"] %> has been reassigned'),
+        heading('Family <%= @values["Family Number"] %> has been reassigned'),
         paragraph('Hi <%= @results["Get Sponsor"]["First Name"] %>,'),
         paragraph(
           'We&rsquo;ve passed this family to another sponsor, so you no longer need to shop for them. Thank you for trying to reach them.',
@@ -973,7 +1004,10 @@ customMessage = @values['Custom Message'].to_s
         paragraph(
           'There are still families waiting. If you&rsquo;d like another, you can choose one in the portal.',
         ),
-        action('Choose another family', '<%= @results["Build Links"]["Browse URL"] %>'),
+        action(
+          'Choose another family',
+          '<%= @space_attributes["Web Server Url"] %>/#/christmas-alive/families',
+        ),
         divider(),
         paragraph('Thank you,'),
         paragraph('The Waterboyz Team'),
