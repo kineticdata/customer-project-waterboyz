@@ -93,7 +93,38 @@ required`. Nothing here is public.
 
 ---
 
-## Finding 1 — Christmas Alive Admins may not be able to read nominations
+## Finding 0 — nobody but the space admin could see Christmas Alive at all
+
+**Severity: launch blocker. Found 2026-09-28, fixed.**
+
+`programs` had **no security policies**, so it inherited the kapp default of
+`Submitter` for Submission Access. Both `programs` records were created by
+`james.davies@kineticdata.com`, which meant that account was the only one that
+could read them.
+
+Everything keys off that lookup. `useChristmasAlive` reads `programs` to decide
+whether the season is open, so for every other user the query returned nothing,
+`inSeason` was false, and the Christmas Alive button never rendered — in the
+hero, on the landing page, anywhere. The same lookup drives the "Nominate a
+Family" cards on the home page, so SWAT was affected too.
+
+It was invisible during development precisely because the developer account is
+a space admin, and space admins bypass security policies.
+
+**Fixed:** `programs` now carries Display `Authenticated Users`, Submission
+Access `Authenticated Users` (it is configuration — season dates, program names
+and descriptions, nothing sensitive), and Submission Modification `SWAT
+Leadership or Christmas Alive Admins`.
+
+**The general lesson:** a form with no Submission Access policy is readable only
+by whoever created each record. That is almost never what is wanted for
+reference or configuration data, and it cannot be noticed from a space-admin
+account. Every form the portal reads directly with `searchSubmissions` was
+audited for this; `programs` and the nomination form were the only two affected.
+
+---
+
+## Finding 1 — Christmas Alive Admins could not read nominations
 
 **Severity: low. Functional, not a leak.**
 
@@ -104,11 +135,28 @@ which is why this has not surfaced in testing — but a Christmas Alive Admin wh
 is **not** a space admin would see "Name not yet recorded" where the nominator's
 detail should be.
 
-Worth confirming with a real non-space-admin leadership account before the
-season opens. The fix is a Submission Access policy of `Submitter or Christmas
-Alive Admins` on that form.
+**Fixed 2026-09-28.** A new Submission-type policy `Submitter or Christmas
+Alive Admins` was created and applied to that form's Submission Access and
+Submission Modification. It grants `Christmas Alive Admins` and `SWAT
+Leadership`, and keeps the submitter's own access, so a nominator still reads
+their own nomination and nobody else's.
+
+Display was deliberately left at `Authenticated Users` rather than tightened to
+nominators. The home page lists every active program and links straight to
+`/forms/{slug}` with no role gating, so restricting Display would have turned
+the Christmas Alive card into a permission error for every volunteer. Who is
+allowed to *submit* a nomination is a separate product decision; the form is
+currently submittable by any authenticated user, as it was before.
 
 ---
+
+## Why these went unnoticed
+
+None of the four `Christmas Alive Admins` (Duane Chipman, Jim Baker, Judd
+Ziegler, Paul Foss) is a space admin, and of the ten `SWAT Leadership` members
+only the developer account is. Space admins bypass security policies entirely,
+so every permission gap above was invisible from the account doing the building.
+Test with a non-space-admin account before trusting any access decision here.
 
 ## What was not tested
 
