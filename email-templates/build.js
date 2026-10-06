@@ -905,8 +905,8 @@ customMessage = @values['Custom Message'].to_s
           'Text your family to introduce yourself, then call to confirm their details and collect gift wishes. Please try three times; if you can&rsquo;t reach them, email christmasalivemaryland@gmail.com and we&rsquo;ll assign you another family.',
         ),
         paragraph(
-          '<strong>Family portraits:</strong> Saturday, December 6, by appointment &mdash; 240-394-7126<br>'
-          + '<strong>Curb-side pickup:</strong> Saturday, December 13, Restoration Church, 7899 Opossumtown Pike, Frederick',
+          '<strong>Family portraits:</strong> Saturday, December 12, by appointment &mdash; 240-394-7126<br>'
+          + '<strong>Curb-side pickup:</strong> Saturday, December 19, Restoration Church, 7899 Opossumtown Pike, Frederick',
         ),
         action(
           'Read what sponsors do',
@@ -934,7 +934,7 @@ customMessage = @values['Custom Message'].to_s
         heading('Have you reached Family <%= @values["Family Number"] %>?'),
         paragraph('Hi <%= @results["Get Sponsor"]["First Name"] %>,'),
         paragraph(
-          'You sponsored this family a week ago. If you haven&rsquo;t connected with them yet, now is a good time &mdash; it gives you room to shop before the December 13 pickup.',
+          'You sponsored this family a week ago. If you haven&rsquo;t connected with them yet, now is a good time &mdash; it gives you room to shop before the December 19 pickup.',
         ),
         paragraph(
           'Tried three times without a reply? Contact the church or organization named in your first email. Still nothing after a week? Email christmasalivemaryland@gmail.com and we&rsquo;ll assign you another family.',
@@ -962,7 +962,7 @@ customMessage = @values['Custom Message'].to_s
     preheader: 'Curb-side pickup details and your family number.',
     build: () => {
       const body = [
-        heading('Pickup is Saturday, December 13'),
+        heading('Pickup is Saturday, December 19'),
         paragraph('Hi <%= @results["Get Sponsor"]["First Name"] %>,'),
         paragraph(
           'Bring your gifts to <strong>Restoration Church, 7899 Opossumtown Pike, Frederick</strong>. Stay in your car &mdash; we&rsquo;ll come out to you.',
