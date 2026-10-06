@@ -1,8 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import t from 'prop-types';
 import { Link } from 'react-router-dom';
 import { Icon } from '../../../atoms/Icon.jsx';
-import { describeHousehold, familyLabel } from '../../../helpers/christmasAlive.js';
+import {
+  describeHousehold,
+  familyLabel,
+  isValidPhone,
+} from '../../../helpers/christmasAlive.js';
 
 /**
  * Messages for every way a claim can fail.
@@ -29,6 +33,14 @@ const FAILURES = {
     title: () => 'Sponsorship has closed for this season',
     body: 'Thank you for wanting to help. Sponsorship opens again each September.',
   },
+  // The WebAPI enforces the same rule as the form, so this only shows if the
+  // two ever drift apart (or an old cached copy of the portal is in use).
+  CONTACT_REQUIRED: {
+    tone: 'kalert-warning',
+    icon: 'phone',
+    title: () => 'We need your name and phone number',
+    body: 'No family was claimed. Close this, choose the family again, and fill in your name and a 10-digit phone number.',
+  },
   TIMEOUT: {
     tone: 'kalert-warning',
     icon: 'clock',
@@ -47,20 +59,53 @@ const FAILURES = {
  * Confirm → claim → outcome, in one modal.
  *
  * The confirm step names the family and states the commitment, so nobody
- * claims a family without knowing what they are taking on.
+ * claims a family without knowing what they are taking on. It also confirms
+ * how to reach the sponsor: most sponsors have no volunteer profile, and the
+ * check-in team at pickup needs a name and a phone number for every family.
+ *
+ * Email is shown but not editable. It is the account email, which is where the
+ * packet, nudge and reminder emails go; a second editable "sponsor email"
+ * could silently disagree with it.
  */
-export const SponsorConfirmModal = ({ family, onClose, onClaim, onSponsorAnother }) => {
+export const SponsorConfirmModal = ({
+  family,
+  contact,
+  onClose,
+  onClaim,
+  onSponsorAnother,
+}) => {
   const [phase, setPhase] = useState('confirm'); // confirm | working | done | failed
   const [failure, setFailure] = useState(null);
   const [claimed, setClaimed] = useState(null);
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [touched, setTouched] = useState(false);
+
+  // Start every opening from the latest known details, so a second claim is
+  // pre-filled with what the sponsor typed the first time.
+  const familyId = family?.sponsorshipId;
+  useEffect(() => {
+    setName(contact?.name ?? '');
+    setPhone(contact?.phone ?? '');
+    setTouched(false);
+  }, [familyId, contact?.name, contact?.phone]);
 
   if (!family) return null;
 
   const household = describeHousehold(family);
+  const nameError = !name.trim() ? 'Please enter your name.' : null;
+  const phoneError = !isValidPhone(phone)
+    ? 'Please enter a 10-digit phone number.'
+    : null;
 
   const submit = async () => {
+    setTouched(true);
+    if (nameError || phoneError) return;
     setPhase('working');
-    const result = await onClaim(family.sponsorshipId);
+    const result = await onClaim(family.sponsorshipId, {
+      sponsorName: name.trim(),
+      sponsorPhone: phone.trim(),
+    });
     if (result?.ok) {
       setClaimed(result);
       setPhase('done');
@@ -72,7 +117,7 @@ export const SponsorConfirmModal = ({ family, onClose, onClaim, onSponsorAnother
 
   return (
     <div className="kmodal kmodal-open" role="dialog" aria-modal="true">
-      <div className="kmodal-box flex-c-st gap-4">
+      <div className="kmodal-box flex-c-st gap-4 sm:max-w-xl">
         {phase === 'confirm' && (
           <>
             <h2 className="text-h2 font-bold m-0">
@@ -82,6 +127,61 @@ export const SponsorConfirmModal = ({ family, onClose, onClaim, onSponsorAnother
               You&rsquo;ll be providing Christmas for {household.toLowerCase()}.
               We&rsquo;ll email you their details and a shopping guide.
             </p>
+            <fieldset className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 border border-base-300 rounded-box p-4 m-0">
+              <legend className="text-sm font-semibold px-1">
+                Your contact details
+              </legend>
+              <p className="sm:col-span-2 text-sm text-base-content/70 m-0">
+                Christmas Alive uses these to reach you, and the check-in team
+                uses them at pickup. Name and phone are required.
+              </p>
+              <label className="flex-c-st gap-1">
+                <span className="text-sm font-medium">
+                  Your name <span className="text-error" aria-hidden="true">*</span>
+                </span>
+                <input
+                  required
+                  aria-required="true"
+                  aria-invalid={!!(touched && nameError)}
+                  className={`kinput kinput-bordered w-full ${touched && nameError ? 'kinput-error' : ''}`}
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  autoComplete="name"
+                  maxLength={200}
+                />
+                {touched && nameError && (
+                  <span className="text-xs text-error">{nameError}</span>
+                )}
+              </label>
+              <label className="flex-c-st gap-1">
+                <span className="text-sm font-medium">
+                  Best phone number{' '}
+                  <span className="text-error" aria-hidden="true">*</span>
+                </span>
+                <input
+                  required
+                  aria-required="true"
+                  aria-invalid={!!(touched && phoneError)}
+                  className={`kinput kinput-bordered w-full ${touched && phoneError ? 'kinput-error' : ''}`}
+                  type="tel"
+                  value={phone}
+                  onChange={e => setPhone(e.target.value)}
+                  autoComplete="tel"
+                  placeholder="(301) 555-0100"
+                  maxLength={40}
+                />
+                {touched && phoneError && (
+                  <span className="text-xs text-error">{phoneError}</span>
+                )}
+              </label>
+              <div className="sm:col-span-2 flex-c-st gap-0.5">
+                <span className="text-sm font-medium">Email</span>
+                <span className="text-sm break-all">{contact?.email || '—'}</span>
+                <span className="text-xs text-base-content/60">
+                  This is your account email. To change it, update your profile.
+                </span>
+              </div>
+            </fieldset>
             <div className="flex-ec gap-2">
               <button type="button" className="kbtn kbtn-ghost" onClick={onClose}>
                 Not yet
@@ -164,6 +264,7 @@ export const SponsorConfirmModal = ({ family, onClose, onClaim, onSponsorAnother
 
 SponsorConfirmModal.propTypes = {
   family: t.object,
+  contact: t.shape({ name: t.string, email: t.string, phone: t.string }),
   onClose: t.func.isRequired,
   onClaim: t.func.isRequired,
   onSponsorAnother: t.func.isRequired,

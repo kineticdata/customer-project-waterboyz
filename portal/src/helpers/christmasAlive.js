@@ -37,6 +37,35 @@ export const MEMBER_TYPES = ['Spouse', 'Child', 'Adult'];
 export const GENDERS = ['Male', 'Female'];
 
 /**
+ * Roster fields a nominator must fill in for every household member. Sponsors
+ * shop by name, gender and relationship, so a row missing any of them cannot
+ * be shopped for. Age and sizes stay optional.
+ */
+export const REQUIRED_MEMBER_FIELDS = [
+  ['firstName', 'First name'],
+  ['lastName', 'Last name'],
+  ['gender', 'Gender'],
+  ['type', 'Relationship'],
+];
+
+/**
+ * Which required fields each roster row is missing.
+ *
+ * @param {Array<object>} roster
+ * @returns {Array<{index: number, missing: string[]}>} one entry per incomplete
+ *   row, in roster order; empty when every row is complete
+ */
+export const rosterProblems = roster =>
+  (roster || [])
+    .map((member, index) => ({
+      index,
+      missing: REQUIRED_MEMBER_FIELDS.filter(
+        ([key]) => !String(member?.[key] ?? '').trim(),
+      ).map(([key]) => key),
+    }))
+    .filter(p => p.missing.length > 0);
+
+/**
  * Parse a roster out of the `Family Members JSON` field.
  * Never throws — bad or missing data yields an empty roster so a malformed
  * record renders as "no members" rather than crashing the page.
@@ -242,7 +271,31 @@ export const csvCell = value => {
  * "Family ID" is the human family number sponsors quote at pickup, not the
  * submission id.
  */
+/**
+ * One readable line per household member for the export, e.g.
+ * "Ana Martinez (Child, Female, age 7, shirt Youth M, shoe 2)", joined with
+ * "; " so the whole household fits in one spreadsheet cell.
+ */
+export const formatRosterForExport = roster =>
+  (roster || [])
+    .map(m => {
+      const name = [m.firstName, m.lastName].filter(Boolean).join(' ').trim();
+      const details = [
+        m.type,
+        m.gender,
+        String(m.age ?? '').trim() && `age ${m.age}`,
+        m.shirtSize && `shirt ${m.shirtSize}`,
+        m.shoeSize && `shoe ${m.shoeSize}`,
+      ].filter(Boolean);
+      return details.length ? `${name || 'Unnamed'} (${details.join(', ')})` : name;
+    })
+    .filter(Boolean)
+    .join('; ');
+
+const yesNo = value => (value ? 'Yes' : 'No');
+
 export const EXPORT_COLUMNS = [
+  // The first 13 are verbatim from the requirements document.
   ['Family ID', r => r.familyNumber],
   ['Status', r => r.status],
   ['House Head First Name', r => r.firstName],
@@ -256,6 +309,30 @@ export const EXPORT_COLUMNS = [
   ['Number of Members', r => r.totalMembers],
   ['Adults', r => r.totalAdults],
   ['Children', r => r.totalChildren],
+  // Everything else the nominator answered, so nothing on the nomination
+  // form is only visible inside the portal.
+  ['County', r => r.county],
+  ['Native Language', r => r.nativeLanguage],
+  ['Household Members', r => formatRosterForExport(r.roster)],
+  ['Interpreter Needed', r => yesNo(r.needsInterpreter)],
+  ['Family Photo Requested', r => yesNo(r.photoRequested)],
+  ['Below ALICE Threshold', r => r.belowAlice],
+  ['Support Received', r => (r.supportReceiving || []).join('; ')],
+  ['Background on the Family', r => r.background],
+  ['Nominator Name', r => r.nominatorName],
+  ['Nominator Email', r => r.nominatorEmail],
+  ['Nominator Phone', r => r.nominatorPhone],
+  ['Nominating Organization', r => r.nominatingOrganization],
+  // The portal account that submitted it. Nominations made before the
+  // Nominator section existed (2026-10-05) only have this.
+  ['Nominator Account', r => r.requestedBy],
+  // Sponsor columns serve the Restoration Church check-in team, who sort the
+  // sheet by sponsor in Excel. Sponsor Phone is captured at claim time --
+  // most sponsors have no volunteer profile to read it from.
+  ['Sponsor Name', r => r.sponsorName],
+  ['Sponsor Email', r => r.sponsorEmail],
+  ['Sponsor Phone', r => r.sponsorPhone],
+  ['Sponsored On', r => (r.claimedAt || '').slice(0, 10)],
 ];
 
 /** Build the admin export CSV. */
@@ -297,6 +374,16 @@ export const parseChoices = value => {
     }
   }
   return [trimmed];
+};
+
+/**
+ * A phone number someone could actually dial: 10 digits, or 11 with a leading
+ * US country code. Formatting characters are ignored, so "(301) 555-0100",
+ * "301.555.0100" and "+1 301 555 0100" all pass.
+ */
+export const isValidPhone = value => {
+  const digits = String(value ?? '').replace(/\D/g, '');
+  return digits.length === 10 || (digits.length === 11 && digits.startsWith('1'));
 };
 
 /** "Yes" if a checkbox-style value contains an affirmative, else "No". */

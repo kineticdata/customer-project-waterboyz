@@ -1,9 +1,14 @@
 import { useMemo, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { Icon } from '../../../atoms/Icon.jsx';
 import { Loading } from '../../../components/states/Loading.jsx';
 import { useChristmasAlive } from '../hooks/useChristmasAlive.js';
-import { useAvailableFamilies, useClaimFamily } from '../hooks/useSponsorships.js';
+import {
+  useAvailableFamilies,
+  useClaimFamily,
+  useMySponsorships,
+} from '../hooks/useSponsorships.js';
 import { sizeBandTest } from '../../../helpers/christmasAlive.js';
 import { FamilyCard } from './FamilyCard.jsx';
 import { BrowseFilters } from './BrowseFilters.jsx';
@@ -22,6 +27,22 @@ export const BrowseFamilies = () => {
   const { season, inSeason, loading: seasonLoading } = useChristmasAlive();
   const { families, loading, error, reload } = useAvailableFamilies(season);
   const { claim } = useClaimFamily();
+  const profile = useSelector(state => state.app.profile);
+  const { families: mine, reload: reloadMine } = useMySponsorships(season);
+
+  // Pre-fill the confirm step. A previous claim this season is the best
+  // source for the phone (accounts don't store one); the account supplies the
+  // name until the sponsor has typed one of their own.
+  const contact = useMemo(() => {
+    const latest = [...mine]
+      .filter(f => f.sponsorPhone || f.sponsorName)
+      .sort((a, b) => String(b.claimedAt).localeCompare(String(a.claimedAt)))[0];
+    return {
+      name: latest?.sponsorName || profile?.displayName || '',
+      email: profile?.email || '',
+      phone: latest?.sponsorPhone || '',
+    };
+  }, [mine, profile]);
 
   const [filters, setFilters] = useState(NO_FILTERS);
   const [selected, setSelected] = useState(null);
@@ -42,6 +63,7 @@ export const BrowseFamilies = () => {
   const closeAndRefresh = () => {
     setSelected(null);
     reload?.();
+    reloadMine?.();
   };
 
   // Only block the whole page on the FIRST load. A background refetch must not
@@ -88,7 +110,7 @@ export const BrowseFamilies = () => {
       </div>
 
       {families.length === 0 ? (
-        <div className="flex-c-st gap-3 items-start p-6 rounded-lg border border-dashed border-base-300 max-w-prose">
+        <div className="flex-c-st gap-3 items-start p-6 rounded-2xl border border-dashed border-base-300 bg-base-100/60 max-w-prose">
           <Icon name="christmas-tree" size={32} className="text-accent" />
           <p className="font-medium m-0">
             No families are waiting for a sponsor right now
@@ -112,7 +134,7 @@ export const BrowseFamilies = () => {
           />
 
           {visible.length === 0 ? (
-            <div className="flex-c-st gap-3 items-start p-6 rounded-lg border border-dashed border-base-300 max-w-prose">
+            <div className="flex-c-st gap-3 items-start p-6 rounded-2xl border border-dashed border-base-300 bg-base-100/60 max-w-prose">
               <p className="font-medium m-0">No families match these filters</p>
               <p className="text-sm text-base-content/70 m-0">
                 There are still {families.length} families waiting — widen your
@@ -147,6 +169,7 @@ export const BrowseFamilies = () => {
 
       <SponsorConfirmModal
         family={selected}
+        contact={contact}
         onClose={closeAndRefresh}
         onClaim={claim}
         onSponsorAnother={closeAndRefresh}

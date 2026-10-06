@@ -52,6 +52,8 @@ export const AllFamilies = () => {
           r.county,
           r.familyNumber,
           r.sponsorUsername,
+          r.sponsorName,
+          r.sponsorPhone,
           r.email,
           r.phone,
         ]
@@ -135,7 +137,7 @@ export const AllFamilies = () => {
       </p>
 
       {visible.length === 0 ? (
-        <p className="text-base-content/70 p-6 rounded-lg border border-dashed border-base-300 max-w-prose m-0">
+        <p className="text-base-content/70 p-6 rounded-2xl border border-dashed border-base-300 bg-base-100/60 max-w-prose m-0">
           {rows.length === 0
             ? 'No families yet. They appear here as soon as a nomination is submitted.'
             : 'No families match these filters.'}
@@ -150,7 +152,7 @@ export const AllFamilies = () => {
             return (
               <li
                 key={row.id}
-                className="rounded-lg border border-base-300 bg-base-100 overflow-hidden"
+                className="ca-card overflow-hidden"
               >
                 <button
                   type="button"

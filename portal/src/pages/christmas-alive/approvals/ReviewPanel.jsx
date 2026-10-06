@@ -10,8 +10,14 @@ const Field = ({ label, value }) => (
   </div>
 );
 
+const yesNo = value => (value ? 'Yes' : 'No');
+
 /**
  * The expanded review panel for one nomination.
+ *
+ * Shows every answer on the nomination form, including the "No" answers, so
+ * a reviewer never has to open the raw submission to decide. Sections are
+ * always present; an empty answer reads "None given" rather than vanishing.
  *
  * Duplicate candidates are surfaced up front rather than left to four admins
  * remembering 250 families. When there are none, it says so — silence would
@@ -48,16 +54,40 @@ export const ReviewPanel = ({
           you approve.
         </p>
       )}
-      <dl className="grid grid-cols-2 md:grid-cols-4 gap-3 m-0">
-        <Field label="Phone" value={row.phone} />
-        <Field label="Email" value={row.email} />
-        <Field label="Address" value={[row.addressLine1, row.city, row.state, row.zip].filter(Boolean).join(', ')} />
-        <Field label="County" value={row.county} />
-        <Field label="Language" value={row.nativeLanguage} />
-        <Field label="Adults" value={row.totalAdults} />
-        <Field label="Children" value={row.totalChildren} />
-        {row.sponsorUsername && <Field label="Sponsor" value={row.sponsorUsername} />}
-      </dl>
+      <section className="flex-c-st gap-2">
+        <h3 className="text-sm font-semibold m-0">Nominated by</h3>
+        <dl className="grid grid-cols-2 md:grid-cols-4 gap-3 m-0">
+          <Field label="Name" value={row.nominatorName} />
+          <Field label="Organization" value={row.nominatingOrganization} />
+          <Field label="Phone" value={row.nominatorPhone} />
+          <Field label="Email" value={row.nominatorEmail} />
+          <Field label="Portal account" value={row.requestedBy} />
+        </dl>
+      </section>
+
+      <section className="flex-c-st gap-2">
+        <h3 className="text-sm font-semibold m-0">
+          Head of household — {name}
+        </h3>
+        <dl className="grid grid-cols-2 md:grid-cols-4 gap-3 m-0">
+          <Field label="Phone" value={row.phone} />
+          <Field label="Email" value={row.email} />
+          <Field label="Address" value={[row.addressLine1, row.city, row.state, row.zip].filter(Boolean).join(', ')} />
+          <Field label="County" value={row.county} />
+          <Field label="Language" value={row.nativeLanguage} />
+          <Field label="Members" value={row.totalMembers} />
+          <Field label="Adults" value={row.totalAdults} />
+          <Field label="Children" value={row.totalChildren} />
+          {row.sponsorUsername && (
+            <Field
+              label="Sponsor"
+              value={[row.sponsorName || row.sponsorUsername, row.sponsorPhone]
+                .filter(Boolean)
+                .join(' · ')}
+            />
+          )}
+        </dl>
+      </section>
 
       <section className="flex-c-st gap-2">
         <h3 className="text-sm font-semibold m-0">
@@ -100,37 +130,31 @@ export const ReviewPanel = ({
         )}
       </section>
 
-      {(row.supportReceiving.length > 0 || row.needsInterpreter || row.photoRequested) && (
-        <section className="flex-c-st gap-1">
-          <h3 className="text-sm font-semibold m-0">Circumstances</h3>
-          {row.supportReceiving.length > 0 && (
-            <p className="text-sm m-0">
-              <span className="text-base-content/60">Support received: </span>
-              {row.supportReceiving.join(', ')}
-            </p>
-          )}
-          {row.needsInterpreter && (
-            <p className="text-sm m-0">An interpreter is needed.</p>
-          )}
-          {row.photoRequested && (
-            <p className="text-sm m-0">
-              <span className="text-base-content/60">Family portrait: </span>
-              {row.photoRequested}
-            </p>
-          )}
-        </section>
-      )}
+      <section className="flex-c-st gap-2">
+        <h3 className="text-sm font-semibold m-0">Circumstances</h3>
+        <dl className="grid grid-cols-2 md:grid-cols-4 gap-3 m-0">
+          <Field label="Interpreter needed" value={yesNo(row.needsInterpreter)} />
+          <Field label="Family photo requested" value={yesNo(row.photoRequested)} />
+          <Field label="Below ALICE threshold" value={row.belowAlice || 'Not answered'} />
+          <Field
+            label="Support received"
+            value={
+              row.belowAlice === 'Yes'
+                ? 'Not asked (below ALICE threshold)'
+                : row.supportReceiving.join(', ') || 'None'
+            }
+          />
+        </dl>
+      </section>
 
-      {row.background && (
-        <section className="flex-c-st gap-1">
-          <h3 className="text-sm font-semibold m-0">
-            Background from the nominator
-          </h3>
-          <p className="text-sm m-0 max-w-prose whitespace-pre-line">
-            {row.background}
-          </p>
-        </section>
-      )}
+      <section className="flex-c-st gap-1">
+        <h3 className="text-sm font-semibold m-0">Background from the nominator</h3>
+        <p className="text-sm m-0 max-w-prose whitespace-pre-line">
+          {row.background || (
+            <span className="text-base-content/60">None given.</span>
+          )}
+        </p>
+      </section>
 
       {row.nominationId && (
         <a

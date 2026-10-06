@@ -52,6 +52,7 @@ const buildRows = response => {
     const family = familiesById.get(v['Family ID']);
     const nomination = nominationsById.get(v['Nomination ID']);
     const fv = family?.values ?? nomination?.values ?? {};
+    const nominationValues = nomination?.values ?? {};
     const roster = parseRoster(fv['Family Members JSON']);
     // Derive from the roster ONLY when there is one. A family record can exist
     // without a roster (the Family Members JSON field is added in a later
@@ -73,9 +74,16 @@ const buildRows = response => {
       rejectionReason: v['Rejection Reason'] || '',
       sponsorUsername: v['Sponsor Username'] || '',
       sponsorEmail: v['Sponsor Email'] || '',
+      sponsorName: v['Sponsor Name'] || '',
+      sponsorPhone: v['Sponsor Phone'] || '',
       claimedAt: v['Claimed At'] || '',
       pickupReminderSentAt: v['Pickup Reminder Sent At'] || '',
-      photoRequested: v['Photo Requested'] || '',
+      // Yes/No on the season row, copied from the nomination's 'Family Photo
+      // Requested' answer when the row is created. Rows that predate the
+      // question fall back to the nomination, which is blank -> No.
+      photoRequested: isYes(
+        v['Photo Requested'] || nominationValues['Family Photo Requested'],
+      ),
       firstName: fv['First Name'] || '',
       lastName: fv['Last Name'] || '',
       email: fv['Email'] || '',
@@ -90,12 +98,26 @@ const buildRows = response => {
       // Everything an approver needs to judge the nomination without
       // leaving the page. Support lives under two different field names
       // depending on whether it has been copied to the season row yet.
-      background: fv['Background on the Family'] || '',
+      // Nomination-only answers come from the nomination even after
+      // approval -- the families record has no field for them, so reading
+      // them from `fv` blanked them out the moment a family was approved.
+      background:
+        nominationValues['Background on the Family'] || fv['Background on the Family'] || '',
+      belowAlice: nominationValues['Below ALICE Threshold'] || '',
       supportReceiving: parseChoices(
-        v['Support Currently Receiving'] || fv['Support Received'],
+        v['Support Currently Receiving'] || nominationValues['Support Received'],
       ),
       needsInterpreter: isYes(fv['Needs Interpreter']),
-      requestedBy: fv['Requested By'] || '',
+      requestedBy: nominationValues['Requested By'] || fv['Requested By'] || '',
+      nominatorName: [
+        nominationValues['Nominator First Name'],
+        nominationValues['Nominator Last Name'],
+      ]
+        .filter(Boolean)
+        .join(' '),
+      nominatorEmail: nominationValues['Nominator Email'] || '',
+      nominatorPhone: nominationValues['Nominator Phone Number'] || '',
+      nominatingOrganization: nominationValues['Nominating Organization'] || '',
       nominationId: v['Nomination ID'] || '',
       roster,
       ...counts,

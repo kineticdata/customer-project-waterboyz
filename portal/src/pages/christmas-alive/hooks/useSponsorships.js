@@ -24,6 +24,10 @@ const toFamilies = response =>
     county: item.county ?? item.County ?? '',
     status: item.status ?? item.Status ?? '',
     claimedAt: item.claimedAt ?? item['Claimed At'] ?? '',
+    // Only present on My Sponsorships, which is scoped to the caller -- it is
+    // their own contact info, used to pre-fill their next claim.
+    sponsorName: item.sponsorName ?? '',
+    sponsorPhone: item.sponsorPhone ?? '',
   }));
 
 const useOperation = (integrationName, season) => {
@@ -59,19 +63,23 @@ export const useMySponsorships = season => useOperation(MINE_INTEGRATION, season
  *
  * The guard lives in the WebAPI, not here — losing a race is expected and
  * normal, so it returns a typed reason rather than throwing.
+ *
+ * The sponsor's name and phone ride along so the check-in team can reach
+ * them; the WebAPI stores them on the sponsorship. Username and email are
+ * taken from the session server-side, never from this request.
  */
 export const useClaimFamily = () => {
   const kappSlug = useSelector(state => state.app.kappSlug);
   const [claiming, setClaiming] = useState(false);
 
   const claim = useCallback(
-    async sponsorshipId => {
+    async (sponsorshipId, { sponsorName = '', sponsorPhone = '' } = {}) => {
       setClaiming(true);
       try {
         const result = await executeWebApi({
           kappSlug,
           webApiSlug: CLAIM_WEBAPI,
-          parameters: { sponsorshipId },
+          parameters: { sponsorshipId, sponsorName, sponsorPhone },
         });
         if (result?.error) {
           return { ok: false, reason: 'UNKNOWN', detail: result.error.message };
