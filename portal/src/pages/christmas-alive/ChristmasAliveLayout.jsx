@@ -66,7 +66,7 @@ export const ChristmasAliveLayout = ({ children }) => {
               )}
             </span>
           </NavLink>
-          <p className="ca-tagline text-lg md:text-xl m-0 self-end md:mb-1">
+          <p className="ca-tagline text-[1.375rem] md:text-[1.875rem] leading-tight m-0 self-end md:mb-1">
             &ldquo;Hope rides in.&rdquo;
           </p>
         </div>
