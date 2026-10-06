@@ -1,0 +1,84 @@
+{
+  "workflow": {
+    "id": "68d3d25e-c433-472e-b1cc-f87ba979b162",
+    "name": "Christmas Alive - Create Sponsorship Row",
+    "kappSlug": "service-portal",
+    "formSlug": "christmas-alive-family-nomination",
+    "event": "Submission Submitted",
+    "versionId": "3"
+  },
+  "treeJson": {
+    "builderVersion": "",
+    "schemaVersion": "1.0",
+    "version": "",
+    "processOwnerEmail": "",
+    "lastId": 4,
+    "name": "Christmas Alive - Create Sponsorship Row",
+    "notes": "Every nomination gets a Pending season row immediately, which is what makes the admin export uniform across all four statuses. Family ID and Family Number stay blank until approval. Runs alongside the existing 'Nomination Process' tree, which only maintains the nomination's own adult/child counts.\n\nESCAPING RULE (learned the hard way): Mustache {{X}} in an operation body already escapes for JSON context. Pass the real value and never pre-escape, or it is double-escaped and literal backslashes are stored. For a checkbox field @values['X'] is a Ruby ARRAY: use .to_json (real JSON) not .to_s (Ruby inspect form, which adds a space after commas).\n\nHEAD OF HOUSEHOLD: the roster holds everyone EXCEPT the head, who is captured in the nomination's own First/Last Name fields. Totals therefore add the head back as one adult. Mirrors helpers/christmasAlive.js householdCounts().",
+    "connectors": [
+      { "from": "start", "to": "get_season", "label": "", "value": "", "type": "Complete" },
+      { "from": "get_season", "to": "check_existing", "label": "", "value": "", "type": "Complete" },
+      { "from": "check_existing", "to": "create_sponsorship", "label": "No row yet", "value": "@results['Check Existing']['Count'].to_i == 0", "type": "Complete" },
+      { "from": "check_existing", "to": "already_exists", "label": "Already created", "value": "@results['Check Existing']['Count'].to_i > 0", "type": "Complete" }
+    ],
+    "nodes": [
+      {
+        "configured": true, "defers": false, "deferrable": false, "visible": false,
+        "name": "Start", "messages": [],
+        "dependents": { "task": [ { "label": "", "type": "Complete", "value": "", "content": "get_season" } ] },
+        "id": "start", "position": { "x": 10, "y": 100 }, "version": 1, "parameters": [],
+        "definitionId": "system_start_v1"
+      },
+      {
+        "configured": true, "defers": false, "deferrable": false, "visible": true,
+        "name": "Get Season", "messages": [],
+        "dependents": { "task": [ { "label": "", "type": "Complete", "value": "", "content": "check_existing" } ] },
+        "id": "get_season", "position": { "x": 220, "y": 100 }, "version": 1,
+        "parameters": [
+          { "dependsOnId": "", "dependsOnValue": "", "description": "Connection ID", "id": "connection", "label": "Connection ID", "menu": "", "value": "1415539c-bb98-48bb-ad33-11be25189ad0", "required": true },
+          { "dependsOnId": "", "dependsOnValue": "", "description": "Operation ID", "id": "operation", "label": "Operation ID", "menu": "", "value": "6a1c7501-f14e-49e2-8b3a-a5ece8937b04", "required": true }
+        ],
+        "definitionId": "system_integration_v1"
+      },
+      {
+        "configured": true, "defers": false, "deferrable": false, "visible": true,
+        "name": "Check Existing", "messages": [],
+        "dependents": { "task": [
+          { "label": "No row yet", "type": "Complete", "value": "@results['Check Existing']['Count'].to_i == 0", "content": "create_sponsorship" },
+          { "label": "Already created", "type": "Complete", "value": "@results['Check Existing']['Count'].to_i > 0", "content": "already_exists" }
+        ] },
+        "id": "check_existing", "position": { "x": 440, "y": 100 }, "version": 1,
+        "parameters": [
+          { "dependsOnId": "", "dependsOnValue": "", "description": "Connection ID", "id": "connection", "label": "Connection ID", "menu": "", "value": "1415539c-bb98-48bb-ad33-11be25189ad0", "required": true },
+          { "dependsOnId": "", "dependsOnValue": "", "description": "Operation ID", "id": "operation", "label": "Operation ID", "menu": "", "value": "eaae65be-1cf9-46ac-b6c6-7f19de238c9e", "required": true },
+          { "dependsOnId": "", "dependsOnValue": "", "description": "", "id": "parameters.Nomination Id", "label": "Nomination Id", "menu": "", "value": "<%= @submission['Id'] %>", "required": false }
+        ],
+        "definitionId": "system_integration_v1"
+      },
+      {
+        "configured": true, "defers": false, "deferrable": false, "visible": true,
+        "name": "Create Sponsorship", "messages": [], "dependents": "",
+        "id": "create_sponsorship", "position": { "x": 680, "y": 40 }, "version": 1,
+        "parameters": [
+          { "dependsOnId": "", "dependsOnValue": "", "description": "Connection ID", "id": "connection", "label": "Connection ID", "menu": "", "value": "1415539c-bb98-48bb-ad33-11be25189ad0", "required": true },
+          { "dependsOnId": "", "dependsOnValue": "", "description": "Operation ID", "id": "operation", "label": "Operation ID", "menu": "", "value": "933c7a67-6f7e-4a68-9f45-cf74677d0209", "required": true },
+          { "dependsOnId": "", "dependsOnValue": "", "description": "", "id": "parameters.Nomination Id", "label": "Nomination Id", "menu": "", "value": "<%= @submission['Id'] %>", "required": false },
+          { "dependsOnId": "", "dependsOnValue": "", "description": "", "id": "parameters.Season", "label": "Season", "menu": "", "value": "<%= @results['Get Season']['Current Season'] %>", "required": false },
+          { "dependsOnId": "", "dependsOnValue": "", "description": "", "id": "parameters.County", "label": "County", "menu": "", "value": "<%= @values['County'] %>", "required": false },
+          { "dependsOnId": "", "dependsOnValue": "", "description": "", "id": "parameters.Native Language", "label": "Native Language", "menu": "", "value": "<%= @values['Native Language'] %>", "required": false },
+          { "dependsOnId": "", "dependsOnValue": "", "description": "", "id": "parameters.Total Members", "label": "Total Members", "menu": "", "value": "<%= (begin; require 'json'; JSON.parse(@values['Family Members JSON'].to_s); rescue; []; end).length + 1 %>", "required": false },
+          { "dependsOnId": "", "dependsOnValue": "", "description": "", "id": "parameters.Total Children", "label": "Total Children", "menu": "", "value": "<%= (begin; require 'json'; JSON.parse(@values['Family Members JSON'].to_s); rescue; []; end).count { |m| a = m['age'].to_s.strip; !a.empty? && a.to_i <= 18 } %>", "required": false },
+          { "dependsOnId": "", "dependsOnValue": "", "description": "", "id": "parameters.Total Adults", "label": "Total Adults", "menu": "", "value": "<%= (begin; require 'json'; m = JSON.parse(@values['Family Members JSON'].to_s); (m.length - m.count { |x| a = x['age'].to_s.strip; !a.empty? && a.to_i <= 18 }) + 1; rescue; 1; end) %>", "required": false },
+          { "dependsOnId": "", "dependsOnValue": "", "description": "", "id": "parameters.Support Currently Receiving", "label": "Support Currently Receiving", "menu": "", "value": "<%= @values['Support Received'].to_json %>", "required": false }
+        ],
+        "definitionId": "system_integration_v1"
+      },
+      {
+        "configured": true, "defers": false, "deferrable": false, "visible": true,
+        "name": "Already Created", "messages": [], "dependents": "",
+        "id": "already_exists", "position": { "x": 680, "y": 200 }, "version": 1, "parameters": [],
+        "definitionId": "system_noop_v1"
+      }
+    ]
+  }
+}
