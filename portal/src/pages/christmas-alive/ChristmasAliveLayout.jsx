@@ -1,20 +1,33 @@
 import t from 'prop-types';
 import { NavLink } from 'react-router-dom';
 import clsx from 'clsx';
+import '@fontsource/great-vibes/400.css';
+import '@fontsource/poppins/400.css';
+import '@fontsource/poppins/500.css';
+import '@fontsource/poppins/600.css';
+import '@fontsource/poppins/700.css';
+import '@fontsource/tinos/400-italic.css';
+import '@fontsource/tinos/700.css';
 import { Icon } from '../../atoms/Icon.jsx';
 import { useChristmasAlive } from './hooks/useChristmasAlive.js';
+import { StringLights } from './StringLights.jsx';
 
 /**
- * Page shell for the Christmas Alive program.
+ * Page shell for the Christmas Alive program, styled to the 2026 Christmas
+ * Alive Brand Guidelines.
  *
- * This is NOT a header replacement — the global Header and SiteFooter still
- * come from PrivateRoutes and are deliberately unchanged. What this adds is a
- * bronze program band and an in-page subnav, so someone can tell at a glance
- * which program they are in and move between its pages without the global nav
- * having to know anything about Christmas Alive.
+ * Scope: this is NOT a header replacement. The global Waterboyz Header and
+ * SiteFooter come from PrivateRoutes and are untouched. Everything themed
+ * here hangs off `.ca-theme` (assets/styles/christmas-alive.css), which only
+ * this layout carries, so no Waterboyz or SWAT page can pick it up. The brand
+ * fonts are imported here too, so they only load when someone opens a
+ * Christmas Alive page.
  *
- * Bronze is the existing `accent` token (#B2812C) from the Waterboyz brand.
- * SWAT keeps `primary` (#0075a9). No new colors.
+ * The band: string lights strung along its top edge like a porch eave, the
+ * "Christmas Alive" wordmark in Great Vibes (the one use of script on the
+ * page, per the guidelines), the season year as the signature serif numeral,
+ * and the campaign line. The subnav sits at the band's foot, with the active
+ * tab cut from the page colour below.
  */
 export const ChristmasAliveLayout = ({ children }) => {
   const { season, canNominate, isCAAdmin } = useChristmasAlive();
@@ -25,21 +38,37 @@ export const ChristmasAliveLayout = ({ children }) => {
     { to: '/christmas-alive/nominate', label: 'Nominate a family', icon: 'user-plus', show: canNominate },
     { to: '/christmas-alive/approvals', label: 'Approvals', icon: 'checklist', show: isCAAdmin },
     { to: '/christmas-alive/all-families', label: 'All families', icon: 'table', show: isCAAdmin },
+    { to: '/christmas-alive/nominators', label: 'Nominators', icon: 'user-check', show: isCAAdmin },
   ].filter(l => l.show);
 
+  // flex-1: grow into the space between the global header and footer, so a
+  // short page stays Frost Cream to the bottom instead of showing the app's
+  // white background under it.
   return (
-    <div className="flex-c-st min-h-full">
-      <div className="bg-accent text-accent-content">
-        <div className="gutter py-5">
-          <NavLink to="/christmas-alive" className="flex-sc gap-3 no-underline text-accent-content">
-            <Icon name="christmas-tree" size={28} />
-            <span className="flex-c-st">
-              <span className="text-h2 font-bold leading-tight">Christmas Alive</span>
+    <div className="ca-theme flex-c-st flex-1 w-full">
+      <header className="ca-band print-hide">
+        <StringLights className="pt-0.5" />
+
+        <div className="gutter pt-3 pb-5 flex-bs gap-x-6 gap-y-2 flex-wrap">
+          <NavLink
+            to="/christmas-alive"
+            className="flex-c-st no-underline"
+            aria-label={`Christmas Alive${season ? ` ${season}` : ''} home`}
+          >
+            <span className="flex-ss gap-3">
+              <span className="ca-script text-[2.75rem] md:text-[3.5rem] text-white">
+                Christmas Alive
+              </span>
               {season && (
-                <span className="text-sm opacity-90">{season} season</span>
+                <span className="ca-numeral text-[1.375rem] md:text-[1.625rem] text-[var(--ca-gold)] mt-1">
+                  {season}
+                </span>
               )}
             </span>
           </NavLink>
+          <p className="ca-tagline text-lg md:text-xl m-0 self-end md:mb-1">
+            &ldquo;Hope rides in.&rdquo;
+          </p>
         </div>
 
         {links.length > 1 && (
@@ -49,14 +78,9 @@ export const ChristmasAliveLayout = ({ children }) => {
                 <li key={to}>
                   <NavLink
                     to={to}
-                    className={({ isActive }) =>
-                      clsx(
-                        'flex-sc gap-2 px-3 py-2 rounded-t-lg no-underline whitespace-nowrap text-sm font-medium',
-                        isActive
-                          ? 'bg-base-100 text-base-content'
-                          : 'text-accent-content/80 hover:text-accent-content',
-                      )
-                    }
+                    className={clsx(
+                      'ca-tab flex-sc gap-2 px-4 py-2.5 no-underline whitespace-nowrap text-sm font-medium',
+                    )}
                   >
                     <Icon name={icon} size={16} />
                     {label}
@@ -66,9 +90,9 @@ export const ChristmasAliveLayout = ({ children }) => {
             </ul>
           </nav>
         )}
-      </div>
+      </header>
 
-      <div className="gutter py-6 flex-1">{children}</div>
+      <div className="gutter py-8 flex-1">{children}</div>
     </div>
   );
 };
