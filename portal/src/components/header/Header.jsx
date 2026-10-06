@@ -197,7 +197,7 @@ const MobileBottomNav = ({ roles, hasNominations }) => {
 };
 
 const getMenuItems = (profile, roles = {}, { hasNominations } = {}) => {
-  const { hasProjectAccess, isAdmin, isLeadership } = roles;
+  const { hasProjectAccess, isAdmin, isLeadership, isCAAdmin } = roles;
   return [
     {
       items: [
@@ -224,6 +224,17 @@ const getMenuItems = (profile, roles = {}, { hasNominations } = {}) => {
         { label: 'Volunteer Notifications', to: '/admin/notify-volunteers', icon: 'mail' },
         { label: 'Captain Management', to: '/admin/captain-management', icon: 'users-group' },
         { label: 'Settings', to: '/settings/datastore', icon: 'settings' },
+      ],
+    },
+    // Christmas Alive admins are a separate group from SWAT Leadership, so they
+    // get their own admin section rather than the SWAT one above.
+    isCAAdmin && {
+      title: 'Christmas Alive',
+      defaultOpen: true,
+      items: [
+        { label: 'Approvals', to: '/christmas-alive/approvals', icon: 'checklist' },
+        { label: 'All Families', to: '/christmas-alive/all-families', icon: 'table' },
+        { label: 'Nominator Management', to: '/christmas-alive/nominators', icon: 'user-check' },
       ],
     },
     {
