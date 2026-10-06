@@ -8,6 +8,7 @@ import {
   householdCounts,
   describeHousehold,
   suggestMemberType,
+  rosterProblems,
   MEMBER_TYPES,
   GENDERS,
 } from '../../helpers/christmasAlive.js';
@@ -15,16 +16,26 @@ import {
 let seq = 0;
 const nextId = () => `m${Date.now().toString(36)}${(seq++).toString(36)}`;
 
-const blankMember = () => ({
+// Relationship starts blank so it is a real answer, not a silent default; it
+// still fills itself in from age as soon as one is typed. Last name starts as
+// the head of household's, which is right for most of the household.
+const blankMember = lastName => ({
   id: nextId(),
   firstName: '',
-  lastName: '',
+  lastName: lastName || '',
   age: '',
   gender: '',
-  type: suggestMemberType(''),
+  type: '',
   shirtSize: '',
   shoeSize: '',
 });
+
+const Required = () => (
+  <span className="text-error" aria-hidden="true">
+    {' '}
+    *
+  </span>
+);
 
 const hasContent = m =>
   !!(m.firstName || m.lastName || m.age || m.gender || m.shirtSize || m.shoeSize);
@@ -40,12 +51,33 @@ const hasContent = m =>
  * Counts shown here derive from local state, never from a stored snapshot, so
  * the summary can never lag behind what the person is typing.
  *
+ * First name, last name, gender and relationship are required on every row
+ * (see `rosterProblems`). Missing ones are highlighted once `showErrors` is
+ * set -- by the caller, when someone tries to submit or save -- rather than
+ * while a row is still being typed.
+ *
  * @param {string|Array} value    Current roster (JSON string or array)
  * @param {Function} onChange     Called with the serialized JSON string
  * @param {boolean} [disabled]
+ * @param {boolean} [showErrors]  Highlight rows missing required fields
+ * @param {string|Function} [defaultLastName] Pre-fills a new row's last name.
+ *   A function is read when the row is added, so a form field can be passed
+ *   and the head of household's current last name is used.
  */
-export const FamilyRoster = ({ value, onChange, disabled = false }) => {
+export const FamilyRoster = ({
+  value,
+  onChange,
+  disabled = false,
+  showErrors = false,
+  defaultLastName = '',
+}) => {
   const roster = useMemo(() => parseRoster(value), [value]);
+  const problems = useMemo(
+    () => new Map(rosterProblems(roster).map(p => [p.index, p.missing])),
+    [roster],
+  );
+  const isMissing = (index, key) =>
+    showErrors && (problems.get(index) || []).includes(key);
   // Household totals, so the head of household -- who is a record field, not
   // a roster row -- is counted. Otherwise the summary reads one adult short.
   const counts = useMemo(() => householdCounts(roster), [roster]);
@@ -66,8 +98,14 @@ export const FamilyRoster = ({ value, onChange, disabled = false }) => {
   );
 
   const addMember = useCallback(() => {
-    emit([...roster, blankMember()]);
-  }, [roster, emit]);
+    let lastName = defaultLastName;
+    try {
+      if (typeof defaultLastName === 'function') lastName = defaultLastName();
+    } catch {
+      lastName = '';
+    }
+    emit([...roster, blankMember(String(lastName ?? '').trim())]);
+  }, [roster, emit, defaultLastName]);
 
   // Inline confirmation rather than a modal: this component also runs inside a
   // Kinetic form via its own React root, where the app's Redux-backed
@@ -175,18 +213,32 @@ export const FamilyRoster = ({ value, onChange, disabled = false }) => {
 
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
                   <label className="flex-c-st gap-1">
-                    <span className="text-xs text-base-content/70">First name</span>
+                    <span className="text-xs text-base-content/70">
+                      First name<Required />
+                    </span>
                     <input
-                      className="kinput kinput-bordered w-full"
+                      required
+                      aria-invalid={isMissing(index, 'firstName')}
+                      className={clsx(
+                        'kinput kinput-bordered w-full',
+                        isMissing(index, 'firstName') && 'kinput-error',
+                      )}
                       value={member.firstName || ''}
                       onChange={e => updateMember(index, { firstName: e.target.value })}
                       disabled={disabled}
                     />
                   </label>
                   <label className="flex-c-st gap-1">
-                    <span className="text-xs text-base-content/70">Last name</span>
+                    <span className="text-xs text-base-content/70">
+                      Last name<Required />
+                    </span>
                     <input
-                      className="kinput kinput-bordered w-full"
+                      required
+                      aria-invalid={isMissing(index, 'lastName')}
+                      className={clsx(
+                        'kinput kinput-bordered w-full',
+                        isMissing(index, 'lastName') && 'kinput-error',
+                      )}
                       value={member.lastName || ''}
                       onChange={e => updateMember(index, { lastName: e.target.value })}
                       disabled={disabled}
@@ -205,29 +257,48 @@ export const FamilyRoster = ({ value, onChange, disabled = false }) => {
                     />
                   </label>
                   <label className="flex-c-st gap-1">
-                    <span className="text-xs text-base-content/70">Gender</span>
+                    <span className="text-xs text-base-content/70">
+                      Gender<Required />
+                    </span>
                     <select
-                      className="kselect kselect-bordered w-full"
+                      required
+                      aria-invalid={isMissing(index, 'gender')}
+                      className={clsx(
+                        'kselect kselect-bordered w-full',
+                        isMissing(index, 'gender') && 'kselect-error',
+                      )}
                       value={member.gender || ''}
                       onChange={e => updateMember(index, { gender: e.target.value })}
                       disabled={disabled}
                     >
-                      <option value="">Not given</option>
+                      <option value="" disabled>
+                        Select…
+                      </option>
                       {GENDERS.map(g => (
                         <option key={g} value={g}>{g}</option>
                       ))}
                     </select>
                   </label>
                   <label className="flex-c-st gap-1">
-                    <span className="text-xs text-base-content/70">Relationship</span>
+                    <span className="text-xs text-base-content/70">
+                      Relationship<Required />
+                    </span>
                     <select
-                      className="kselect kselect-bordered w-full"
+                      required
+                      aria-invalid={isMissing(index, 'type')}
+                      className={clsx(
+                        'kselect kselect-bordered w-full',
+                        isMissing(index, 'type') && 'kselect-error',
+                      )}
                       value={member.type || ''}
                       onChange={e =>
                         updateMember(index, { type: e.target.value, typeTouched: true })
                       }
                       disabled={disabled}
                     >
+                      <option value="" disabled>
+                        Select…
+                      </option>
                       {MEMBER_TYPES.map(ty => (
                         <option key={ty} value={ty}>{ty}</option>
                       ))}
@@ -261,6 +332,18 @@ export const FamilyRoster = ({ value, onChange, disabled = false }) => {
             ))}
           </ul>
 
+          {showErrors && problems.size > 0 && (
+            <div className="kalert kalert-error kalert-soft" role="alert">
+              <Icon name="alert-triangle" size={20} />
+              <span>
+                Please give a first name, last name, gender and relationship for
+                every household member ({problems.size}{' '}
+                {problems.size === 1 ? 'person is' : 'people are'} missing
+                something).
+              </span>
+            </div>
+          )}
+
           <div className="flex-bc gap-3 flex-wrap">
             <button
               type="button"
@@ -289,4 +372,6 @@ FamilyRoster.propTypes = {
   value: t.oneOfType([t.string, t.array]),
   onChange: t.func.isRequired,
   disabled: t.bool,
+  showErrors: t.bool,
+  defaultLastName: t.oneOfType([t.string, t.func]),
 };

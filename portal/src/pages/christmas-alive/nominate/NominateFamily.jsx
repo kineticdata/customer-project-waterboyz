@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { KineticForm } from '../../../components/kinetic-form/KineticForm.jsx';
+import { nominationDefaults } from '../../../helpers/nominationDefaults.js';
 
 const FORM_SLUG = 'christmas-alive-family-nomination';
 
@@ -19,17 +20,9 @@ export const NominateFamily = () => {
   const kappSlug = useSelector(state => state.app.kappSlug);
   const profile = useSelector(state => state.app.profile);
 
-  // A nominator is a known person — they shouldn't retype their own details.
-  //
-  // Only prefill fields that actually exist on the form. Passing a value for an
-  // unknown field name makes CoreForm fail to render, which is a hard error for
-  // the whole page rather than a quietly ignored value. The richer Nominator
-  // First/Last/Email/Phone/Organization prefill returns once those fields are
-  // added to the form.
-  const values = useMemo(() => {
-    if (!profile) return undefined;
-    return { 'Requested By': profile.username || '' };
-  }, [profile]);
+  // Shared with the generic /forms page so every way into this form
+  // pre-fills the same way. See helpers/nominationDefaults.js.
+  const values = useMemo(() => nominationDefaults(FORM_SLUG, profile), [profile]);
 
   const handleCompleted = useCallback(
     response => {
