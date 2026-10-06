@@ -225,7 +225,12 @@ test('buildExportCsv emits the spec column order', () => {
     header,
     '"Family ID","Status","House Head First Name","House Head Last Name",' +
       '"House Head Email","House Head Phone","Street","City","State","Zip",' +
-      '"Number of Members","Adults","Children"',
+      '"Number of Members","Adults","Children",' +
+      '"County","Native Language","Household Members","Interpreter Needed",' +
+      '"Family Photo Requested","Below ALICE Threshold","Support Received",' +
+      '"Background on the Family","Nominator Name","Nominator Email",' +
+      '"Nominator Phone","Nominating Organization","Nominator Account",' +
+      '"Sponsor Name","Sponsor Email","Sponsor Phone","Sponsored On"',
   );
 });
 
@@ -236,11 +241,33 @@ test('buildExportCsv writes one CRLF row per family', () => {
       email: 'a@example.org', phone: '3015550100', addressLine1: '12 Elm St',
       city: 'Frederick', state: 'MD', zip: '21701',
       totalMembers: 5, totalAdults: 2, totalChildren: 3,
+      sponsorName: 'Sam Lee', sponsorEmail: 's@example.org',
+      sponsorPhone: '(301) 555-0199', claimedAt: '2026-10-05T15:17:52Z',
+      photoRequested: true, needsInterpreter: false,
+      county: 'Frederick', nativeLanguage: 'Spanish',
+      roster: [{ firstName: 'Leo', lastName: 'Martinez', type: 'Child', gender: 'Male', age: '7' }],
+      belowAlice: "Don't Know", supportReceiving: ['Food Stamps', 'Medicare'],
+      background: 'Single mom, two jobs', requestedBy: 'nominator@example.org',
+      nominatorName: 'Jo Rivera', nominatorEmail: 'jo@example.org',
+      nominatorPhone: '301-555-0111', nominatingOrganization: 'Mountain View',
     },
   ]);
   const lines = csv.split('\r\n');
   assert.equal(lines.length, 2);
-  assert.equal(lines[1], '"14","Adopted","Ana","Martinez","a@example.org","3015550100","12 Elm St","Frederick","MD","21701","5","2","3"');
+  assert.equal(
+    lines[1],
+    '"14","Adopted","Ana","Martinez","a@example.org","3015550100","12 Elm St","Frederick","MD","21701","5","2","3",' +
+      '"Frederick","Spanish","Leo Martinez (Child, Male, age 7)","No","Yes",' +
+      '"Don\'t Know","Food Stamps; Medicare","Single mom, two jobs",' +
+      '"Jo Rivera","jo@example.org","301-555-0111","Mountain View","nominator@example.org",' +
+      '"Sam Lee","s@example.org","(301) 555-0199","2026-10-05"',
+  );
+});
+
+test('buildExportCsv leaves sponsor columns blank for an unsponsored family', () => {
+  const [, row] = buildExportCsv([{ familyNumber: '3', status: 'Approved' }]).split('\r\n');
+  assert.ok(row.endsWith('"","","",""'), row);
+  assert.ok(row.includes('"No","No"'), row);
 });
 
 // --------------------------------------------------------------------------
@@ -307,4 +334,108 @@ test('parseRoster head-row filter is case-insensitive and tolerant', () => {
     { firstName: 'D' },
   ]);
   assert.deepEqual(parseRoster(r).map(m => m.firstName), ['C', 'D']);
+});
+
+// --------------------------------------------------------------------------
+// Sponsor phone validation
+// --------------------------------------------------------------------------
+
+const { isValidPhone } = await import('../../portal/src/helpers/christmasAlive.js');
+
+test('isValidPhone accepts any formatting of a 10-digit US number', () => {
+  for (const p of ['3015550100', '(301) 555-0100', '301.555.0100', '+1 301 555 0100', '1-301-555-0100']) {
+    assert.equal(isValidPhone(p), true, p);
+  }
+});
+
+test('isValidPhone rejects numbers that cannot be dialled', () => {
+  for (const p of ['', null, undefined, '555-0100', '23015550100', '301555010099', 'call me']) {
+    assert.equal(isValidPhone(p), false, String(p));
+  }
+});
+
+// --------------------------------------------------------------------------
+// Required roster fields
+// --------------------------------------------------------------------------
+
+const { rosterProblems } = await import('../../portal/src/helpers/christmasAlive.js');
+
+test('rosterProblems is empty when every member is complete', () => {
+  const roster = [
+    { firstName: 'Ana', lastName: 'Martinez', gender: 'Female', type: 'Child', age: '' },
+  ];
+  assert.deepEqual(rosterProblems(roster), []);
+});
+
+test('rosterProblems names each missing required field, per row', () => {
+  const roster = [
+    { firstName: 'Ana', lastName: 'Martinez', gender: 'Female', type: 'Child' },
+    { firstName: '  ', lastName: 'Martinez', gender: '', type: '' },
+  ];
+  assert.deepEqual(rosterProblems(roster), [
+    { index: 1, missing: ['firstName', 'gender', 'type'] },
+  ]);
+});
+
+test('rosterProblems treats age and sizes as optional and tolerates bad input', () => {
+  assert.deepEqual(
+    rosterProblems([{ firstName: 'Al', lastName: 'B', gender: 'Male', type: 'Adult' }]),
+    [],
+  );
+  assert.deepEqual(rosterProblems(null), []);
+  assert.deepEqual(rosterProblems(undefined), []);
+});
+
+const { formatRosterForExport } = await import('../../portal/src/helpers/christmasAlive.js');
+
+test('formatRosterForExport writes one readable entry per member', () => {
+  assert.equal(
+    formatRosterForExport([
+      { firstName: 'Ana', lastName: 'Martinez', type: 'Child', gender: 'Female', age: '7', shirtSize: 'Youth M', shoeSize: '2' },
+      { firstName: 'Luis', lastName: 'Martinez', type: 'Spouse', gender: 'Male', age: '' },
+    ]),
+    'Ana Martinez (Child, Female, age 7, shirt Youth M, shoe 2); Luis Martinez (Spouse, Male)',
+  );
+  assert.equal(formatRosterForExport([]), '');
+  assert.equal(formatRosterForExport(null), '');
+});
+
+// --------------------------------------------------------------------------
+// Nomination pre-fill
+// --------------------------------------------------------------------------
+
+const { nominationDefaults } = await import('../../portal/src/helpers/nominationDefaults.js');
+
+test('nominationDefaults pre-fills the nominator from the profile and remembered attributes', () => {
+  const profile = {
+    username: 'jo@example.org',
+    displayName: 'Jo Ann  Rivera',
+    email: 'jo@example.org',
+    attributesMap: {
+      'CA Nominator Phone Number': ['301-555-0111'],
+      'CA Nominator Organization': ['Mountain View'],
+    },
+  };
+  assert.deepEqual(nominationDefaults('christmas-alive-family-nomination', profile), {
+    'Requested By': 'jo@example.org',
+    'Nominator First Name': 'Jo',
+    'Nominator Last Name': 'Ann Rivera',
+    'Nominator Email': 'jo@example.org',
+    'Nominator Phone Number': '301-555-0111',
+    'Nominating Organization': 'Mountain View',
+  });
+});
+
+test('nominationDefaults leaves phone and organization blank before a first nomination', () => {
+  const values = nominationDefaults('christmas-alive-family-nomination', {
+    username: 'a', displayName: 'Al', email: 'a@x.org', attributesMap: {},
+  });
+  assert.equal(values['Nominator Phone Number'], '');
+  assert.equal(values['Nominating Organization'], '');
+  assert.equal(values['Nominator Last Name'], '');
+});
+
+test('nominationDefaults returns nothing for other forms or no profile', () => {
+  assert.equal(nominationDefaults('swat-project-nomination', { username: 'a' }), undefined);
+  assert.equal(nominationDefaults('christmas-alive-family-nomination', null), undefined);
 });

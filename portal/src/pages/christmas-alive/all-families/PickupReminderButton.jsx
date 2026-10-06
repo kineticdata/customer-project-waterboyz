@@ -82,7 +82,7 @@ export const PickupReminderButton = ({ rows, season, onSend, disabled }) => {
       )}
 
       {confirming ? (
-        <div className="flex-c-st gap-2 p-3 rounded-lg border border-base-300 bg-base-100">
+        <div className="flex-c-st gap-2 p-3 ca-card">
           <p className="text-sm m-0">
             Email pickup details to{' '}
             <strong>

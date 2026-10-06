@@ -28,6 +28,8 @@
 | Attribute | Description |
 |-----------|---|
 | Volunteer Id | Links user account to a volunteer record in the `volunteers` datastore |
+| CA Nominator Phone Number | Christmas Alive nominator's phone. Set only when blank by the `Christmas Alive - Remember Nominator Details` workflow on nomination submit; pre-fills the next nomination (added 2026-10-05) |
+| CA Nominator Organization | Christmas Alive nominator's organization (an `affiliates` Name). Same workflow and behaviour as above |
 
 ### User Profile Attribute Definitions
 
@@ -89,7 +91,7 @@ All forms live under the **`service-portal`** kapp.
 - **Type:** Nominations | **Status:** Active
 - **Category:** `christmas-alive` | **Icon:** `pointer-cancel`
 - **Description:** Nominate a family for Christmas Alive
-- **Fields:** First Name, Last Name, Email, Phone Number, Address, County, Native Language, Needs Interpreter, Family Members JSON, Support Received, Background on the Family, Total Adults, Total Children, Family Status, Requested By
+- **Fields:** *Nominator section (added 2026-10-05, all required):* Nominator First Name, Nominator Last Name, Nominator Email *(name and email pre-filled from the profile by the portal)*, Nominator Phone Number, Nominating Organization *(dropdown from the `Affiliates` form integration → `Affiliates Retrieve` operation)*. *Head of household:* First Name, Last Name, Email, Phone Number, Address, City *(required; added 2026-10-05)*, State *(required dropdown from the States integration, default MD; added 2026-10-05 — the Counties integration now follows it)*, County, Native Language, Needs Interpreter *(required radio Yes/No, default No — was a checkbox before 2026-10-05, so older rows hold `["Yes"]`)*, Family Photo Requested *(required radio Yes/No, default No; added 2026-10-05)*, Below ALICE Threshold *(optional radio Yes/No/Don't Know; added 2026-10-05 — Support Received is hidden, and its value omitted, when this is Yes)*, Family Members JSON, Support Received, Background on the Family, Total Adults, Total Children, Family Status, Requested By
 - **Workflows:** "Nomination Process" (on Submitted), "On Update" (on Updated)
 
 #### Nominate a SWAT Project (`swat-project-nomination`)
@@ -200,7 +202,7 @@ All forms live under the **`service-portal`** kapp.
 
 - **Type:** Datastore | **Status:** Active | *Created 2026-09-04*
 - **Description:** One row per family per Christmas Alive season. Season state plus a snapshot of the fields the sponsor browse list and admin export need.
-- **Fields (21):** Family ID, Nomination ID, Season, Family Number, Status, Rejection Reason, Duplicate Of, Sponsor Username, Sponsor Email, Claimed At, Released At, Release Notes, Packet Sent At, Photo Requested, Support Currently Receiving, City, County, Native Language, Total Members, Total Adults, Total Children
+- **Fields (23):** Family ID, Nomination ID, Season, Family Number, Status, Rejection Reason, Duplicate Of, Sponsor Username, Sponsor Email, Sponsor Name, Sponsor Phone *(both added 2026-10-05; captured in the claim modal, written by the claim WebAPI)*, Claimed At, Released At, Release Notes, Packet Sent At, Photo Requested *(Yes/No, copied from the nomination by Create Sponsorship Row)*, Support Currently Receiving, City, County, Native Language, Total Members, Total Adults, Total Children
 - **Status choices:** Pending, Approved, Rejected, Adopted
 - **Security:** Display/Access/Modification = `SWAT Leadership or Christmas Alive Admins`. Sponsors never read this form directly — they go through operations.
 - **Indexes (all Built):** `values[Family ID]`, `values[Nomination ID]`, `values[Season]`, `values[Status]`, `values[Sponsor Username]`, `values[Season],values[Status]`, `values[Season],values[Sponsor Username]`
@@ -218,7 +220,7 @@ All forms live under the **`service-portal`** kapp.
 - **Type:** Datastore | **Status:** Active
 - **Description:** Configurable programs displayed on the home page (SWAT, Christmas Alive, etc.)
 - **Fields (10):** Program Name, Description, Icon, Color, Status, Nomination Form Slug, Home Page Order, Active From, Active To, Current Season
-- **Season fields** (*added 2026-09-04*) drive the seasonal Christmas Alive entry point. Christmas Alive is set to Active From `2026-09-01`, Active To `2026-12-31`, Current Season `2026`. An unconfigured window reads as closed, never as always-open.
+- **Season fields** (*added 2026-09-04*) drive the seasonal Christmas Alive entry point — and are the first step of the yearly rollover in [christmas-alive.md](christmas-alive.md#yearly-season-checklist). Christmas Alive is set to Active From `2026-09-01`, Active To `2026-12-31`, Current Season `2026`. An unconfigured window reads as closed, never as always-open.
 - **Icon:** `apps`
 - **Used by:** `HomeNominator.jsx` fetches active programs to render nomination cards
 
@@ -434,6 +436,9 @@ The kapp must have a compound index on [type, values[Event ID]] for EventsAssign
 #### On Update (`christmas-alive-family-nomination`)
 - **Event:** Submission Updated
 
+#### Christmas Alive workflows
+Create Sponsorship Row and Remember Nominator Details (nomination form); Send Sponsor Packet, Sponsor Nudge, Notify Reassigned Sponsor and Pickup Reminder (`christmas-alive-sponsorships`); Sync Family To Sponsorship (`families`); plus the `christmas-alive-approve`, `-claim` and `-packet` WebAPIs. What each does, and which three carry the yearly event dates in their email bodies, is in [christmas-alive.md](christmas-alive.md#platform-pieces).
+
 #### Approval Submitted (`approval`)
 - **Event:** Submission Submitted
 
@@ -455,6 +460,12 @@ All integrations share the same connection (`1415539c-bb98-48bb-ad33-11be25189ad
 | Projects - Retrieve | `COMMA SEPARATED LIST OF PROJECT IDs` ← `values('CSV of Project IDs')` | Fetch multiple projects by ID list |
 | Projects by Family ID | `Family ID` ← `values('Family ID')` | Fetch projects associated with a family |
 | Upcoming SWAT Projects | *(none)* | Fetch upcoming/active SWAT projects |
+| CA - List Users | *(none)* | Christmas Alive Nominator Management: user directory, username/name/email only. Execution: Christmas Alive Admins |
+| CA - List Nominators | *(none)* | Members of the Christmas Alive Nominators team (slug fixed in the operation). Execution: Christmas Alive Admins |
+| CA - Add Nominator | `Username` ← `values('Username')` | Adds a user to Christmas Alive Nominators. Team fixed in the operation body, so callers can't touch any other team. Execution: Christmas Alive Admins |
+| CA - Remove Nominator | `Username` ← `values('Username')` | Removes a user from Christmas Alive Nominators (team slug fixed in the path). Execution: Christmas Alive Admins |
+
+> **Why integrations, not the Core API, for Nominator Management:** space-level *Users Access* is SWAT Leadership and *Team Membership Modification* is space-admin only. Christmas Alive Admins have neither, and granting the space-wide membership permission would let them change any team. These integrations give them exactly one team. (Added 2026-10-05.)
 
 ---
 

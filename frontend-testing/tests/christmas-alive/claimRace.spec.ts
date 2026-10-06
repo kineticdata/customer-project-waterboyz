@@ -16,6 +16,9 @@ import { createContext, callWebApi, getSubmission } from "../../christmas-alive/
  * Fixtures live in an isolated TEST- season and are deleted afterwards; see
  * christmas-alive/fixtures.mjs for why that is safe to run against production.
  */
+/** Every real claim carries the sponsor's contact; the WebAPI rejects one without it. */
+const CONTACT = { sponsorName: "Test Sponsor", sponsorPhone: "301-555-0100" };
+
 test.describe("Christmas Alive claim race", () => {
   let ctx: any;
 
@@ -33,7 +36,7 @@ test.describe("Christmas Alive claim race", () => {
     // Fire together. Sequential calls would pass even with no lock at all.
     const results = await Promise.all(
       Array.from({ length: 5 }, () =>
-        callWebApi("christmas-alive-claim", { sponsorshipId }),
+        callWebApi("christmas-alive-claim", { sponsorshipId, ...CONTACT }),
       ),
     );
 
@@ -54,6 +57,46 @@ test.describe("Christmas Alive claim race", () => {
     expect(row.values["Claimed At"]).toBeTruthy();
   });
 
+  test("a claim stores the sponsor's name and phone for the check-in team", async () => {
+    const { sponsorshipId } = await ctx.seedFamily({ adults: 1, children: 1 });
+
+    // A quote and a comma in the name: the WebAPI parses the body as JSON
+    // for these fields, so neither may truncate or corrupt the stored value.
+    const { body } = await callWebApi("christmas-alive-claim", {
+      sponsorshipId,
+      sponsorName: 'Pat "PJ" O\'Neil, Jr.',
+      sponsorPhone: "(301) 555-0142",
+    });
+    expect(body.ok).toBe(true);
+
+    const row = await getSubmission(sponsorshipId);
+    expect(row.values["Sponsor Name"]).toBe('Pat "PJ" O\'Neil, Jr.');
+    expect(row.values["Sponsor Phone"]).toBe("(301) 555-0142");
+  });
+
+  test("a claim without a name or a dialable phone is refused", async () => {
+    const { sponsorshipId } = await ctx.seedFamily({ adults: 1, children: 1 });
+
+    for (const contact of [
+      {},
+      { sponsorName: "Test Sponsor" },
+      { sponsorName: "Test Sponsor", sponsorPhone: "555-0100" },
+      { sponsorName: "  ", sponsorPhone: "301-555-0100" },
+    ]) {
+      const { body } = await callWebApi("christmas-alive-claim", {
+        sponsorshipId,
+        ...contact,
+      });
+      expect(body.ok).toBe(false);
+      expect(body.reason).toBe("CONTACT_REQUIRED");
+    }
+
+    // Refused before any write: the family is still on the list.
+    const row = await getSubmission(sponsorshipId);
+    expect(row.values["Status"]).toBe("Approved");
+    expect(row.values["Sponsor Username"] ?? "").toBe("");
+  });
+
   test("a family that is not Approved cannot be claimed at all", async () => {
     // Pending is the state a nomination sits in before review. Claiming one
     // would hand a sponsor a family nobody has vetted.
@@ -61,6 +104,7 @@ test.describe("Christmas Alive claim race", () => {
 
     const { body } = await callWebApi("christmas-alive-claim", {
       sponsorshipId,
+      ...CONTACT,
     });
 
     expect(body.ok).toBe(false);
@@ -79,6 +123,7 @@ test.describe("Christmas Alive claim race", () => {
 
     const { body } = await callWebApi("christmas-alive-claim", {
       sponsorshipId,
+      ...CONTACT,
     });
 
     expect(body.ok).toBe(false);

@@ -15,15 +15,17 @@ export const FamilyCard = ({ family, onSponsor, disabled }) => {
   const household = describeHousehold(family);
 
   return (
-    <li className="flex-c-st gap-3 p-4 rounded-lg border border-base-300 bg-base-100">
+    <li className="flex-c-st gap-3 p-4 ca-card">
       <div className="flex-bs gap-3">
         <div className="flex-c-st">
-          <span className="text-h2 font-bold leading-none">
+          <span className="ca-numeral text-[1.75rem] leading-none">
             {familyLabel(familyNumber)}
           </span>
           <span className="text-sm text-base-content/80 mt-1">{household}</span>
         </div>
-        <Icon name="users" size={24} className="text-accent flex-none" />
+        <span className="flex-cc size-10 rounded-full bg-base-200 text-accent flex-none">
+          <Icon name="users" size={22} />
+        </span>
       </div>
 
       <dl className="grid grid-cols-2 gap-x-4 gap-y-1 m-0 text-sm">

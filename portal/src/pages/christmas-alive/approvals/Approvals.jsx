@@ -75,7 +75,7 @@ export const Approvals = () => {
       </div>
 
       {visible.length === 0 ? (
-        <p className="text-base-content/70 p-6 rounded-lg border border-dashed border-base-300 max-w-prose m-0">
+        <p className="text-base-content/70 p-6 rounded-2xl border border-dashed border-base-300 bg-base-100/60 max-w-prose m-0">
           {EMPTY_COPY[tab]}
         </p>
       ) : (
@@ -86,7 +86,7 @@ export const Approvals = () => {
             return (
               <li
                 key={row.id}
-                className="rounded-lg border border-base-300 bg-base-100 overflow-hidden"
+                className="ca-card overflow-hidden"
               >
                 <button
                   type="button"

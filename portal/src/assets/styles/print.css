@@ -23,6 +23,21 @@
     background: #fff !important;
   }
 
+  /* The app shell is one screen tall with its own scroll area
+     (h-screen + overflow-hidden in layout.css). On paper that clips the
+     document to a single page and silently drops the rest -- the packet lost
+     its whole sponsor guide this way. Release the height and overflow on
+     every ancestor of the printable document, and only those, so the page
+     flows onto as many sheets as it needs. */
+  html:has(.print-sheet),
+  body:has(.print-sheet),
+  body:has(.print-sheet) :has(.print-sheet) {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
   .print-sheet {
     margin: 0 !important;
     padding: 0 !important;
@@ -36,6 +51,13 @@
   .print-sheet .print-keep {
     break-inside: avoid;
     page-break-inside: avoid;
+  }
+
+  /* Start a section on a fresh page, e.g. the sponsor guide in a packet. */
+  .print-sheet .print-break-before {
+    break-before: page;
+    page-break-before: always;
+    border-top: 0 !important;
   }
 
   .print-sheet a[href]::after {

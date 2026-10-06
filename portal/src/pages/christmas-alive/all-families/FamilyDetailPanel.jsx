@@ -3,6 +3,8 @@ import t from 'prop-types';
 import {
   CA_STATUS,
   describeHousehold,
+  parseRoster,
+  rosterProblems,
   serializeRoster,
 } from '../../../helpers/christmasAlive.js';
 import { FamilyRoster } from '../../../components/family-roster/FamilyRoster.jsx';
@@ -35,12 +37,14 @@ export const FamilyDetailPanel = ({ row, onSaveFamily, onSaveSponsorship, saving
   const [draft, setDraft] = useState({});
   const [status, setStatus] = useState(row.status);
   const [rosterDraft, setRosterDraft] = useState('[]');
+  const [showRosterErrors, setShowRosterErrors] = useState(false);
   const [message, setMessage] = useState(null);
 
   useEffect(() => {
     setDraft(Object.fromEntries(FAMILY_FIELDS.map(([, k]) => [k, row[k] ?? ''])));
     setStatus(row.status);
     setRosterDraft(serializeRoster(row.roster));
+    setShowRosterErrors(false);
     setMessage(null);
   }, [row]);
 
@@ -51,6 +55,12 @@ export const FamilyDetailPanel = ({ row, onSaveFamily, onSaveSponsorship, saving
   // written here -- the sync workflow derives them, which keeps one authority
   // for the counting rules instead of two.
   const saveRoster = async () => {
+    // Same rule as the nomination form: every member needs a first name, last
+    // name, gender and relationship before the household can be saved.
+    if (rosterProblems(parseRoster(rosterDraft)).length > 0) {
+      setShowRosterErrors(true);
+      return;
+    }
     const result = await onSaveFamily(row.familyId, {
       'Family Members JSON': rosterDraft,
     });
@@ -95,6 +105,8 @@ export const FamilyDetailPanel = ({ row, onSaveFamily, onSaveSponsorship, saving
       Status: CA_STATUS.APPROVED,
       'Sponsor Username': '',
       'Sponsor Email': '',
+      'Sponsor Name': '',
+      'Sponsor Phone': '',
       'Claimed At': '',
       'Packet Sent At': '',
     });
@@ -107,18 +119,38 @@ export const FamilyDetailPanel = ({ row, onSaveFamily, onSaveSponsorship, saving
 
   // Clearing Packet Sent At re-arms the send-packet workflow, which is what
   // emails the incoming sponsor their details.
-  const reassignSponsor = async (username, email) => {
+  const reassignSponsor = async ({ username, email, name, phone }) => {
     const result = await onSaveSponsorship(row.id, {
       Status: CA_STATUS.ADOPTED,
       'Sponsor Username': username,
       'Sponsor Email': email || username,
+      'Sponsor Name': name || username,
+      'Sponsor Phone': phone || '',
       'Claimed At': nowStamp(),
       'Packet Sent At': '',
     });
     setMessage(
       result?.error
         ? { tone: 'error', text: 'Could not reassign the family.' }
-        : { tone: 'success', text: `Reassigned to ${username}, who has been emailed.` },
+        : {
+            tone: 'success',
+            text: `Reassigned to ${name || username}, who has been emailed.`,
+          },
+    );
+  };
+
+  // Sponsors who claimed before contact capture existed, or who were assigned
+  // by leadership, may have no phone on file. This fills it in without
+  // touching the claim itself, so no emails are re-sent.
+  const saveSponsorContact = async ({ name, phone }) => {
+    const result = await onSaveSponsorship(row.id, {
+      'Sponsor Name': name,
+      'Sponsor Phone': phone,
+    });
+    setMessage(
+      result?.error
+        ? { tone: 'error', text: "Could not save the sponsor's contact details." }
+        : { tone: 'success', text: 'Sponsor contact details saved.' },
     );
   };
 
@@ -203,6 +235,7 @@ export const FamilyDetailPanel = ({ row, onSaveFamily, onSaveSponsorship, saving
           saving={saving}
           onRelease={releaseSponsor}
           onReassign={reassignSponsor}
+          onSaveContact={saveSponsorContact}
         />
         {row.rejectionReason && (
           <p className="text-sm text-base-content/70 m-0">
@@ -246,6 +279,8 @@ export const FamilyDetailPanel = ({ row, onSaveFamily, onSaveSponsorship, saving
               value={rosterDraft}
               onChange={setRosterDraft}
               disabled={saving}
+              showErrors={showRosterErrors}
+              defaultLastName={draft.lastName || row.lastName || ''}
             />
             <div className="flex-ec gap-2">
               <button
@@ -274,10 +309,7 @@ export const FamilyDetailPanel = ({ row, onSaveFamily, onSaveSponsorship, saving
             <p className="text-sm m-0">An interpreter is needed.</p>
           )}
           {row.photoRequested && (
-            <p className="text-sm m-0">
-              <span className="text-base-content/60">Family portrait: </span>
-              {row.photoRequested}
-            </p>
+            <p className="text-sm m-0">A family photo is requested.</p>
           )}
         </section>
       )}

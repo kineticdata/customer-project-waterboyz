@@ -33,7 +33,7 @@ export const MySponsorships = () => {
       </div>
 
       {families.length === 0 ? (
-        <div className="flex-c-st gap-3 items-start p-6 rounded-lg border border-dashed border-base-300">
+        <div className="flex-c-st gap-3 items-start p-6 rounded-2xl border border-dashed border-base-300 bg-base-100/60">
           <Icon name="gift" size={32} className="text-accent" />
           <p className="font-medium m-0">You haven&rsquo;t sponsored a family yet</p>
           <p className="text-sm text-base-content/70 m-0 max-w-prose">
@@ -49,11 +49,11 @@ export const MySponsorships = () => {
           {families.map(family => (
             <li
               key={family.sponsorshipId}
-              className="flex-c-st gap-3 p-4 rounded-lg border border-base-300 bg-base-100"
+              className="flex-c-st gap-3 p-4 ca-card"
             >
               <div className="flex-bs gap-3 flex-wrap">
                 <div className="flex-c-st">
-                  <span className="text-h3 font-bold leading-none">
+                  <span className="ca-numeral text-[1.5rem] leading-none">
                     {familyLabel(family.familyNumber)}
                   </span>
                   <span className="text-sm text-base-content/80 mt-1">

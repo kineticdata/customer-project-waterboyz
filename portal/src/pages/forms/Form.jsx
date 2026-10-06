@@ -1,12 +1,13 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { deleteSubmission } from '@kineticdata/react';
 import { generateFormLayout } from '../../components/forms/FormLayout.jsx';
 import { KineticForm } from '../../components/kinetic-form/KineticForm.jsx';
 import { openConfirm } from '../../helpers/confirm.js';
 import { toastError, toastSuccess } from '../../helpers/toasts.js';
-import { callIfFn } from '../../helpers/index.js';
+import { callIfFn, valuesFromQueryParams } from '../../helpers/index.js';
+import { nominationDefaults } from '../../helpers/nominationDefaults.js';
 import { Icon } from '../../atoms/Icon.jsx';
 
 const generateDeleteDraftButton =
@@ -79,6 +80,18 @@ export const Form = ({ review, listActions }) => {
     [backTo, DeleteDraftButton],
   );
 
+  // New nominations start with the nominator's own details. Not applied when
+  // reopening an existing submission, whose values are already saved. Query
+  // string values still win, so a link can override a default.
+  const profile = useSelector(state => state.app.profile);
+  const [searchParams] = useSearchParams();
+  const values = useMemo(() => {
+    if (submissionId) return undefined;
+    const defaults = nominationDefaults(formSlug, profile);
+    if (!defaults) return undefined;
+    return { ...defaults, ...valuesFromQueryParams(searchParams) };
+  }, [submissionId, formSlug, profile, searchParams]);
+
   const NOMINATION_FORM_SLUGS = [
     'swat-project-nomination',
     'christmas-alive-family-nomination',
@@ -113,6 +126,7 @@ export const Form = ({ review, listActions }) => {
       kappSlug={kappSlug || portalKappSlug}
       formSlug={formSlug}
       submissionId={submissionId}
+      values={values}
       components={{ Layout }}
       completed={handleCompleted}
       review={review}

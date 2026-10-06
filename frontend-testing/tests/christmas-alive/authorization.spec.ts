@@ -115,7 +115,14 @@ test.describe("Christmas Alive authorization", () => {
       // so a supplied username must have no effect.
       await callWebApi(
         "christmas-alive-claim",
-        { sponsorshipId, sponsorUsername: "victim@example.invalid" },
+        {
+          sponsorshipId,
+          sponsorUsername: "victim@example.invalid",
+          // Valid contact, so the claim reaches the attribution step rather
+          // than being refused as CONTACT_REQUIRED before it.
+          sponsorName: "Test Sponsor",
+          sponsorPhone: "301-555-0100",
+        },
         OTHER,
       );
 

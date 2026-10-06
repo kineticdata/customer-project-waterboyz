@@ -1,0 +1,247 @@
+/*
+ * Christmas Alive theme -- Brand Guidelines 2026.
+ *
+ * Everything here is scoped to `.ca-theme`, which only the Christmas Alive
+ * layout and its printable pages carry. The global Waterboyz header, footer
+ * and every SWAT page keep the Waterboyz theme untouched.
+ *
+ * Colour roles are remapped rather than new classes invented, so the existing
+ * kbtn / kalert / text-accent markup across the Christmas Alive pages picks up
+ * the campaign palette without per-page rewrites:
+ *   accent    -> Homecoming Red  (the truck: calls to action, emphasis)
+ *   primary   -> Evergreen       (the tree: secondary actions, structure)
+ *   secondary -> Hearth Gold     (ornaments: decoration only -- too faint for
+ *                                 text on white, so never used for copy)
+ * Waterboyz Blue is reserved for the seal and is not used anywhere here.
+ */
+
+.ca-theme {
+  --ca-red: #b23a2d;
+  --ca-evergreen: #2f5233;
+  --ca-evergreen-deep: #22402a;
+  --ca-gold: #c49b54;
+  --ca-frost: #f7f2e7;
+  --ca-ink: #1c1c1c;
+  --ca-parchment: #dbd1be;
+
+  --color-accent: var(--ca-red);
+  --color-accent-content: #ffffff;
+  --color-primary: var(--ca-evergreen);
+  --color-primary-content: #ffffff;
+  --color-secondary: var(--ca-gold);
+  --color-secondary-content: var(--ca-ink);
+  --color-base-100: #ffffff;
+  --color-base-200: var(--ca-frost);
+  --color-base-300: var(--ca-parchment);
+  --color-base-content: var(--ca-ink);
+
+  /* Warm, evergreen-tinted lift -- "a gentle drop shadow, never a
+     hard-edged box". */
+  --ca-shadow: 0 1px 2px rgb(47 82 51 / 0.06), 0 10px 28px -14px rgb(47 82 51 / 0.32);
+
+  font-family: 'Poppins', var(--font-sans), system-ui, sans-serif;
+  background-color: var(--ca-frost);
+  color: var(--ca-ink);
+}
+
+/* Poppins SemiBold for headlines; the portal default is ExtraBold Onest. */
+.ca-theme :is(h1, h2, h3, h4) {
+  font-family: 'Poppins', var(--font-sans), sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.ca-theme ::selection {
+  background: rgb(196 155 84 / 0.35);
+}
+
+.ca-theme :focus-visible {
+  outline: 2px solid var(--ca-red);
+  outline-offset: 2px;
+}
+
+/* --- Type roles ------------------------------------------------------- */
+
+/* Display script: the "Christmas Alive" wordmark only, once per layout. */
+.ca-script {
+  font-family: 'Great Vibes', cursive;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+/* Signature numeral: years, family numbers, dates, stats. Tinos is the
+   metric-identical web build of Liberation Serif. */
+.ca-numeral {
+  font-family: 'Tinos', 'Liberation Serif', Georgia, serif;
+  font-weight: 700;
+  font-variant-numeric: lining-nums;
+  letter-spacing: -0.01em;
+}
+
+/* --- Program band ------------------------------------------------------ */
+
+.ca-band {
+  position: relative;
+  color: var(--ca-frost);
+  background-color: var(--ca-evergreen);
+  /* Snowfall: a light dusting of soft dots, atmosphere never distraction.
+     Three offset layers of different sizes so the repeat never reads as a
+     grid. Static -- the string lights are the only thing that moves. */
+  background-image:
+    radial-gradient(circle at 18% 32%, rgb(247 242 231 / 0.32) 0 1.3px, transparent 2px),
+    radial-gradient(circle at 63% 71%, rgb(247 242 231 / 0.22) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 41% 12%, rgb(247 242 231 / 0.16) 0 2.2px, transparent 3px),
+    linear-gradient(180deg, var(--ca-evergreen) 0%, var(--ca-evergreen-deep) 100%);
+  background-size: 97px 83px, 61px 57px, 173px 149px, 100% 100%;
+}
+
+.ca-band a {
+  color: inherit;
+}
+
+/* A thin gold rule where the band meets the page, picked up from the
+   guideline cover. */
+.ca-band::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 3px;
+  background: var(--ca-gold);
+}
+
+.ca-tagline {
+  font-family: 'Tinos', 'Liberation Serif', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  color: rgb(247 242 231 / 0.82);
+}
+
+/* Subnav tabs: the active tab is cut from the page colour, so it reads as
+   the doorway into the page below the band. */
+.ca-tab {
+  color: rgb(247 242 231 / 0.78);
+  border-radius: 0.875rem 0.875rem 0 0;
+  transition: color 120ms ease, background-color 120ms ease;
+}
+.ca-tab:hover {
+  color: #ffffff;
+  background-color: rgb(247 242 231 / 0.08);
+}
+.ca-tab[aria-current='page'] {
+  color: var(--ca-ink);
+  background-color: var(--ca-frost);
+  position: relative;
+  z-index: 1;
+}
+
+/* --- String lights ----------------------------------------------------- */
+
+.ca-lights {
+  display: block;
+  width: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.ca-lights .ca-wire {
+  fill: none;
+  stroke: rgb(20 30 22 / 0.85);
+  stroke-width: 1.4;
+}
+
+.ca-lights .ca-cap {
+  fill: #3a3f3a;
+}
+
+.ca-lights .ca-bulb {
+  /* Each bulb glows in its own colour. */
+  filter: drop-shadow(0 0 3px var(--glow)) drop-shadow(0 0 7px var(--glow));
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* The one orchestrated motion on the page: a slow, staggered breathe, like
+   real incandescent strings settling. Delays are set per bulb inline. */
+@media (prefers-reduced-motion: no-preference) {
+  .ca-lights .ca-bulb {
+    animation: ca-twinkle 4.8s ease-in-out infinite;
+  }
+}
+
+@keyframes ca-twinkle {
+  0%, 100% { opacity: 1; }
+  45% { opacity: 0.55; filter: drop-shadow(0 0 1px var(--glow)); }
+  55% { opacity: 0.6; filter: drop-shadow(0 0 1px var(--glow)); }
+}
+
+/* --- Surfaces ---------------------------------------------------------- */
+
+/* Rounded card + shadow motif. Hero surfaces get the larger radius so
+   hierarchy is visible in the shape, not just the size. */
+.ca-card {
+  background: #ffffff;
+  border: 1px solid rgb(219 209 190 / 0.7);
+  border-radius: 1rem;
+  box-shadow: var(--ca-shadow);
+}
+.ca-card-hero {
+  border-radius: 1.5rem;
+}
+
+/* Interactive cards lift slightly toward the light when pointed at. */
+a.ca-card {
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+a.ca-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--ca-gold);
+  box-shadow: 0 1px 2px rgb(47 82 51 / 0.08), 0 16px 34px -16px rgb(47 82 51 / 0.42);
+}
+@media (prefers-reduced-motion: reduce) {
+  a.ca-card:hover {
+    transform: none;
+  }
+}
+
+/* "A program of Waterboyz for Jesus" endorsement lockup. */
+.ca-endorsement {
+  color: rgb(28 28 28 / 0.7);
+}
+.ca-endorsement img {
+  height: 1.75rem;
+  width: auto;
+}
+
+/* Only on paper -- e.g. the packet's printed letterhead, which stands in for
+   the band (the band itself is screen chrome and is not printed). */
+.ca-print-only {
+  display: none;
+}
+
+/* --- Print ------------------------------------------------------------- */
+
+@media print {
+  .ca-theme {
+    background: #ffffff;
+  }
+  /* The band is screen chrome; printed packets carry their own header. */
+  .ca-band {
+    display: none !important;
+  }
+  .ca-card {
+    box-shadow: none;
+  }
+  .ca-print-only {
+    display: block;
+  }
+  .ca-lights .ca-bulb {
+    animation: none;
+    filter: none;
+  }
+  /* Keep the bulbs' colours on paper. */
+  .ca-lights {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
