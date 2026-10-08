@@ -31,12 +31,13 @@ remain visible to admins through the season filter.
 ### 2. Update the event details (code + workflows)
 
 The photo date, pickup date, venue and related details are **hard-coded** in
-three places. Update all three together:
+the places below. Update them together:
 
 | Where | What to change |
 |---|---|
 | `portal/src/pages/christmas-alive/packet/Responsibilities.jsx` — the `SEASON` object | `portraitDate`, `portraitPhone`, `pickupDate`, `venue`, `contactEmail`, `giftValue`. This feeds the "What sponsors do" page **and** the guide printed at the end of every family packet |
 | `portal/src/pages/christmas-alive/packet/FamilyPacket.jsx` | The "Family portrait — Requested" line (`Saturday, Dec 12`) |
+| `portal/src/helpers/christmasAlive.js` — `CA_WISH_LIST_URL` | The Amazon Wish List (food & hygiene for the families' boxes). Shown in the band on every Christmas Alive page, on the landing page, in the empty "Sponsor a family" list and beside the home-page Christmas Alive button. Check it still matches the season's flyer |
 | `email-templates/build.js` | The packet email (photo + pickup), the nudge email (pickup), and the pickup reminder (pickup heading). Search for the old dates |
 
 Then reinstall the three affected emails on the platform:

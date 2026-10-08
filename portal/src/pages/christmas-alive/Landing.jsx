@@ -1,6 +1,7 @@
 import t from 'prop-types';
 import { Link } from 'react-router-dom';
 import { Icon } from '../../atoms/Icon.jsx';
+import { CA_WISH_LIST_URL } from '../../helpers/christmasAlive.js';
 import { useChristmasAlive } from './hooks/useChristmasAlive.js';
 
 const Card = ({ to, icon, title, body, cta }) => (
@@ -84,6 +85,37 @@ export const Landing = () => {
             My sponsorships
           </Link>
         </div>
+      </section>
+
+      {/* The other way to give: no family to adopt, no account needed. Shown
+          year-round -- the wish list doesn't wait for sponsorship to open. */}
+      <section className="ca-card flex-c-st md:flex-row md:items-center gap-5 p-6">
+        <span className="flex-cc size-12 rounded-full bg-base-200 text-accent flex-none">
+          <Icon name="basket-heart" size={26} />
+        </span>
+        <div className="flex-c-st gap-1.5 flex-1">
+          <h2 className="text-h3 font-semibold m-0">
+            Help fill a family&rsquo;s Christmas box
+          </h2>
+          <p className="text-sm text-base-content/80 m-0 max-w-prose leading-relaxed">
+            Every Christmas Alive family goes home with groceries for a
+            Christmas meal and the everyday hygiene supplies a household needs.
+            Our Amazon Wish List shows exactly what we need, in the amounts we
+            need, and every item ships straight to Waterboyz for Jesus. You
+            don&rsquo;t need to sponsor a family to give &mdash; and if
+            you&rsquo;re running a food drive at church, share the list.
+          </p>
+        </div>
+        <a
+          href={CA_WISH_LIST_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="kbtn kbtn-outline kbtn-accent flex-none"
+        >
+          <Icon name="shopping-cart-heart" size={18} />
+          Shop the wish list
+          <span className="sr-only">(opens Amazon in a new tab)</span>
+        </a>
       </section>
 
       {(canNominate || isCAAdmin) && (

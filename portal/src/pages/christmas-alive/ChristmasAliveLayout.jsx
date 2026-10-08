@@ -9,6 +9,7 @@ import '@fontsource/poppins/700.css';
 import '@fontsource/tinos/400-italic.css';
 import '@fontsource/tinos/700.css';
 import { Icon } from '../../atoms/Icon.jsx';
+import { CA_WISH_LIST_URL } from '../../helpers/christmasAlive.js';
 import { useChristmasAlive } from './hooks/useChristmasAlive.js';
 import { StringLights } from './StringLights.jsx';
 
@@ -26,7 +27,7 @@ import { StringLights } from './StringLights.jsx';
  * The band: string lights strung along its top edge like a porch eave, the
  * "Christmas Alive" wordmark in Great Vibes (the one use of script on the
  * page, per the guidelines), the season year as the signature serif numeral,
- * and the campaign line. The subnav sits at the band's foot, with the active
+ * the campaign line, and a link to the Amazon Wish List. The subnav sits at the band's foot, with the active
  * tab cut from the page colour below.
  */
 export const ChristmasAliveLayout = ({ children }) => {
@@ -69,6 +70,19 @@ export const ChristmasAliveLayout = ({ children }) => {
           <p className="ca-tagline text-[1.375rem] md:text-[1.875rem] leading-tight m-0 self-end md:mb-1">
             &ldquo;Hope rides in.&rdquo;
           </p>
+          {/* The one way to give that needs no family and no account, so it
+              lives in the band on every page rather than behind a tab. */}
+          <a
+            href={CA_WISH_LIST_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ca-wishlist ml-auto self-center flex-sc gap-2 px-4 py-2 no-underline text-sm font-semibold whitespace-nowrap"
+          >
+            <Icon name="basket-heart" size={18} />
+            Amazon Wish List
+            <Icon name="external-link" size={14} className="opacity-70" />
+            <span className="sr-only">(opens in a new tab)</span>
+          </a>
         </div>
 
         {links.length > 1 && (

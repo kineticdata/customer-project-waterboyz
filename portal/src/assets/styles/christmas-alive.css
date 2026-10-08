@@ -122,6 +122,22 @@
   text-shadow: 0 1px 12px rgb(196 155 84 / 0.35);
 }
 
+/* Amazon Wish List link in the band: a gold-edged pill, quieter than the
+   wordmark but clearly something to press. */
+.ca-band .ca-wishlist {
+  color: var(--ca-frost);
+  border: 1.5px solid var(--ca-gold);
+  border-radius: 999px;
+  background-color: rgb(196 155 84 / 0.12);
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.ca-band .ca-wishlist:hover,
+.ca-band .ca-wishlist:focus-visible {
+  color: var(--ca-ink);
+  background-color: var(--ca-gold);
+}
+
 /* Subnav tabs: the active tab is cut from the page colour, so it reads as
    the doorway into the page below the band. */
 .ca-tab {

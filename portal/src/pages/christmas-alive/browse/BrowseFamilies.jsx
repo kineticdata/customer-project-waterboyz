@@ -9,7 +9,10 @@ import {
   useClaimFamily,
   useMySponsorships,
 } from '../hooks/useSponsorships.js';
-import { sizeBandTest } from '../../../helpers/christmasAlive.js';
+import {
+  CA_WISH_LIST_URL,
+  sizeBandTest,
+} from '../../../helpers/christmasAlive.js';
 import { FamilyCard } from './FamilyCard.jsx';
 import { BrowseFilters } from './BrowseFilters.jsx';
 import { SponsorConfirmModal } from './SponsorConfirmModal.jsx';
@@ -120,9 +123,26 @@ export const BrowseFamilies = () => {
             sponsored earlier in the season, thank you — it&rsquo;s worth
             checking back as more are added.
           </p>
-          <Link to="/christmas-alive/my-sponsorships" className="kbtn kbtn-outline kbtn-sm">
-            See the families you&rsquo;ve sponsored
-          </Link>
+          <p className="text-sm text-base-content/70 m-0">
+            You can still help in the meantime: our Amazon Wish List has the
+            food and hygiene supplies that go into every family&rsquo;s
+            Christmas box.
+          </p>
+          <div className="flex-sc gap-2 flex-wrap">
+            <a
+              href={CA_WISH_LIST_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="kbtn kbtn-accent kbtn-sm"
+            >
+              <Icon name="shopping-cart-heart" size={16} />
+              Shop the Amazon Wish List
+              <span className="sr-only">(opens in a new tab)</span>
+            </a>
+            <Link to="/christmas-alive/my-sponsorships" className="kbtn kbtn-outline kbtn-sm">
+              See the families you&rsquo;ve sponsored
+            </Link>
+          </div>
         </div>
       ) : (
         <>

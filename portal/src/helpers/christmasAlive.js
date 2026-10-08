@@ -15,6 +15,15 @@ export const CA_STATUS = {
 };
 
 /**
+ * The Christmas Alive Amazon Wish List: shelf-stable food and hygiene supplies
+ * for the families' Christmas boxes, shipped straight to Waterboyz. Anyone can
+ * give through it -- no account and no sponsored family needed. Comes from the
+ * "Amazon Wish List — Food & Hygiene" flyer; check it each season.
+ */
+export const CA_WISH_LIST_URL =
+  'https://www.amazon.com/registries/gl/guest-view/1ML44R2LG8WXI';
+
+/**
  * A child is 18 or younger. This threshold comes from the Sponsor
  * Responsibilities sheet ("gifts for each child 18 years or younger") and is
  * the number gifts are actually bought against, so it is the source of truth —

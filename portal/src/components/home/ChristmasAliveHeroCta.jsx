@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Icon } from '../../atoms/Icon.jsx';
+import { CA_WISH_LIST_URL } from '../../helpers/christmasAlive.js';
 import { useChristmasAlive } from '../../pages/christmas-alive/hooks/useChristmasAlive.js';
 
 /**
@@ -25,7 +26,16 @@ export const ChristmasAliveHeroCta = ({ className = 'mt-6' }) => {
         Christmas Alive
       </Link>
       <span className="text-primary-content/70 text-sm">
-        {season} season is open
+        {season} season is open &middot;{' '}
+        <a
+          href={CA_WISH_LIST_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary-content underline underline-offset-2 hover:text-primary-content/80"
+        >
+          give through our Amazon Wish List
+          <span className="sr-only"> (opens in a new tab)</span>
+        </a>
       </span>
     </div>
   );
