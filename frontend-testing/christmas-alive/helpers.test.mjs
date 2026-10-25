@@ -50,6 +50,30 @@ test('deriveCounts counts a newborn (age 0) as a child', () => {
   });
 });
 
+test('deriveCounts counts the type the nominator picked, not the age', () => {
+  // Age only pre-sets the type. An 18-year-old the nominator marks "Adult"
+  // is an adult, and a "Child" with an adult-looking age is still a child.
+  const roster = [
+    { age: '18', type: 'Adult' },
+    { age: '19', type: 'Child' },
+    { age: '36', type: 'Spouse' },
+    { age: '3', type: 'Child' },
+  ];
+  assert.deepEqual(deriveCounts(roster), {
+    totalMembers: 4,
+    totalAdults: 2,
+    totalChildren: 2,
+  });
+});
+
+test('deriveCounts falls back to age only for rows with no type', () => {
+  assert.deepEqual(deriveCounts([{ age: '9' }, { age: '9', type: 'Adult' }, { type: ' child ' }]), {
+    totalMembers: 3,
+    totalAdults: 1,
+    totalChildren: 2,
+  });
+});
+
 test('deriveCounts handles an empty or non-array roster', () => {
   const empty = { totalMembers: 0, totalAdults: 0, totalChildren: 0 };
   assert.deepEqual(deriveCounts([]), empty);

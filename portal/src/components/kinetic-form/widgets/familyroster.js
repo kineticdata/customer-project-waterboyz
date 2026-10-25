@@ -35,11 +35,14 @@ const FamilyRosterComponent = forwardRef(({ field, onChange, lastNameField }, re
     [field, onChange],
   );
 
-  // Called by the form's Submit event. Returns true when every row has its
-  // required fields; otherwise turns on the highlighting and scrolls the
-  // roster into view so the person can see what is missing.
+  // Called by the nomination form's Submit event. Returns true when the
+  // household has at least one member and every row has its required fields;
+  // otherwise turns on the highlighting and scrolls the roster into view so
+  // the person can see what is missing. Leadership's edit screen validates
+  // with `rosterProblems` directly, so it can still save an empty household.
   const validate = useCallback(() => {
-    const complete = rosterProblems(parseRoster(value)).length === 0;
+    const roster = parseRoster(value);
+    const complete = roster.length > 0 && rosterProblems(roster).length === 0;
     setShowErrors(!complete);
     if (!complete) {
       rootRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });

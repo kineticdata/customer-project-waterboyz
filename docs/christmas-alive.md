@@ -121,7 +121,7 @@ Homecoming Red, Evergreen, Hearth Gold, Frost Cream).
 |---|---|---|---|
 | nomination | Create Sponsorship Row | Submitted | Creates the Pending season row (city, photo flag, counts) |
 | nomination | Remember Nominator Details | Submitted | Fills blank `CA Nominator Phone Number` / `CA Nominator Organization` user attributes (whole-map write, never drops other attributes) |
-| nomination | Nomination Process / On Update | Submitted / Updated | Legacy count maintenance |
+| nomination | Nomination Process / On Update | Submitted / Updated | Writes the nomination's Total Adults / Total Children via the `WB_SetAdultChildCount` routine (counts by the member type the nominator picked — see the counting rule in `platform-config.md`) |
 | sponsorships | Send Sponsor Packet | Updated → Adopted, no packet yet | Emails the packet, stamps Packet Sent At |
 | sponsorships | Sponsor Nudge | Same | Waits 7 days, re-checks, emails "have you reached your family?" |
 | sponsorships | Notify Reassigned Sponsor | Sponsor changed | Emails the outgoing sponsor |

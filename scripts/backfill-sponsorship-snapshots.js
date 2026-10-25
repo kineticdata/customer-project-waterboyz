@@ -36,10 +36,13 @@
  *
  * PARITY WARNING
  *
- * Three implementations of the household count now exist: this script and the
- * portal share one via the import below, and the sync workflow has a Ruby
- * translation in its "Sync Snapshot" node. If you change the counting rules,
- * change the Ruby too.
+ * This script and the portal share one household count via the import below.
+ * Three workflows carry Ruby translations of it: the sync workflow's "Sync
+ * Snapshot" node, Create Sponsorship Row, and the WB_SetAdultChildCount
+ * routine. If you change the counting rules, change all the Ruby too.
+ *
+ * Rows with no family record (Pending / Rejected) are skipped here; see
+ * scripts/backfill-household-counts.js for those.
  *
  * THE BLANK-ROSTER RULE
  *
@@ -133,8 +136,22 @@
         continue;
       }
 
+      // Any write fires the sponsorship's Submission Updated workflows, and two
+      // of them email the sponsor whenever their trigger STATE holds: Send
+      // Sponsor Packet / Sponsor Nudge on Adopted with no Packet Sent At, and
+      // Pickup Reminder on the REQUESTED sentinel. Never write such a row.
+      const v = sponsorship.values;
+      if (
+        (String(v['Status'] ?? '') === 'Adopted' && !String(v['Packet Sent At'] ?? '').trim()) ||
+        String(v['Pickup Reminder Sent At'] ?? '').trim() === 'REQUESTED'
+      ) {
+        rows.push({ family: label, skipped: 'write would trigger a sponsor email', drift });
+        continue;
+      }
+
       rows.push({
         family: label,
+        id: sponsorship.id,
         countsHeld: !roster,
         drift,
         ...(apply ? { written: true } : {}),
@@ -151,7 +168,7 @@
       }
     }
 
-    const drifted = rows.filter(r => r.drift).length;
+    const drifted = rows.filter(r => r.drift && !r.skipped).length;
     console.table(rows);
     console.log(
       apply

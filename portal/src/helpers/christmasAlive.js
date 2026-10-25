@@ -25,9 +25,10 @@ export const CA_WISH_LIST_URL =
 
 /**
  * A child is 18 or younger. This threshold comes from the Sponsor
- * Responsibilities sheet ("gifts for each child 18 years or younger") and is
- * the number gifts are actually bought against, so it is the source of truth —
- * not the nominator's typed Total Adults / Total Children.
+ * Responsibilities sheet ("gifts for each child 18 years or younger"). It only
+ * PRE-SETS a member's type as an age is typed (see `suggestMemberType`); the
+ * type the nominator ends up with is what gets counted. Age decides only for
+ * legacy rows that have no type at all.
  */
 export const CHILD_MAX_AGE = 18;
 
@@ -144,18 +145,31 @@ export const householdCounts = roster => {
 };
 
 /**
+ * Is this roster member a child?
+ *
+ * The relationship the nominator picked wins: "Child" is a child, "Adult" and
+ * "Spouse" are adults, whatever the age says. Age is only a fallback for
+ * legacy rows saved before every row carried a type.
+ */
+const isChildMember = member => {
+  const type = String(member?.type ?? '').trim();
+  if (type) return type.toLowerCase() === 'child';
+  return isChildAge(member?.age);
+};
+
+/**
  * Derive counts from a roster ALONE, with no head of household added.
  * Prefer `householdCounts` for anything user-facing.
- * Anything without a usable age counts as an adult — an unknown age is far
- * more likely to be a grown-up whose age nobody recorded than a child, and
- * under-counting children would under-buy gifts.
+ * Children are the members typed "Child" (see `isChildMember`); everyone
+ * else is an adult. The `Nomination Process` and `Create Sponsorship Row`
+ * workflows apply the same rule server-side.
  *
  * @param {Array<object>} roster
  * @returns {{totalMembers: number, totalAdults: number, totalChildren: number}}
  */
 export const deriveCounts = roster => {
   const members = Array.isArray(roster) ? roster : [];
-  const totalChildren = members.filter(m => isChildAge(m?.age)).length;
+  const totalChildren = members.filter(isChildMember).length;
   return {
     totalMembers: members.length,
     totalAdults: members.length - totalChildren,

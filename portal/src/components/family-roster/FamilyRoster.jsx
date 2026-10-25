@@ -160,6 +160,14 @@ export const FamilyRoster = ({
             <Icon name="plus" size={16} />
             Add a household member
           </button>
+          {showErrors && (
+            <div className="kalert kalert-error kalert-soft mt-4 text-left" role="alert">
+              <Icon name="alert-triangle" size={20} />
+              <span>
+                Please add at least one household member before submitting.
+              </span>
+            </div>
+          )}
         </div>
       ) : (
         <>

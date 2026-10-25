@@ -1,0 +1,87 @@
+# Household-count backfill — values BEFORE the write (2026-10-24)
+#
+# Written by scripts/backfill-household-counts.js. Only Total Adults / Total
+# Children were changed; every other field on these records was left alone.
+# scripts/backfill-sponsorship-snapshots.js wrote nothing: all 62 sponsorship
+# rows were still Pending with no family record.
+#
+# Columns: form | submission id | Adults before | Children before | Adults after | Children after | label
+#   form: n = christmas-alive-family-nomination, s = christmas-alive-sponsorships
+#   "="   = field already correct, not written
+#   empty = field was blank / null before
+#
+# To revert one record: PUT /app/api/v1/submissions/{id} with
+#   {"values": {"Total Adults": "<before>", "Total Children": "<before>"}}
+# (omit any field marked "="). Sponsorship rows were all Pending, so no
+# sponsor-email workflow is triggered by writing them.
+n|a8bbfe07-cede-11f1-bf71-a9271f3f2769|0|=|3|=|Negron
+n|5d557c8c-ce43-11f1-ae2d-435d074bbc02|0|0|2|2|Aguirre
+n|874c6451-ce42-11f1-ae2d-d93ea5ede1df|0|0|4|1|Ramos
+n|d7ec0044-ce41-11f1-ae2d-b3dc0f5ac33c|0|0|3|3|Aguilar
+n|05a53dca-ce40-11f1-ae2d-d751ce978c33|0|0|1|4|Vaca
+n|53ac1790-ce3d-11f1-ae2d-fdaeed1e9d34|0|=|2|=|Garth
+n|07309489-ce22-11f1-ae2d-9bc5a50b5b17|0|0|3|3|Romero
+n|104affeb-ce1d-11f1-ae2d-aff6f4501a97|0|0|3|1|Tun
+n|ec34e6e0-ce19-11f1-bf71-bf7fc4be0460|0|0|1|2|Stevenson
+n|8b5a6fe6-ce19-11f1-bf71-c3ff09dfb2c5|0|0|2|2|Feldman
+n|f20dbee7-ce18-11f1-bf71-05a98d1ef893|0|0|1|4|Bright
+n|4eb57de1-ce18-11f1-bf71-03b5a8fe842f|0|0|2|2|Guzman
+n|d1c2dcfc-cd5c-11f1-bf71-f5b23c9b8ba7|0|0|1|4|Mitchell
+n|8c287918-cd56-11f1-bf71-937032414c7b|0|0|1|7|Barnaby
+n|2058f1b9-cd55-11f1-bf71-c5ff3d605489|0|0|3|2|Dionne
+n|2f5090ce-cd51-11f1-bf71-838e5f614ad3|0|0|2|2|Perez
+n|428a346d-cd4f-11f1-bf71-9d55234a5034|0|0|1|5|McMahon
+n|95e96524-cd4e-11f1-bf71-2d9692bcacf0|0|0|1|4|Williams
+n|04989eec-cd4e-11f1-bf71-477db01f7194|0|0|1|2|Jackson
+n|8b7b85b4-cd4d-11f1-bf71-7167c163ed2a|0|0|2|3|Mendez
+n|e56de944-cd4c-11f1-bf71-a59ae46677ce|0|0|5|2|Sanchez
+n|29009ae9-cd4c-11f1-bf71-e54b58766a9c|0|0|3|2|Teasley
+n|b1a45350-ccb1-11f1-ba7f-9db4dd7b4229|0|0|3|1|Espinoza
+n|93a9b88d-ccb0-11f1-ba7f-2551ab6b5c3d|0|0|2|1|Hernandez
+n|258895a7-ccae-11f1-ba7f-ef982723b0dd|0|0|2|3|Trejo
+n|ecc042da-ccac-11f1-ba7f-65a67ccc402e|0|0|3|3|Del Cid
+n|8a4e0a30-cc0c-11f1-ba7f-17623d5c1e52|0|0|1|2|Sinclair
+n|2d1be7ad-cbf7-11f1-8a64-cbafc6725434|0|0|2|3|Chavez
+n|e4be5164-cbf5-11f1-8a64-718193d4193f|0|0|2|1|Chavez
+n|273a001d-cbf3-11f1-8a64-3f92f862752e|0|=|2|=|Doyle
+n|b14a1106-cbe0-11f1-8a64-574427ee9412|0|0|2|1|Mena
+n|ec6df329-cbdf-11f1-8a64-3fb797c3d9ef|||3|1|Brown
+n|17edc53b-cbdf-11f1-8a64-674862455dfb|0|0|1|1|Smith
+n|e1d35e8b-cbde-11f1-8a64-2f75f41ffd50|0|0|1|2|Taylor
+n|5d2a7e6b-cbde-11f1-8a64-31528cbeba2f|0|0|2|3|Arhin
+n|ef13810e-cbc3-11f1-ba7f-79a0ec8f4113|0|0|2|4|Argueta
+n|739fe7a5-cb1f-11f1-ba7f-6bf0fada1493|0|0|1|3|Price
+n|e75487ec-cb1e-11f1-ba7f-03a9753bd3cf|0|0|2|2|Pathak
+n|2a5d2250-cb1e-11f1-ba7f-6b5dce88f02d|0|0|2|2|Cravens
+n|574b041c-cb1d-11f1-ba7f-1d1ab4ae9ef4|0|0|1|2|Rice
+n|dc396dd8-cb1c-11f1-ba7f-f16c9e6d4f86|0|0|1|7|Izaguirre
+n|1d893518-cb1c-11f1-ba7f-6d01e78b5457|0|0|1|2|Walker
+n|864573c7-cb1b-11f1-ba7f-e158404bd169|0|0|2|5|Lopez
+n|a2225528-ca41-11f1-ba7f-6117b03ed321|0|0|1|3|Noble
+n|0ccbe4f5-ca41-11f1-ba7f-6542e76e1f01|0|0|1|2|Santos-Lopez
+n|0d89dbe8-c993-11f1-ba7f-374daad5fb40|0|0|1|1|Brown
+n|2f06d0a3-c992-11f1-ba7f-0bfe520831d2|0|0|2|2|Hundley
+n|ed886b33-c990-11f1-ba7f-d93af3c165d1|0|0|1|2|Burriss
+n|c84ec348-c98e-11f1-ba7f-af6c54b02f85|0|0|1|3|Arana
+n|ce2adf43-c7da-11f1-8a64-4590f4556028|0|0|2|2|Gutierrez
+n|209b1886-c7d6-11f1-8a64-673282097fa2|0|0|3|2|Lopez Romero
+n|8297cfec-c7d3-11f1-8a64-2b6a7261af47|0|0|5|3|Gonzalez
+n|e55aac04-c728-11f1-a555-d9db16e99d01|0|0|1|5|Reyes
+n|a3a81be6-c715-11f1-a555-51d9ee706377|0|0|2|3|Ambrocio
+n|26430564-c70b-11f1-a555-b52c84a85639|0|0|2|3|Mejia
+n|952e8b6d-c707-11f1-a555-556087fd32b5|0|0|1|3|Rojas
+n|a51f5514-c6ff-11f1-a555-8da935affd46|0|0|1|1|Godoy
+n|6989d763-c6fe-11f1-a555-27a03ddf1c4b|0|0|1|4|Ramos Quintanilla
+n|0a38d169-c574-11f1-ba7f-933d50ed41d7|0|0|1|3|Dobson
+n|a75d3e5b-c3ec-11f1-a555-997d098baa43|0|0|3|1|Alarcon Monroy - Carroll County
+s|a9f73cc2-cede-11f1-9c49-19d774e64bb3|2|1|3|0|Negron
+s|53587506-ce1f-11f1-bf71-e31157c5623b|3|2|2|3|Arhin
+s|10f2ee15-ce1f-11f1-9c49-2b62756688f5|3|0|1|2|Taylor
+s|351aed8d-ce18-11f1-bf71-9faa5f350bf2|2|0|1|1|Smith
+s|215f6463-cd55-11f1-bf71-33783588c36b|2|3|3|2|Dionne
+s|96e5c5fc-cd4e-11f1-9c49-6dc1ea4c46d9|5|0|1|4|Williams
+s|e6a2e6ce-cd4c-11f1-9c49-fb740fdffc35|4|3|5|2|Sanchez
+s|0e86647c-c993-11f1-ba7f-fb686a315efa|2|0|1|1|Brown
+s|c95adc4f-c98e-11f1-8a64-1dcb931c8b27|2|2|1|3|Arana
+s|431f7321-c733-11f1-8a64-5321de2bf2aa|2|4|1|5|Reyes
+s|0b44270c-c574-11f1-8a64-153789c652b1|2|2|1|3|Dobson

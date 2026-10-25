@@ -1,0 +1,29 @@
+{
+  "_why": "Before switching every household count from age to the nominator-picked member type (and making the routine nil-safe after run #4060). Only the parameters that changed are recorded; every other part of each tree was left as-is. To revert, PUT each value back into the named node/parameter.",
+  "trees": [
+    {
+      "title": "WB_SetAdultChildCount",
+      "versionIdBefore": "2",
+      "node": "utilities_echo_v1_1 (Determine Adults and Children)",
+      "parameter": "input",
+      "value": "<%= \n# Parse Family Members\nfamily_members = JSON.parse(@inputs[\"Family Members JSON\"]) \n\ndef count_adults_and_children(people)\n  total_adults = 0\n  total_children = 0\n\n  people.each do |person|\n    case person[\"Type\"]\n    when \"Adult\"\n      total_adults += 1\n    when \"Child\"\n      total_children += 1\n    end\n  end\n\n  { adults: total_adults, children: total_children }\nend\ncount_adults_and_children(family_members).to_json %>"
+    },
+    {
+      "title": "Kinetic Request CE :: 68d3d25e-c433-472e-b1cc-f87ba979b162 :: Christmas Alive - Create Sponsorship Row",
+      "versionIdBefore": "6",
+      "node": "system_integration_v1_3 (Create Sponsorship)",
+      "parameters": {
+        "parameters.Total Members": "<%= (begin; require 'json'; JSON.parse(@values['Family Members JSON'].to_s); rescue; []; end).length + 1 %>",
+        "parameters.Total Children": "<%= (begin; require 'json'; JSON.parse(@values['Family Members JSON'].to_s); rescue; []; end).count { |m| a = m['age'].to_s.strip; !a.empty? && a.to_i <= 18 } %>",
+        "parameters.Total Adults": "<%= (begin; require 'json'; m = JSON.parse(@values['Family Members JSON'].to_s); (m.length - m.count { |x| a = x['age'].to_s.strip; !a.empty? && a.to_i <= 18 }) + 1; rescue; 1; end) %>"
+      }
+    },
+    {
+      "title": "Kinetic Request CE :: 26c2c9e9-3b7f-4e3d-aeca-1750300caf29 :: Christmas Alive - Sync Family To Sponsorship",
+      "versionIdBefore": "2",
+      "node": "system_integration_v1_2 (Sync Snapshot)",
+      "parameter": "parameters.Values",
+      "value": "<%= begin; require 'json'; raw = @values['Family Members JSON'].to_s.strip; out = {'City' => @values['City'].to_s, 'County' => @values['County'].to_s, 'Native Language' => @values['Native Language'].to_s}; unless raw.empty?; r = (JSON.parse(raw) rescue nil); if r.is_a?(Array); r = r.reject { |m| m.is_a?(Hash) && m['type'].to_s.downcase == 'head of household' }; kid = lambda { |m| v = (m.is_a?(Hash) ? m['age'] : nil); (v.nil? || v.to_s == '') ? false : (s = v.to_s; n = (s.strip == '' ? 0.0 : (Float(s) rescue nil)); !n.nil? && n >= 0 && n <= 18) }; kids = r.count { |m| kid.call(m) }; out['Total Members'] = (r.length + 1).to_s; out['Total Adults'] = (r.length - kids + 1).to_s; out['Total Children'] = kids.to_s; end; end; out.to_json; rescue; '{}'; end %>"
+    }
+  ]
+}
