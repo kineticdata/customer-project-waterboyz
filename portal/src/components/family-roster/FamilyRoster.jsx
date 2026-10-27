@@ -149,7 +149,8 @@ export const FamilyRoster = ({
           <p className="font-medium">No other household members added yet</p>
           <p className="text-sm text-base-content/70 mt-1">
             Add everyone else living in the home — a spouse, children, other
-            adults. The head of household is already captured above.
+            adults. The head of household is already captured above, so if
+            they live alone, leave this empty.
           </p>
           <button
             type="button"
@@ -160,14 +161,6 @@ export const FamilyRoster = ({
             <Icon name="plus" size={16} />
             Add a household member
           </button>
-          {showErrors && (
-            <div className="kalert kalert-error kalert-soft mt-4 text-left" role="alert">
-              <Icon name="alert-triangle" size={20} />
-              <span>
-                Please add at least one household member before submitting.
-              </span>
-            </div>
-          )}
         </div>
       ) : (
         <>
