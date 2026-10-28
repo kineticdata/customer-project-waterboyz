@@ -11,6 +11,9 @@ import { executeIntegration } from '../../helpers/api.js';
 import { formatLocalDate } from '../../helpers/index.js';
 import { HomeSection } from '../../components/home/HomeSection.jsx';
 import { ChristmasAliveHeroCta } from '../../components/home/ChristmasAliveHeroCta.jsx';
+import { useChristmasAlive } from '../christmas-alive/hooks/useChristmasAlive.js';
+
+const CA_NOMINATION_FORM_SLUG = 'christmas-alive-family-nomination';
 
 const FALLBACK_PROGRAMS = [
   {
@@ -28,7 +31,7 @@ const FALLBACK_PROGRAMS = [
       'Help provide Christmas gifts and support to families during the holiday season.',
     icon: 'christmas-tree',
     color: 'accent',
-    nominationFormSlug: 'christmas-alive-family-nomination',
+    nominationFormSlug: CA_NOMINATION_FORM_SLUG,
     order: 2,
   },
 ];
@@ -65,11 +68,18 @@ const usePrograms = () => {
   const { kappSlug } = useSelector(state => state.app);
   const params = useMemo(() => ({ kappSlug }), [kappSlug]);
   const { initialized, response } = useData(fetchPrograms, params);
+  // Only Christmas Alive Nominators and Admins may nominate a CA family.
+  const { canNominate: canNominateCA } = useChristmasAlive();
   return useMemo(() => {
-    if (!initialized || !response?.submissions?.length) return FALLBACK_PROGRAMS;
-    const fetched = submissionsToPrograms(response.submissions);
-    return fetched.length ? fetched : FALLBACK_PROGRAMS;
-  }, [initialized, response]);
+    const fetched =
+      initialized && response?.submissions?.length
+        ? submissionsToPrograms(response.submissions)
+        : [];
+    const programs = fetched.length ? fetched : FALLBACK_PROGRAMS;
+    return canNominateCA
+      ? programs
+      : programs.filter(p => p.nominationFormSlug !== CA_NOMINATION_FORM_SLUG);
+  }, [initialized, response, canNominateCA]);
 };
 
 export const NominateSection = ({ className }) => {
