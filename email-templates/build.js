@@ -905,8 +905,14 @@ customMessage = @values['Custom Message'].to_s
           'Text your family to introduce yourself, then call to confirm their details and collect gift wishes. Please try three times; if you can&rsquo;t reach them, email christmasalivemaryland@gmail.com and we&rsquo;ll assign you another family.',
         ),
         paragraph(
-          '<strong>Family portraits:</strong> Saturday, December 12, by appointment &mdash; 240-394-7126<br>'
-          + '<strong>Curb-side pickup:</strong> Saturday, December 19, Restoration Church, 7899 Opossumtown Pike, Frederick',
+          '<strong>Family portraits:</strong> Saturday, December 12, by appointment &mdash; text or call 240-367-9765 to book (text preferred). '
+          + '<strong>This number is only for scheduling photos.</strong> For any other questions, email christmasalivemaryland@gmail.com.',
+        ),
+        paragraph(
+          '<strong>Distribution Day:</strong> the morning of Saturday, December 19, at Restoration Church, 7899 Opossumtown Pike, Frederick. '
+          + 'Pick up food (including a frozen turkey) and hygiene items for your family, then deliver them along with the gifts you have provided. '
+          + 'About a week before, we&rsquo;ll text you the time window to arrive. '
+          + 'If you can&rsquo;t pick them up, please arrange for someone to deliver them &mdash; we do not have staff available to deliver on your behalf.',
         ),
         action(
           'Read what sponsors do',
@@ -934,7 +940,7 @@ customMessage = @values['Custom Message'].to_s
         heading('Have you reached Family <%= @values["Family Number"] %>?'),
         paragraph('Hi <%= @results["Get Sponsor"]["First Name"] %>,'),
         paragraph(
-          'You sponsored this family a week ago. If you haven&rsquo;t connected with them yet, now is a good time &mdash; it gives you room to shop before the December 19 pickup.',
+          'You sponsored this family a week ago. If you haven&rsquo;t connected with them yet, now is a good time &mdash; it gives you room to shop before Distribution Day on December 19, when you&rsquo;ll deliver your gifts along with the food and hygiene items.',
         ),
         paragraph(
           'Tried three times without a reply? Contact the church or organization named in your first email. Still nothing after a week? Email christmasalivemaryland@gmail.com and we&rsquo;ll assign you another family.',
@@ -958,20 +964,23 @@ customMessage = @values['Custom Message'].to_s
   },
 
   'christmas-alive-pickup-reminder': {
-    subject: 'Christmas Alive pickup is Saturday — Waterboyz',
-    preheader: 'Curb-side pickup details and your family number.',
+    subject: 'Christmas Alive Distribution Day is Saturday — Waterboyz',
+    preheader: 'Food and hygiene pickup details and your family number.',
     build: () => {
       const body = [
-        heading('Pickup is Saturday, December 19'),
+        heading('Distribution Day is Saturday, December 19'),
         paragraph('Hi <%= @results["Get Sponsor"]["First Name"] %>,'),
         paragraph(
-          'Bring your gifts to <strong>Restoration Church, 7899 Opossumtown Pike, Frederick</strong>. Stay in your car &mdash; we&rsquo;ll come out to you.',
+          'On the morning of December 19, pick up your family&rsquo;s food (including a frozen turkey) and hygiene items at <strong>Restoration Church, 7899 Opossumtown Pike, Frederick</strong>. Stay in your car &mdash; we&rsquo;ll bring everything out to you. Then deliver these to your family along with the gifts you have provided.',
         ),
         note(
           'You&rsquo;ll be asked for your family number: <strong><%= @values["Family Number"] %></strong>',
         ),
         paragraph(
-          'If the family requested a portrait, please include an 8&times;10 frame.',
+          'If for some reason you cannot pick up the food and hygiene items, please arrange for someone to deliver them to your family &mdash; we do not have staff available to deliver on your behalf.',
+        ),
+        paragraph(
+          'Your arrival time window will come by text, sent to the phone number you gave when you sponsored your family.',
         ),
         action(
           'See your family&rsquo;s details',
@@ -984,8 +993,8 @@ customMessage = @values['Custom Message'].to_s
       ].join('');
 
       return layout({
-        subject: 'Christmas Alive pickup is Saturday — Waterboyz',
-        preheader: 'Curb-side pickup details and your family number.',
+        subject: 'Christmas Alive Distribution Day is Saturday — Waterboyz',
+        preheader: 'Food and hygiene pickup details and your family number.',
         body,
       });
     },

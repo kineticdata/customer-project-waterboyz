@@ -2,7 +2,7 @@ import { useParams } from 'react-router-dom';
 import { Icon } from '../../../atoms/Icon.jsx';
 import { Loading } from '../../../components/states/Loading.jsx';
 import { useFamilyPacket } from '../hooks/useSponsorships.js';
-import { SponsorGuide } from './Responsibilities.jsx';
+import { SponsorGuide, SEASON } from './Responsibilities.jsx';
 import { StringLights } from '../StringLights.jsx';
 import { Endorsement } from '../Endorsement.jsx';
 import { useChristmasAlive } from '../hooks/useChristmasAlive.js';
@@ -102,7 +102,10 @@ export const FamilyPacket = () => {
             <Row label="Interpreter" value="An interpreter is needed" />
           )}
           {packet.photoRequested && (
-            <Row label="Family portrait" value="Requested — Saturday, Dec 12, by appointment" />
+            <Row
+              label="Family portrait"
+              value={`Requested — ${SEASON.portraitDate}, by appointment. Text or call ${SEASON.portraitPhone} to book (text preferred). This number is only for scheduling photos — email ${SEASON.contactEmail} with any other questions.`}
+            />
           )}
         </dl>
       </section>
@@ -166,7 +169,8 @@ export const FamilyPacket = () => {
 
       <p className="text-sm text-base-content/70 m-0">
         Keep {familyLabel(packet.familyNumber).toLowerCase()} handy — you&rsquo;ll
-        be asked for the number at curb-side pickup.
+        be asked for the number when you pick up the food and hygiene items on
+        Distribution Day.
       </p>
 
       {/* The sponsor guide travels with the family's details, so a printed or

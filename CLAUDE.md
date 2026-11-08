@@ -267,7 +267,7 @@ Fetches all `swat-projects` submissions in one call (limit 1000). Filters are ap
 
 The holiday program: nominators submit families, Christmas Alive Admins approve them, sponsors claim a family, everyone meets at curb-side pickup. Pages live under `/christmas-alive` (`portal/src/pages/christmas-alive/`), styled to the 2026 brand guidelines via `assets/styles/christmas-alive.css` (scoped to `.ca-theme`, never SWAT).
 
-> **Read [docs/christmas-alive.md](docs/christmas-alive.md)** before changing anything Christmas Alive — it lists every form, workflow, WebAPI and integration, and has the **yearly season checklist** (the season year is a `programs` setting; the photo/pickup dates are hard-coded in three places plus three email workflows).
+> **Read [docs/christmas-alive.md](docs/christmas-alive.md)** before changing anything Christmas Alive — it lists every form, workflow, WebAPI and integration, and has the **yearly season checklist** (the season year is a `programs` setting; the photo/pickup dates and photo-booking number are hard-coded in two places plus three email workflows).
 
 - **Roles:** `Christmas Alive Admins` team (space admins count too) and `Christmas Alive Nominators` team. CA Admins manage nominators themselves at `/christmas-alive/nominators` (menu → Christmas Alive → Nominator Management) through `CA - …` kapp integrations — never the Core API, because space-level Team Membership Modification is admin-only.
 - **Workflow node ids** must be `{definitionId}_{N}` or the builder can't render the tree.

@@ -16,9 +16,9 @@ import { useChristmasAlive } from '../hooks/useChristmasAlive.js';
  * If these start changing more often, move them onto the Christmas Alive
  * `programs` record alongside the season window.
  */
-const SEASON = {
+export const SEASON = {
   portraitDate: 'Saturday, December 12',
-  portraitPhone: '240-394-7126',
+  portraitPhone: '240-367-9765',
   pickupDate: 'Saturday, December 19',
   venue: 'Restoration Church, 7899 Opossumtown Pike, Frederick',
   contactEmail: 'christmasalivemaryland@gmail.com',
@@ -72,9 +72,12 @@ export const SponsorGuide = ({ nested = false }) => (
         </li>
         <li>
           Let them know they can book a free family portrait on{' '}
-          {SEASON.portraitDate} by calling {SEASON.portraitPhone}. That number
-          is for booking portraits only — everything else goes to{' '}
-          {SEASON.contactEmail}.
+          {SEASON.portraitDate} by texting or calling {SEASON.portraitPhone}{' '}
+          (text preferred).{' '}
+          <strong>
+            This number is only for scheduling photos.
+          </strong>{' '}
+          For any other questions, email {SEASON.contactEmail}.
         </li>
       </ol>
     </Section>
@@ -116,18 +119,27 @@ export const SponsorGuide = ({ nested = false }) => (
           <dd className="m-0 max-w-prose">
             One or two gifts around {SEASON.giftValue} each — small items like
             socks, gloves, a wallet or toiletries, specific clothing or
-            household needs, or a gift card. If the family booked a portrait, an
-            8&times;10 frame is a thoughtful addition.
+            household needs, or a gift card.
           </dd>
         </div>
       </dl>
     </Section>
 
-    <Section nested={nested} title="Drop-off">
+    <Section nested={nested} title="Distribution Day!">
       <p className="m-0 max-w-prose">
-        Curb-side pickup is {SEASON.pickupDate} at {SEASON.venue}. You&rsquo;ll
-        be given a time frame, and you&rsquo;ll need your family number. Stay in
-        your car — we&rsquo;ll bring everything out to you.
+        Thanks to generous donations from several community partners, the
+        Waterboyz for Jesus provide food (including a frozen turkey) and hygiene
+        items for the sponsored families. Plan on picking these items up at{' '}
+        {SEASON.venue} on the morning of {SEASON.pickupDate}. You can then
+        deliver these along with the gifts you have provided.
+      </p>
+      <p className="m-0 max-w-prose">
+        About a week before, we&rsquo;ll text your arrival time window to the
+        phone number you gave when you sponsored your family. You&rsquo;ll need
+        your family number. Stay in your car — we&rsquo;ll bring everything
+        out to you. If for some reason you cannot pick up the food and hygiene
+        items, please arrange for someone to deliver items to your family — we
+        do not have staff available to deliver on your behalf.
       </p>
     </Section>
 
