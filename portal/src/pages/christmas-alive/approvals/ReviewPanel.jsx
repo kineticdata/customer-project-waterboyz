@@ -34,10 +34,24 @@ export const ReviewPanel = ({
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState('');
 
+  const [failure, setFailure] = useState(null);
+
+  // The WebAPI answers ok:false (e.g. APPROVE_FAILED, NOT_PENDING) rather than
+  // throwing. Keep the panel open and say so, instead of closing it as if the
+  // family had been approved.
   const run = async fn => {
     setBusy(true);
+    setFailure(null);
     try {
-      await fn();
+      const result = await fn();
+      if (result?.error || result?.ok === false) {
+        setFailure(
+          result?.reason === 'NOT_PENDING'
+            ? 'This family is no longer waiting for review. Refresh the page to see its current status.'
+            : 'That did not go through, and nothing was changed. Please try again; if it keeps failing, contact support.',
+        );
+        return;
+      }
       onDone();
     } finally {
       setBusy(false);
@@ -247,6 +261,12 @@ export const ReviewPanel = ({
             </div>
           )}
         </>
+      )}
+
+      {failure && (
+        <p role="alert" className="text-sm text-error m-0">
+          {failure}
+        </p>
       )}
 
       {row.status === CA_STATUS.ADOPTED && (

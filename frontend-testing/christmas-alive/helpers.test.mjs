@@ -463,3 +463,21 @@ test('nominationDefaults returns nothing for other forms or no profile', () => {
   assert.equal(nominationDefaults('swat-project-nomination', { username: 'a' }), undefined);
   assert.equal(nominationDefaults('christmas-alive-family-nomination', null), undefined);
 });
+
+// Approving creates the family record and allocates the family number, so it
+// must only ever happen through the approve WebAPI. On 2026-11-06, 125 rows
+// were set to Approved from this dropdown and went out to sponsors with no
+// number and no family details.
+test('manualStatusOptions never offers Approved to a row without a family number', async () => {
+  const { manualStatusOptions } = await import('../../portal/src/helpers/christmasAlive.js');
+  const pending = manualStatusOptions({ status: 'Pending', familyNumber: '' });
+  assert.ok(!pending.includes('Approved'));
+  assert.ok(!pending.includes('Adopted'));
+  assert.deepEqual(pending, ['Pending', 'Rejected']);
+});
+
+test('manualStatusOptions lets a numbered row go back to Approved, never straight to Adopted', async () => {
+  const { manualStatusOptions } = await import('../../portal/src/helpers/christmasAlive.js');
+  assert.deepEqual(manualStatusOptions({ status: 'Rejected', familyNumber: '12' }), ['Pending', 'Approved', 'Rejected']);
+  assert.deepEqual(manualStatusOptions({ status: 'Adopted', familyNumber: '12' }), ['Pending', 'Approved', 'Rejected', 'Adopted']);
+});

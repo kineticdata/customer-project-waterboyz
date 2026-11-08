@@ -35,8 +35,7 @@ the places below. Update them together:
 
 | Where | What to change |
 |---|---|
-| `portal/src/pages/christmas-alive/packet/Responsibilities.jsx` — the `SEASON` object | `portraitDate`, `portraitPhone`, `pickupDate`, `venue`, `contactEmail`, `giftValue`. This feeds the "What sponsors do" page **and** the guide printed at the end of every family packet |
-| `portal/src/pages/christmas-alive/packet/FamilyPacket.jsx` | The "Family portrait — Requested" line (`Saturday, Dec 12`) |
+| `portal/src/pages/christmas-alive/packet/Responsibilities.jsx` — the `SEASON` object | `portraitDate`, `portraitPhone` (portraits are booked by **text** — texting is preferred over calling; keep that wording), `pickupDate`, `venue`, `contactEmail`, `giftValue`. This feeds the "What sponsors do" page, the guide printed at the end of every family packet **and** the packet's "Family portrait — Requested" line |
 | `portal/src/helpers/christmasAlive.js` — `CA_WISH_LIST_URL` | The Amazon Wish List (food & hygiene for the families' boxes). Shown in the band on every Christmas Alive page, on the landing page, in the empty "Sponsor a family" list and beside the home-page Christmas Alive button. Check it still matches the season's flyer |
 | `email-templates/build.js` | The packet email (photo + pickup), the nudge email (pickup), and the pickup reminder (pickup heading). Search for the old dates |
 
@@ -111,8 +110,8 @@ Homecoming Red, Evergreen, Hearth Gold, Frost Cream).
 
 | Slug | Policy | Does |
 |---|---|---|
-| `christmas-alive-approve` | Christmas Alive Admins | Approve (creates the family, allocates the family number) or reject |
-| `christmas-alive-claim` | Authenticated Users | Claim a family; requires sponsor name + 10-digit phone (`CONTACT_REQUIRED` otherwise); `ALREADY_CLAIMED` if someone beat them to it |
+| `christmas-alive-approve` | Christmas Alive Admins | Approve (creates the family, allocates the family number) or reject. **The only way a row gets a number** — never set Status to Approved by hand. Guards: a row that already has a number is never given another; an Approved/Adopted row with no number is repaired by calling approve again (Adopted is kept); returns `APPROVE_FAILED` and leaves the row alone if the family record or number didn't come back |
+| `christmas-alive-claim` | Authenticated Users | Claim a family; requires sponsor name + 10-digit phone (`CONTACT_REQUIRED` otherwise); `ALREADY_CLAIMED` if someone beat them to it; `NOT_AVAILABLE` unless the row is Approved **and has a family number** |
 | `christmas-alive-packet` | Authenticated Users | Packet data — only for the sponsor of record or an admin |
 
 **Workflows**
@@ -141,6 +140,9 @@ Admins, team fixed inside each operation).
 **User attributes** — `CA Nominator Phone Number`, `CA Nominator Organization`.
 
 ## Known limits / follow-ups
+
+- **2026-11-08 incident — rows approved by hand.** On 2026-11-06, 125 families were set to Approved from the All families status dropdown. That skipped the approve WebAPI, so no family record or number was created; 5 were claimed and those sponsors got packets with no number or details. Repaired 2026-11-08 by calling the approve WebAPI for each row (families #25–#154, the 5 sponsored ones #26–#30, their packets re-sent). Since then: the dropdown no longer offers Approved for a row without a number (`manualStatusOptions`), approve and claim are guarded as above, and the Approvals page shows a failed approval instead of closing. Backup of every season row taken before the repair: `platform-backups/christmas-alive-2026-11-08-sponsorships-pre-number-repair.json`.
+- **Re-sending a packet** re-arms the 7-day nudge too, so the sponsor gets a second check-in. Clear `Packet Sent At` with a **PUT** (the portal's `updateSubmission`) — a PATCH clears the field but does not fire the Submission Updated workflows.
 
 - **Event details are hard-coded** — see checklist step 2.
 - **`Affiliates Retrieve`** (Nominating Organization dropdown) sets no limit, so the platform default of **25** applies. Fine at 8 affiliates; add a limit before the list grows past 25. The operation is shared with the volunteers form.

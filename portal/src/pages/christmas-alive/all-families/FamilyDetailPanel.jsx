@@ -3,6 +3,7 @@ import t from 'prop-types';
 import {
   CA_STATUS,
   describeHousehold,
+  manualStatusOptions,
   parseRoster,
   rosterProblems,
   serializeRoster,
@@ -89,6 +90,9 @@ export const FamilyDetailPanel = ({ row, onSaveFamily, onSaveSponsorship, saving
   };
 
   const saveStatus = async () => {
+    // Belt and braces: the select only offers manualStatusOptions, but never
+    // write a status the rules don't allow for this row.
+    if (!manualStatusOptions(row).includes(status)) return;
     const result = await onSaveSponsorship(row.id, { Status: status });
     setMessage(
       result?.error
@@ -215,7 +219,7 @@ export const FamilyDetailPanel = ({ row, onSaveFamily, onSaveSponsorship, saving
               onChange={e => setStatus(e.target.value)}
               disabled={saving}
             >
-              {Object.values(CA_STATUS).map(s => (
+              {manualStatusOptions(row).map(s => (
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
@@ -229,6 +233,12 @@ export const FamilyDetailPanel = ({ row, onSaveFamily, onSaveSponsorship, saving
             Change status
           </button>
         </div>
+        {!row.familyNumber && (
+          <p className="text-xs text-base-content/70 m-0">
+            To approve this family, use the Approvals page — approving is what
+            creates the family record and assigns its family number.
+          </p>
+        )}
 
         <SponsorControls
           row={row}

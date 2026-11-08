@@ -15,6 +15,25 @@ export const CA_STATUS = {
 };
 
 /**
+ * Statuses an admin may set by hand from All families.
+ *
+ * Approved is only offered once the row has a family number: approving is what
+ * creates the family record and allocates that number, and only the approve
+ * WebAPI (Approvals page) does it. Setting the status by hand skipped all of
+ * that -- on 2026-11-06 125 rows were "approved" this way and their sponsors
+ * were emailed packets with no number and no family details. Adopted is never
+ * offered; it is set by a claim or by the sponsor controls. The row's current
+ * status is always included so the select can show it.
+ */
+export const manualStatusOptions = row => {
+  const options = [CA_STATUS.PENDING];
+  if (String(row?.familyNumber ?? '').trim()) options.push(CA_STATUS.APPROVED);
+  options.push(CA_STATUS.REJECTED);
+  if (row?.status && !options.includes(row.status)) options.push(row.status);
+  return options;
+};
+
+/**
  * The Christmas Alive Amazon Wish List: shelf-stable food and hygiene supplies
  * for the families' Christmas boxes, shipped straight to Waterboyz. Anyone can
  * give through it -- no account and no sponsored family needed. Comes from the

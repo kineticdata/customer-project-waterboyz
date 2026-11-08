@@ -37,3 +37,4 @@ await fetch('/app/api/v1/kapps/service-portal/forms/families', {
 | File | Taken | Why |
 |---|---|---|
 | `families-2026-09-09-pre-roster.json` | 2026-09-09 | Before adding `Family Members JSON` and `Test Fixture`. 24,165 bytes, 12 fields, 2 event handlers (7,534 + 2,298 chars of JS). **Currently sits in ~/Downloads — macOS blocks Terminal from reading that folder, so it needs moving in by hand.** |
+| `christmas-alive-2026-11-08-sponsorships-pre-number-repair.json` | 2026-11-08 | **Local only, not in git (holds sponsor names, emails and phones).** Every 2026 `christmas-alive-sponsorships` row (212) before re-running approval on the 129 rows that were Approved/Adopted with no family number. Submission data, not a form definition. |
